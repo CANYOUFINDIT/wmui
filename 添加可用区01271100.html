@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新增可用区 V1.3 - Hybrid Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        body { background: #f8fafc; font-family: 'Inter', -apple-system, sans-serif; }
+        
+        .main-card { background: #ffffff; border: 1px solid #f1f5f9; }
+        .input-glow:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08); outline: none; }
+        
+        .tab-btn { transition: all 0.2s ease; }
+        .tab-btn.active { background: #ffffff; color: #2563eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        
+        .required-dot::after { content: ' *'; color: #ef4444; }
+        .business-tip { background: #fffbeb; border: 1px solid #fef3c7; }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="main-card w-full max-w-[600px] rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+        
+        <div class="px-8 py-6 flex justify-between items-center border-b border-slate-50">
+            <div>
+                <h2 class="text-xl font-semibold text-slate-800">新增可用区</h2>
+                <p class="text-xs text-slate-400 mt-1">Availability Zone Configuration</p>
+            </div>
+            <button class="p-2 hover:bg-slate-50 rounded-lg transition-colors text-slate-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="2" stroke-linecap="round"></path></svg>
+            </button>
+        </div>
+
+        <div class="px-8 pt-6 pb-8">
+            <div class="business-tip rounded-xl p-4 mb-8 flex gap-3">
+                <div class="mt-0.5">
+                    <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="text-sm leading-relaxed text-amber-800">
+                    可用区是算力调度的核心边界。创建后 <span class="font-bold underline decoration-amber-300">所属地域</span> 与 <span class="font-bold underline decoration-amber-300">可用区 ID</span> 将无法修改。请确保已明确对应的集群规划及算力类型。
+                </div>
+            </div>
+
+            <form class="space-y-6">
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2 required-dot">所属地域</label>
+                        <div class="relative">
+                            <select class="w-full bg-slate-50 border border-slate-200 text-slate-500 rounded-xl px-4 py-2.5 cursor-not-allowed appearance-none text-sm">
+                                <option>武汉 (Wuhan)</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                                <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2 required-dot">可用区 ID</label>
+                        <input type="text" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 input-glow transition-all text-sm placeholder:text-slate-300" placeholder="如: zone-a">
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <label class="block text-sm font-medium text-slate-700 required-dot">显示名称</label>
+                    <div class="bg-slate-100/80 p-1 rounded-xl flex w-fit min-w-[200px]">
+                        <button type="button" class="tab-btn active px-6 py-1.5 text-xs font-medium rounded-lg">English</button>
+                        <button type="button" class="tab-btn px-6 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-700 rounded-lg">中文简体</button>
+                    </div>
+                    <div class="relative">
+                        <input type="text" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 input-glow transition-all text-sm" placeholder="请输入在 English 环境下的显示名称">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">描述说明</label>
+                    <textarea class="w-full border border-slate-200 rounded-xl px-4 py-2.5 h-24 resize-none input-glow transition-all text-sm placeholder:text-slate-300" placeholder="可选，简述该可用区的算力资源构成..."></textarea>
+                </div>
+            </form>
+        </div>
+
+        <div class="px-8 py-5 bg-slate-50 border-t border-slate-100 flex justify-end items-center gap-3">
+            <button class="px-6 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors">取消</button>
+            <button class="px-10 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-blue-100 active:scale-[0.98]">
+                提交创建
+            </button>
+        </div>
+    </div>
+
+</body>
+</html>

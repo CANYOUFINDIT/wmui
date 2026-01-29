@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wanmore Console - V3.5 (UI Polish)</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4C5DF7',
+                        'primary-hover': '#3b49c7',
+                        'primary-light': '#EEF0FF',
+                        surface: '#FFFFFF',
+                        background: '#F5F7FA',
+                        border: '#E4E7ED',
+                        text: { main: '#303133', regular: '#606266', secondary: '#909399', placeholder: '#C0C4CC' },
+                        success: '#67C23A',
+                        warning: '#E6A23C',
+                        error: '#F56C6C',
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', '"Noto Sans SC"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace']
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03)',
+                        'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                        'drawer': '-5px 0 25px rgba(0,0,0,0.1)'
+                    },
+                    zIndex: {
+                        'drawer': '40',
+                        'drawer-backdrop': '30',
+                        'modal': '60',
+                        'modal-backdrop': '50'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { -webkit-font-smoothing: antialiased; }
+        .wm-input { transition: all 0.2s; color: var(--text-main); }
+        .wm-input:focus { border-color: #4C5DF7; outline: none; box-shadow: 0 0 0 2px rgba(76, 93, 247, 0.2); }
+        .wm-input:disabled { background-color: #F5F7FA; cursor: not-allowed; color: #C0C4CC; }
+        .wm-input.error { border-color: #F56C6C; }
+        .wm-input.error:focus { box-shadow: 0 0 0 2px rgba(245, 108, 108, 0.2); }
+
+        .wm-th { font-size: 12px; font-weight: 600; color: #606266; background-color: #F8F9FB; white-space: nowrap; padding: 12px 16px; border-bottom: 1px solid #EBEEF5; }
+        .wm-td { padding: 12px 16px; font-size: 14px; border-bottom: 1px solid #EBEEF5; color: #606266; }
+        
+        .status-dot { height: 6px; width: 6px; border-radius: 50%; display: inline-block; margin-right: 6px; margin-bottom: 1px; }
+        .status-normal { background-color: #67C23A; box-shadow: 0 0 0 2px rgba(103, 194, 58, 0.2); }
+        .status-invalid { background-color: #F56C6C; box-shadow: 0 0 0 2px rgba(245, 108, 108, 0.2); }
+        
+        .card-status-strip { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-top-left-radius: 0.5rem; border-bottom-left-radius: 0.5rem; }
+        .bg-normal { background-color: var(--success); }
+        .bg-invalid { background-color: var(--error); }
+
+        .modal-enter { animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes modalPop { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+        .tooltip-arrow { position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #1F2937 transparent transparent transparent; }
+        
+        /* Spinner */
+        .spinner { border: 2px solid rgba(255,255,255,0.3); border-left-color: #ffffff; border-radius: 50%; width: 14px; height: 14px; animation: spin 1s linear infinite; }
+        .spinner-indigo { border: 2px solid rgba(76, 93, 247, 0.1); border-left-color: #4C5DF7; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-background text-text-main h-screen flex flex-col overflow-hidden relative">
+
+    <header class="h-14 bg-white border-b border-border flex items-center justify-between px-6 shadow-sm z-20 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded bg-primary flex items-center justify-center text-white font-bold text-lg">W</div>
+            <span class="font-bold text-lg text-gray-800 tracking-tight">Wanmore Console</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <button onclick="toggleLanguage()" class="flex items-center gap-2 text-xs font-medium text-text-regular hover:text-primary transition-colors px-2 py-1 rounded hover:bg-gray-50 border border-transparent hover:border-gray-200">
+                <i class="fa-solid fa-globe"></i>
+                <span id="lang-display">English</span>
+            </button>
+            <div class="h-4 w-px bg-gray-200"></div>
+            <span class="text-xs px-2 py-1 bg-gray-50 rounded text-text-secondary border border-gray-200 font-medium" data-i18n="role_admin">Infrastructure Admin</span>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        <aside class="w-60 bg-white border-r border-border flex flex-col z-10 hidden md:flex">
+            <nav class="flex-1 py-6 px-3 space-y-1">
+                <div class="px-3 mb-2 text-[10px] font-bold text-text-secondary uppercase tracking-wider opacity-80" data-i18n="menu_group_infra">Infrastructure</div>
+                <a href="#" class="group flex items-center px-3 py-2.5 text-sm font-medium text-primary bg-primary-light rounded-md border-l-4 border-primary shadow-sm">
+                    <i class="fa-solid fa-cube w-5 text-center mr-2"></i>
+                    <span data-i18n="menu_img_comp">镜像组件</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto bg-background p-6 relative">
+            
+            <div id="view-dashboard" class="max-w-7xl mx-auto">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900 tracking-tight" data-i18n="page_title">镜像组件管理</h1>
+                        <p class="text-xs text-text-secondary mt-1" data-i18n="page_subtitle">管理 Harbor 镜像仓库接入点及配额策略</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="bg-white border border-border rounded-md p-1 flex items-center shadow-sm">
+                            <button onclick="switchLayout('card')" id="btn-layout-card" class="p-1.5 rounded text-gray-400 hover:text-primary transition-colors active text-primary bg-blue-50"><i class="fa-solid fa-border-all text-sm"></i></button>
+                            <button onclick="switchLayout('list')" id="btn-layout-list" class="p-1.5 rounded text-gray-400 hover:text-primary transition-colors"><i class="fa-solid fa-list text-sm"></i></button>
+                        </div>
+                        <button onclick="toggleView('create')" class="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm flex items-center gap-2 transition-all active:scale-95">
+                            <i class="fa-solid fa-plus text-xs"></i>
+                            <span data-i18n="btn_create">接入镜像组件</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="layout-table" class="bg-white border border-border rounded-lg shadow-card overflow-hidden hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr>
+                                    <th class="wm-th" data-i18n="th_name">组件名称</th>
+                                    <th class="wm-th" data-i18n="th_desc">描述</th>
+                                    <th class="wm-th" data-i18n="th_endpoint">Endpoint (公网)</th>
+                                    <th class="wm-th" data-i18n="th_status">状态</th>
+                                    <th class="wm-th" data-i18n="th_region">关联地域</th>
+                                    <th class="wm-th" data-i18n="th_created">注册时间</th>
+                                    <th class="wm-th text-right" data-i18n="th_action">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white">
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="wm-td font-medium text-gray-900">sh-harbor-core</td>
+                                    <td class="wm-td text-xs text-text-secondary max-w-[150px] truncate" title="上海核心研发集群主镜像仓库">上海核心研发集群主镜像仓库</td>
+                                    <td class="wm-td font-mono text-xs text-text-regular">registry.sh.wanmore.com</td>
+                                    <td class="wm-td"><div class="flex items-center text-xs"><span class="status-dot status-normal"></span><span data-i18n="status_normal">正常</span></div></td>
+                                    <td class="wm-td"><span class="bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded text-xs text-gray-600">cn-shanghai</span></td>
+                                    <td class="wm-td text-xs text-text-secondary font-mono">2025-12-10 09:30</td>
+                                    <td class="wm-td text-right whitespace-nowrap">
+                                        <button onclick="openModal('default')" class="text-primary hover:text-primary-hover font-medium text-xs mr-3" data-i18n="act_default">默认额度</button>
+                                        <button onclick="openDrawer()" class="text-primary hover:text-primary-hover font-medium text-xs mr-3" data-i18n="act_quota_list">租户额度</button>
+                                        <button onclick="openModal('delete')" class="text-text-secondary hover:text-red-600 font-medium text-xs" data-i18n="act_delete">删除</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="layout-card" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-lg border border-border shadow-card hover:shadow-card-hover transition-all relative group flex flex-col h-[300px]">
+                        <div class="card-status-strip bg-normal"></div>
+                        <div class="p-5 pl-7 flex-1 flex flex-col">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h3 class="font-bold text-gray-900 text-base">sh-harbor-core</h3>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-green-50 text-green-700 border border-green-100"><span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span><span data-i18n="status_normal">正常</span></span>
+                                    </div>
+                                    <div class="text-xs text-text-secondary font-mono truncate max-w-[180px]">registry.sh.wanmore.com</div>
+                                </div>
+                                <span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-100">HARBOR</span>
+                            </div>
+                            <div class="mb-4">
+                                <div class="text-[10px] uppercase text-text-secondary tracking-wider mb-1 opacity-80" data-i18n="th_desc">描述</div>
+                                <p class="text-xs text-text-regular line-clamp-2 h-8 leading-4">上海核心研发集群主镜像仓库，承载 AI 训练与推理业务。</p>
+                            </div>
+                            <div class="grid grid-cols-2 gap-y-3 gap-x-2 mt-auto mb-2">
+                                <div><div class="text-[10px] uppercase text-text-secondary tracking-wider mb-0.5" data-i18n="lbl_ip">内网 IP</div><div class="text-xs font-mono text-text-regular">10.20.4.55</div></div>
+                                <div><div class="text-[10px] uppercase text-text-secondary tracking-wider mb-0.5" data-i18n="lbl_region">关联地域</div><div class="text-xs text-text-regular">cn-shanghai</div></div>
+                                <div><div class="text-[10px] uppercase text-text-secondary tracking-wider mb-0.5" data-i18n="lbl_created">注册时间</div><div class="text-xs font-mono text-text-secondary">2025-12-10</div></div>
+                                <div><div class="text-[10px] uppercase text-text-secondary tracking-wider mb-0.5" data-i18n="lbl_updated">更新时间</div><div class="text-xs font-mono text-text-secondary">2026-01-27</div></div>
+                            </div>
+                        </div>
+                        <div class="px-5 py-3 border-t border-gray-50 flex justify-end gap-3 text-xs bg-gray-50/50 rounded-b-lg">
+                            <button onclick="openModal('default')" class="text-text-regular hover:text-primary font-medium transition-colors" data-i18n="act_default">默认额度</button>
+                            <div class="w-px h-3 bg-gray-200 my-auto"></div>
+                            <button onclick="openDrawer()" class="text-text-regular hover:text-primary font-medium transition-colors" data-i18n="act_quota_list">租户额度</button>
+                            <div class="w-px h-3 bg-gray-200 my-auto"></div>
+                            <button onclick="openModal('delete')" class="text-text-secondary hover:text-red-600 font-medium transition-colors" data-i18n="act_delete">删除</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-create" class="hidden max-w-3xl mx-auto pb-20">
+                <div class="mb-5 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900" data-i18n="form_title">接入 Harbor 镜像组件</h2>
+                        <p class="text-xs text-text-secondary mt-1" data-i18n="form_subtitle">配置私有 Harbor 仓库的连接信息与认证凭证</p>
+                    </div>
+                    <button onclick="toggleView('list')" class="text-xs text-text-regular hover:text-primary flex items-center gap-1 group">
+                        <i class="fa-solid fa-xmark transition-transform group-hover:rotate-90"></i>
+                        <span data-i18n="btn_cancel">取消</span>
+                    </button>
+                </div>
+
+                <div class="bg-white border border-border rounded-lg shadow-card p-8">
+                    <div class="space-y-6 mb-8">
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wide border-b border-gray-100 pb-2" data-i18n="sec_basic">基础信息</h3>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5" data-i18n="label_type">仓库类型</label>
+                            <div class="relative"><div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i class="fa-solid fa-cube text-gray-400"></i></div><input type="text" value="Harbor" disabled class="wm-input w-full pl-9 pr-3 py-2 border border-gray-300 rounded text-sm bg-gray-50 text-gray-500 font-medium cursor-not-allowed"><div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none"><i class="fa-solid fa-lock text-gray-400 text-xs"></i></div></div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5"><span class="text-red-500 mr-1">*</span><span data-i18n="label_name">组件名称</span></label>
+                            <input type="text" id="input-name" oninput="validateName(this)" class="wm-input w-full px-3 py-2 border border-gray-300 rounded text-sm font-mono" placeholder="e.g. shanghai-harbor-v1">
+                            <div id="name-error-msg" class="hidden flex items-center gap-1 mt-1.5 text-xs text-red-500 font-medium"><i class="fa-solid fa-circle-exclamation"></i><span data-i18n="err_name_fmt">格式错误：不支持大写字母或特殊字符</span></div>
+                            <p class="mt-1.5 text-xs text-text-secondary flex items-start gap-1"><i class="fa-solid fa-info-circle mt-0.5 text-gray-400"></i><span data-i18n="rule_name">长度 3-63 字符，仅支持小写字母、数字、点 (.) 和连字符 (-)</span></p>
+                        </div>
+                    </div>
+                    <div class="space-y-6 mb-8">
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wide border-b border-gray-100 pb-2" data-i18n="sec_net">网络连接</h3>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5"><span class="text-red-500 mr-1">*</span><span data-i18n="label_endpoint">Endpoint (公网地址)</span></label>
+                            <input type="text" oninput="resetTest()" class="wm-input watch-change w-full px-3 py-2 border border-gray-300 rounded text-sm font-mono" placeholder="https://registry.example.com">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5"><span class="text-red-500 mr-1">*</span><span data-i18n="label_ip">内网 IP 地址</span></label>
+                            <input type="text" oninput="resetTest()" class="wm-input watch-change w-full px-3 py-2 border border-gray-300 rounded text-sm font-mono" placeholder="e.g. 192.168.1.100">
+                        </div>
+                    </div>
+                    <div class="space-y-6 mb-8">
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wide border-b border-gray-100 pb-2" data-i18n="sec_auth">安全认证</h3>
+                        <div class="bg-orange-50 border border-orange-100 rounded p-3 mb-4 flex gap-3">
+                            <i class="fa-solid fa-triangle-exclamation text-orange-500 mt-0.5 text-sm"></i>
+                            <div class="text-xs text-orange-800 leading-relaxed" data-i18n="hint_admin_auth">
+                                必须使用 Harbor <strong>管理员账号 (Admin)</strong>。平台需要管理员权限来自动创建项目及管理租户配额。
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div><label class="block text-sm font-medium text-gray-700 mb-1.5"><span class="text-red-500 mr-1">*</span><span data-i18n="label_user">用户名</span></label><input type="text" oninput="resetTest()" class="wm-input watch-change w-full px-3 py-2 border border-gray-300 rounded text-sm" placeholder="e.g. admin" autocomplete="off"></div>
+                            <div><label class="block text-sm font-medium text-gray-700 mb-1.5"><span class="text-red-500 mr-1">*</span><span data-i18n="label_pass">密码</span></label><input type="password" oninput="resetTest()" class="wm-input watch-change w-full px-3 py-2 border border-gray-300 rounded text-sm" placeholder="Admin Password" autocomplete="new-password"></div>
+                        </div>
+                        
+                        <div class="flex items-center gap-4 mt-3">
+                            <button onclick="testConnection()" id="btn-test" class="px-4 py-2 bg-indigo-50 border border-indigo-200 text-indigo-600 rounded text-sm font-medium hover:bg-indigo-100 flex items-center gap-2 transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed">
+                                <i class="fa-solid fa-plug text-sm"></i>
+                                <span id="btn-test-text" data-i18n="btn_test_conn">测试连接</span>
+                            </button>
+                            
+                            <div id="test-success" class="hidden animate-fade-in flex items-center">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                    <i class="fa-solid fa-circle-check mr-1.5"></i>
+                                    <span data-i18n="msg_test_success">连接成功</span>
+                                </span>
+                            </div>
+                            
+                            <div id="test-error" class="hidden animate-fade-in flex items-center">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+                                    <i class="fa-solid fa-circle-xmark mr-1.5"></i>
+                                    <span>Failed: 401 Unauthorized</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="border-t border-gray-100 pt-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5" data-i18n="label_desc">描述信息</label>
+                            <textarea class="wm-input w-full px-3 py-2 border border-gray-300 rounded text-sm h-20 resize-none" placeholder="..." data-i18n-ph="ph_desc"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-gray-100 flex justify-end gap-3">
+                        <button onclick="toggleView('list')" class="px-5 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors" data-i18n="btn_cancel">取消</button>
+                        <button id="btn-save" class="px-5 py-2 text-sm text-white bg-primary rounded hover:bg-primary-hover shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed" data-i18n="btn_save" disabled>保存配置</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="modal-backdrop" class="hidden fixed inset-0 bg-gray-900 bg-opacity-40 z-modal-backdrop backdrop-blur-sm transition-opacity"></div>
+    <div id="drawer-backdrop" class="fixed inset-0 bg-gray-900 bg-opacity-40 z-drawer-backdrop hidden transition-opacity" onclick="closeDrawer()"></div>
+    <div id="drawer-panel" class="fixed inset-y-0 right-0 z-drawer w-[600px] bg-white shadow-drawer transform translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white">
+            <h3 class="font-bold text-gray-900 text-base" data-i18n="modal_list_title">租户额度配置列表</h3>
+            <div class="flex items-center gap-4">
+                <button onclick="openModal('tenant')" class="px-3 py-1.5 bg-primary text-white text-xs font-medium rounded hover:bg-primary-hover shadow-sm flex items-center gap-1 transition-colors"><i class="fa-solid fa-plus"></i> <span data-i18n="btn_add_quota">新增额度</span></button>
+                <div class="h-4 w-px bg-gray-200"></div>
+                <button onclick="closeDrawer()" class="text-gray-400 hover:text-gray-600 p-1 transition-colors"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+        </div>
+        <div class="px-6 py-3 border-b border-gray-50 bg-gray-50/50">
+            <div class="relative"><i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i><input type="text" id="tenant-search" oninput="filterTenants(this.value)" class="wm-input w-full pl-9 pr-3 py-2 border border-gray-200 rounded text-sm bg-white" placeholder="Search Tenant Name..." data-i18n-ph="ph_search_tenant"></div>
+        </div>
+        <div class="flex-1 overflow-y-auto">
+            <table class="w-full text-left"><thead class="bg-gray-50 border-b border-gray-100 text-xs text-gray-500 font-medium sticky top-0 z-10"><tr><th class="px-6 py-3" data-i18n="th_tenant">租户名称</th><th class="px-6 py-3" data-i18n="th_storage">存储容量上限</th><th class="px-6 py-3" data-i18n="th_proj_num">最大项目数量</th><th class="px-6 py-3 text-right" data-i18n="th_action">操作</th></tr></thead><tbody class="divide-y divide-gray-100 text-sm" id="tenant-list-body"><tr class="tenant-row"><td class="px-6 py-4 font-medium text-gray-900">Tenant A (Finance)</td><td class="px-6 py-4 text-gray-600">500 GB</td><td class="px-6 py-4 text-gray-600">20</td><td class="px-6 py-4 text-right whitespace-nowrap"><button class="text-primary hover:text-primary-hover mr-3 font-medium text-xs" data-i18n="btn_edit">编辑</button><button class="text-red-600 hover:text-red-800 font-medium text-xs" data-i18n="btn_del_conf">删除配置</button></td></tr></tbody></table><div id="no-results" class="hidden p-8 text-center text-gray-400 text-sm">No matching tenants found.</div>
+        </div>
+    </div>
+    <div id="modal-default" class="hidden fixed inset-0 z-modal flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-modal w-full max-w-md modal-enter overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50"><h3 class="font-bold text-gray-900" data-i18n="modal_default_title">设置默认额度</h3><button onclick="closeModals()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="p-6 space-y-6">
+                <div class="bg-blue-50 p-3 rounded text-xs text-blue-700 leading-relaxed border border-blue-100"><i class="fa-solid fa-circle-info mr-1"></i><span data-i18n="hint_default"></span></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1.5" data-i18n="lbl_capacity">Storage Limit</label><div class="flex shadow-sm rounded-md"><input type="number" class="wm-input flex-1 block w-full px-3 py-2 rounded-l border border-gray-300 text-sm" placeholder="0"><select class="wm-input px-3 py-2 border-l-0 border border-gray-300 bg-gray-50 text-gray-700 text-sm rounded-r w-24"><option>GB</option><option>MB</option><option>TB</option></select></div></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1.5" data-i18n="lbl_count">Max Projects</label><input type="number" class="wm-input w-full px-3 py-2 border border-gray-300 rounded text-sm" placeholder="e.g. 10"></div>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 flex justify-end gap-3 border-t border-gray-100"><button onclick="closeModals()" class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-100" data-i18n="btn_cancel">取消</button><button onclick="closeModals()" class="px-4 py-2 text-sm text-white bg-primary rounded hover:bg-primary-hover shadow-sm" data-i18n="btn_confirm">保存配置</button></div>
+        </div>
+    </div>
+    <div id="modal-tenant" class="hidden fixed inset-0 z-modal flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-modal w-full max-w-md modal-enter overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50"><h3 class="font-bold text-gray-900" data-i18n="modal_tenant_title">设置租户额度</h3><button onclick="closeModals()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="p-6 space-y-6">
+                <div class="bg-orange-50 p-3 rounded text-xs text-orange-800 leading-relaxed border border-orange-100"><i class="fa-solid fa-triangle-exclamation mr-1"></i><span data-i18n="hint_tenant"></span></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1.5"><span class="text-red-500 mr-1">*</span><span data-i18n="lbl_select_tenant">选择租户</span></label><select class="wm-input w-full px-3 py-2 border border-gray-300 rounded text-sm bg-white"><option value="" disabled selected>-- Select Tenant --</option><option value="t1">Tenant A</option><option value="t2">Tenant B</option></select></div>
+                <div class="border-t border-gray-100"></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1.5" data-i18n="lbl_capacity">Storage Limit</label><div class="flex shadow-sm rounded-md"><input type="number" class="wm-input flex-1 block w-full px-3 py-2 rounded-l border border-gray-300 text-sm" placeholder="100"><select class="wm-input px-3 py-2 border-l-0 border border-gray-300 bg-gray-50 text-gray-700 text-sm rounded-r w-24"><option>GB</option><option>MB</option><option>TB</option></select></div></div>
+                <div><label class="block text-sm font-medium text-gray-700 mb-1.5" data-i18n="lbl_count">Max Projects</label><input type="number" class="wm-input w-full px-3 py-2 border border-gray-300 rounded text-sm" placeholder="e.g. 5"></div>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 flex justify-end gap-3 border-t border-gray-100"><button onclick="closeModals()" class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-100" data-i18n="btn_cancel">取消</button><button onclick="closeModals()" class="px-4 py-2 text-sm text-white bg-primary rounded hover:bg-primary-hover shadow-sm" data-i18n="btn_confirm">保存配置</button></div>
+        </div>
+    </div>
+    <div id="modal-delete" class="hidden fixed inset-0 z-modal flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-modal w-full max-w-sm modal-enter overflow-hidden">
+            <div class="p-6 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4"><i class="fa-solid fa-triangle-exclamation text-red-600 text-xl"></i></div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2" data-i18n="modal_del_title">确认删除?</h3>
+                <p class="text-sm text-gray-500" data-i18n="modal_del_text">此操作将移除该镜像组件的配置。关联的地域将无法继续拉取镜像。此操作不可恢复。</p>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 flex justify-center gap-3 border-t border-gray-100"><button onclick="closeModals()" class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-100 w-full" data-i18n="btn_cancel">取消</button><button onclick="closeModals()" class="px-4 py-2 text-sm text-white bg-red-600 rounded hover:bg-red-700 shadow-sm w-full" data-i18n="act_delete">删除</button></div>
+        </div>
+    </div>
+
+    <script>
+        function switchLayout(mode) {
+            const tableEl = document.getElementById('layout-table'); const cardEl = document.getElementById('layout-card'); const btnTable = document.getElementById('btn-layout-list'); const btnCard = document.getElementById('btn-layout-card');
+            if (mode === 'list') { cardEl.classList.add('hidden'); tableEl.classList.remove('hidden'); btnTable.classList.add('text-primary', 'bg-blue-50'); btnTable.classList.remove('text-gray-400'); btnCard.classList.remove('text-primary', 'bg-blue-50'); btnCard.classList.add('text-gray-400'); } else { tableEl.classList.add('hidden'); cardEl.classList.remove('hidden'); btnCard.classList.add('text-primary', 'bg-blue-50'); btnCard.classList.remove('text-gray-400'); btnTable.classList.remove('text-primary', 'bg-blue-50'); btnTable.classList.add('text-gray-400'); }
+        }
+        function toggleView(view) {
+            const index = document.getElementById('view-dashboard'); const create = document.getElementById('view-create');
+            if(view === 'create') { index.classList.add('hidden'); create.classList.remove('hidden'); } else { create.classList.add('hidden'); index.classList.remove('hidden'); resetTest(); }
+        }
+        function openModal(type) {
+            document.getElementById('modal-backdrop').classList.remove('hidden');
+            if (type === 'default') document.getElementById('modal-default').classList.remove('hidden');
+            if (type === 'tenant') document.getElementById('modal-tenant').classList.remove('hidden');
+            if (type === 'delete') document.getElementById('modal-delete').classList.remove('hidden');
+        }
+        function closeModals() {
+            document.getElementById('modal-backdrop').classList.add('hidden');
+            document.querySelectorAll('[id^="modal-"]').forEach(el => { if(el.id !== 'modal-backdrop') el.classList.add('hidden'); });
+        }
+        function openDrawer() { document.getElementById('drawer-backdrop').classList.remove('hidden'); document.getElementById('drawer-panel').classList.remove('translate-x-full'); document.getElementById('tenant-search').value = ''; filterTenants(''); }
+        function closeDrawer() { document.getElementById('drawer-backdrop').classList.add('hidden'); document.getElementById('drawer-panel').classList.add('translate-x-full'); }
+        function filterTenants(query) {
+            const rows = document.querySelectorAll('.tenant-row'); const noResults = document.getElementById('no-results'); let hasVisible = false; const q = query.toLowerCase();
+            rows.forEach(row => { const name = row.querySelector('td').textContent.toLowerCase(); if (name.includes(q)) { row.classList.remove('hidden'); hasVisible = true; } else { row.classList.add('hidden'); } });
+            if (!hasVisible) noResults.classList.remove('hidden'); else noResults.classList.add('hidden');
+        }
+        function validateName(input) {
+            const value = input.value; const errorMsg = document.getElementById('name-error-msg'); const regex = /^[a-z0-9.-]*$/;
+            if (!regex.test(value)) { input.classList.add('error'); errorMsg.classList.remove('hidden'); } else { input.classList.remove('error'); errorMsg.classList.add('hidden'); }
+        }
+
+        // Connection Test Logic
+        function testConnection() {
+            const btn = document.getElementById('btn-test'); const btnText = document.getElementById('btn-test-text'); const successMsg = document.getElementById('test-success'); const errorMsg = document.getElementById('test-error'); const saveBtn = document.getElementById('btn-save');
+            successMsg.classList.add('hidden'); errorMsg.classList.add('hidden'); btn.disabled = true;
+            btnText.innerHTML = '<div class="spinner spinner-indigo"></div> <span class="ml-2">Testing...</span>';
+            setTimeout(() => {
+                const isSuccess = Math.random() > 0.3;
+                btn.disabled = false; btnText.textContent = currentLang === 'zh' ? '测试连接' : 'Test Connection';
+                if(isSuccess) { successMsg.classList.remove('hidden'); saveBtn.disabled = false; } else { errorMsg.classList.remove('hidden'); saveBtn.disabled = true; }
+            }, 1000);
+        }
+        function resetTest() { document.getElementById('test-success').classList.add('hidden'); document.getElementById('test-error').classList.add('hidden'); document.getElementById('btn-save').disabled = true; }
+
+        let currentLang = 'zh';
+        const i18n = {
+            zh: {
+                role_admin: '基础设施管理员', page_title: '镜像组件管理', page_subtitle: '管理 Harbor 镜像仓库接入点及配额策略', btn_create: '接入镜像组件',
+                th_name: '组件名称', th_desc: '描述', th_endpoint: 'Endpoint (公网)', th_status: '状态', th_region: '关联地域', th_created: '注册时间', th_action: '操作',
+                status_normal: '正常', status_invalid: '失效', lbl_ip: '内网 IP', lbl_region: '关联地域', lbl_created: '注册时间', lbl_updated: '更新时间', lbl_reason: '失效原因',
+                act_default: '默认额度', act_quota_list: '租户额度', act_delete: '删除',
+                form_title: '接入 Harbor 镜像组件', form_subtitle: '配置私有 Harbor 仓库的连接信息与认证凭证', btn_cancel: '取消', btn_confirm: '保存配置',
+                modal_default_title: '设置默认额度', hint_default: '全局默认配额。若租户未配置专属额度，将使用此限制。<br><b>注：若不设置，则存储容量和项目数量上限均无限制。</b>', lbl_capacity: 'Storage Limit', lbl_count: 'Max Projects',
+                modal_tenant_title: '设置租户额度', hint_tenant: '<b>优先级高于默认额度。</b>仅影响该租户在此组件下<b>新创建</b>的镜像项目，不影响已存在的项目。', lbl_select_tenant: '选择租户',
+                modal_list_title: '租户额度配置列表', ph_search_tenant: '搜索租户名称...', th_tenant: '租户名称', th_storage: '存储容量上限', th_proj_num: '最大项目数量', btn_add_quota: '新增额度', btn_edit: '编辑', btn_del_conf: '删除配置', 
+                modal_del_title: '确认删除?', modal_del_text: '此操作将移除该镜像组件的配置。关联的地域将无法继续拉取镜像。此操作不可恢复。',
+                label_type: '仓库类型', label_name: '组件名称', label_desc: '描述信息', ph_desc: '请输入备注信息...', err_name_fmt: '格式错误：不支持大写字母或特殊字符', rule_name: '长度 3-63 字符，仅支持小写字母、数字、点 (.) 和连字符 (-)', sec_basic: '基础信息', sec_net: '网络连接', label_endpoint: 'Endpoint (公网地址)', label_ip: '内网 IP 地址', sec_auth: '安全认证', 
+                hint_admin_auth: '必须使用 Harbor <strong>管理员账号 (Admin)</strong>。平台需要管理员权限来自动创建项目及管理租户配额。', label_user: '用户名', label_pass: '密码',
+                btn_test_conn: '测试连接', btn_save: '保存配置', msg_test_success: '连接成功'
+            },
+            en: {
+                role_admin: 'Infra Admin', page_title: 'Image Components', page_subtitle: 'Manage Harbor registry endpoints & quotas', btn_create: 'Register Image Component',
+                th_name: 'Name', th_desc: 'Description', th_endpoint: 'Endpoint (Public)', th_status: 'Status', th_region: 'Region', th_created: 'Created At', th_action: 'Actions',
+                status_normal: 'Normal', status_invalid: 'Invalid', lbl_ip: 'Internal IP', lbl_region: 'Region', lbl_created: 'Created', lbl_updated: 'Updated', lbl_reason: 'Error Reason',
+                act_default: 'Default Quota', act_quota_list: 'Tenant Quota', act_delete: 'Delete',
+                form_title: 'Register Harbor Component', form_subtitle: 'Configure connection & credentials', btn_cancel: 'Cancel', btn_confirm: 'Save Config',
+                modal_default_title: 'Set Default Quota', hint_default: 'Global default quota. Applied if no tenant-specific quota exists.<br><b>Note: If not set, storage and project count are unlimited.</b>', lbl_capacity: 'Storage Limit', lbl_count: 'Max Projects',
+                modal_tenant_title: 'Set Tenant Quota', hint_tenant: 'Higher priority than default. Affects only <b>newly created</b> projects by this tenant.', lbl_select_tenant: 'Select Tenant',
+                modal_list_title: 'Tenant Quota Configuration', ph_search_tenant: 'Search Tenant Name...', th_tenant: 'Tenant Name', th_storage: 'Storage Limit', th_proj_num: 'Max Projects', btn_add_quota: 'Add Quota', btn_edit: 'Edit', btn_del_conf: 'Delete Config',
+                modal_del_title: 'Delete Component?', modal_del_text: 'This will remove the configuration. Bound regions will fail to pull images. Action is irreversible.',
+                label_type: 'Registry Type', label_name: 'Component Name', label_desc: 'Description', ph_desc: 'Enter remarks...', err_name_fmt: 'Invalid format: Uppercase/Special chars not allowed', rule_name: '3-63 chars. Lowercase, numbers, dots (.), hyphens (-) only.', sec_basic: 'Basic Info', sec_net: 'Network Connection', label_endpoint: 'Endpoint (Public URL)', label_ip: 'Internal IP Address', sec_auth: 'Authentication', 
+                hint_admin_auth: 'Must use Harbor <strong>Admin Account</strong>. Admin privileges are required to manage projects and quotas automatically.', label_user: 'Username', label_pass: 'Password',
+                btn_test_conn: 'Test Connection', btn_save: 'Save Config', msg_test_success: 'Connection Successful'
+            }
+        };
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'zh' ? 'en' : 'zh';
+            document.getElementById('lang-display').textContent = currentLang === 'zh' ? 'English' : '中文 (简体)';
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[currentLang][key]) {
+                    if (el.innerHTML.includes('<') || i18n[currentLang][key].includes('<')) {
+                        el.innerHTML = i18n[currentLang][key];
+                    } else {
+                        el.textContent = i18n[currentLang][key];
+                    }
+                }
+            });
+            document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+                const key = el.getAttribute('data-i18n-ph');
+                if (i18n[currentLang][key]) {
+                    el.placeholder = i18n[currentLang][key];
+                }
+            });
+        }
+        
+        switchLayout('card');
+    </script>
+</body>
+</html>

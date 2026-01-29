@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wanmore - Block Storage System (V2.4 Optimized)</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+
+    <style>
+        :root {
+            --brand-blue: #4C5DF7;
+            --bg-action-hover: #ECEDFE;
+            --text-primary: #303133;
+            --text-regular: #606266;
+            --text-secondary: #909399;
+            --header-height: 52px;
+            --aside-width: 220px;
+        }
+
+        body {
+            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            color: var(--text-primary);
+        }
+
+        body.lang-en { line-height: 1.5; }
+
+        :root {
+            --el-color-primary: var(--brand-blue);
+            --el-color-primary-light-9: var(--bg-action-hover);
+        }
+
+        /* 布局框架 */
+        .app-container { display: flex; height: 100vh; }
+        .aside { width: var(--aside-width); background: #fff; border-right: 1px solid #e4e7ed; flex-shrink: 0; display: flex; flex-direction: column; }
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .header { height: var(--header-height); background: #fff; border-bottom: 1px solid #e4e7ed; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+        .content-scroll { flex: 1; padding: 24px; overflow-y: auto; }
+
+        /* 通用排版 */
+        .section-header { font-size: 15px; font-weight: 700; color: var(--text-primary); margin: 24px 0 16px 0; display: flex; align-items: center; }
+        .section-header::before { content: ""; display: block; width: 4px; height: 16px; background: var(--brand-blue); margin-right: 8px; border-radius: 2px; }
+        
+        /* 关键：表单帮助文本样式 (V2.4 优化：单行紧凑) */
+        .form-help-text { font-size: 12px; color: var(--text-secondary); line-height: 1.4; margin-top: 6px; }
+        .form-help-code { font-family: monospace; background: #f2f3f5; padding: 2px 4px; border-radius: 3px; color: #606266; font-size: 11px; margin-left: 4px; }
+
+        .tabular-nums { font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
+
+        /* 卡片视图样式 */
+        .component-card {
+            background: #fff;
+            border: 1px solid #e4e7ed;
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .component-card:hover {
+            box-shadow: 0 8px 20px rgba(76, 93, 247, 0.1);
+            border-color: var(--brand-blue);
+            transform: translateY(-2px);
+        }
+        .component-card.is-invalid {
+            border-color: #fde2e2;
+            background: #fffafa;
+        }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .card-title { font-size: 16px; font-weight: 700; color: var(--text-primary); } 
+        .card-sub { font-size: 11px; color: #909399; margin-top: 2px; font-family: monospace; }
+        .card-desc { font-size: 13px; color: var(--text-regular); line-height: 1.5; margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 38px; }
+        
+        .card-body { display: flex; flex-direction: column; gap: 10px; padding-top: 4px; }
+        .info-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-regular); border-bottom: 1px dashed #f2f3f5; padding-bottom: 8px; }
+        .info-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .info-label { color: var(--text-secondary); }
+        .info-value { font-weight: 500; color: var(--text-primary); }
+
+        /* 容量条样式 */
+        .progress-group { background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #f1f5f9; }
+        .progress-row { margin-bottom: 12px; }
+        .progress-row:last-child { margin-bottom: 0; }
+        .progress-info { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; align-items: center; }
+        .progress-meta { font-size: 11px; color: var(--text-secondary); margin-top: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .threshold-badge { background: #eef1f6; padding: 2px 6px; border-radius: 4px; color: #606266; font-weight: 500; }
+        .ratio-badge { color: var(--brand-blue); background: #ecf5ff; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+
+        /* 详情页特有大数字 */
+        .detail-capacity-value { font-size: 20px; font-weight: 700; color: var(--text-primary); font-family: 'Inter', sans-serif; }
+        .detail-capacity-unit { font-size: 12px; color: var(--text-secondary); font-weight: normal; margin-left: 2px; }
+
+        /* 表格优化 */
+        .el-table th.el-table__cell { background-color: #F8F8F8; color: var(--text-regular); font-weight: 600; }
+        .description-text { color: var(--text-secondary); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* 抽屉样式覆盖 */
+        .el-drawer__header { margin-bottom: 0; padding: 20px; border-bottom: 1px solid #f0f0f0; }
+        .el-drawer__body { padding: 0; }
+        .drawer-content { padding: 24px; }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <div class="app-container" :class="{ 'lang-en': isEn }">
+        <div class="aside">
+            <div class="h-[52px] flex items-center justify-center border-b border-gray-100">
+                <span class="font-bold text-xl italic text-[#4C5DF7]">WANMORE</span>
+            </div>
+            <el-menu default-active="2" class="el-menu-vertical-demo" style="border-right: none;">
+                <el-menu-item index="1"><el-icon><Menu /></el-icon><span>{{ t('menu.dashboard') }}</span></el-menu-item>
+                <el-menu-item index="2"><el-icon><Document /></el-icon><span>{{ t('menu.blockStorage') }}</span></el-menu-item>
+            </el-menu>
+        </div>
+
+        <div class="main-content">
+            <div class="header">
+                <div class="flex items-baseline gap-2">
+                    <span class="font-semibold text-lg">{{ t(currentPageTitle) }}</span>
+                    <el-tag size="small" effect="dark" round color="#4C5DF7" style="border:none;">V2.4</el-tag>
+                </div>
+                <div class="flex items-center gap-4">
+                    <el-switch v-model="isEn" inline-prompt active-text="EN" inactive-text="中" style="--el-switch-on-color: #4C5DF7;"></el-switch>
+                    <el-avatar :size="32" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"></el-avatar>
+                </div>
+            </div>
+
+            <div class="content-scroll">
+                
+                <div v-if="currentView === 'list'">
+                    <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
+                        <div class="flex gap-4">
+                            <el-input v-model="searchKey" :placeholder="t('list.searchPlaceholder')" style="width: 320px" clearable>
+                                <template #prefix><el-icon><Search /></el-icon></template>
+                            </el-input>
+                            <el-button>{{ t('btn.reset') }}</el-button>
+                        </div>
+                        <el-button type="primary" @click="openCreateForm">
+                            <el-icon class="mr-1"><Plus /></el-icon> {{ t('btn.registerComponent') }}
+                        </el-button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <div v-for="item in componentList" :key="item.id" class="component-card" :class="{ 'is-invalid': item.status !== 1 }">
+                            <div class="card-header">
+                                <div class="flex-1 mr-4">
+                                    <div class="card-title">{{ item.name }}</div>
+                                    <div class="card-sub">{{ item.fsid }}</div>
+                                    <div class="card-desc" :title="item.description">{{ item.description || t('common.noDesc') }}</div>
+                                </div>
+                                <div class="text-right flex flex-col items-end shrink-0">
+                                    <div class="flex items-center gap-1 mb-1">
+                                        <el-tag :type="item.status === 1 ? 'success' : 'danger'" effect="light" size="small">
+                                            {{ getStatusText(item.status) }}
+                                        </el-tag>
+                                        <el-tooltip v-if="item.status !== 1" :content="item.errorMsg" placement="top" effect="dark">
+                                            <el-icon class="text-red-500 cursor-pointer animate-pulse"><Warning-Filled /></el-icon>
+                                        </el-tooltip>
+                                    </div>
+                                    <span class="text-xs text-gray-400">{{ item.region }}</span>
+                                </div>
+                            </div>
+
+                            <div class="progress-group">
+                                <div class="progress-row">
+                                    <div class="progress-info">
+                                        <span class="font-bold text-gray-700 text-xs">{{ t('table.physical') }}</span>
+                                        <span class="tabular-nums">{{ item.physicalUsed }}/{{ item.physicalTotal }} GB</span>
+                                    </div>
+                                    <el-progress :percentage="item.physicalPercent" :status="getPercentStatus(item.physicalPercent, item.phyThreshold)" :stroke-width="6" :show-text="false"></el-progress>
+                                    <div class="progress-meta">
+                                        <span>Backend Usage</span>
+                                        <span class="threshold-badge">{{ t('table.threshold') }}: {{ item.phyThreshold }}%</span>
+                                    </div>
+                                </div>
+                                <div class="progress-row">
+                                    <div class="progress-info">
+                                        <div class="flex items-center gap-1">
+                                            <span class="font-bold text-gray-700 text-xs">{{ t('table.logical') }}</span>
+                                        </div>
+                                        <span class="tabular-nums" :class="{'text-red-500 font-bold': item.logicalPercent > item.logThreshold}">
+                                            {{ item.logicalUsed }}/{{ item.logicalLimit }} GB
+                                        </span>
+                                    </div>
+                                    <el-progress :percentage="Math.min(item.logicalPercent, 100)" color="#67C23A" :stroke-width="6" :show-text="false"></el-progress>
+                                    <div class="progress-meta">
+                                        <span class="ratio-badge">{{ t('table.ratio') }}: {{ item.ratio }}x</span>
+                                        <span class="threshold-badge">{{ t('table.threshold') }}: {{ item.logThreshold }}%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="info-row">
+                                    <span class="info-label">{{ t('table.tenantLimit') }}</span>
+                                    <span class="info-value">{{ item.tenantLimit ? item.tenantLimit + ' GB' : t('common.unlimited') }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">{{ t('table.volumeCount') }}</span>
+                                    <span class="info-value">{{ item.volumeCount }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">{{ t('table.updateTime') }}</span>
+                                    <span class="info-value text-xs text-gray-500 pt-0.5 tabular-nums">{{ item.updateTime }}</span>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-end gap-3 pt-3 border-t border-gray-100 mt-auto">
+                                <el-button size="small" @click="viewDetails(item)">{{ t('btn.detail') }}</el-button>
+                                <el-button size="small" @click="openEditForm(item)">{{ t('btn.edit') }}</el-button>
+                                <el-button size="small" type="danger" plain>{{ t('btn.delete') }}</el-button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="currentView === 'form'" class="max-w-3xl mx-auto">
+                    <div class="mb-4 cursor-pointer flex items-center text-gray-500 hover:text-blue-600 transition-colors" @click="currentView = 'list'">
+                        <el-icon class="mr-1"><Arrow-Left /></el-icon> {{ t('btn.backToList') }}
+                    </div>
+                    
+                    <div class="bg-white p-8 rounded-lg shadow-sm border border-gray-100">
+                        <h2 class="text-xl font-bold mb-6 text-gray-800">{{ isEditMode ? t('form.titleEdit') : t('form.titleCreate') }}</h2>
+
+                        <el-form :model="form" label-position="top" :rules="rules" ref="formRef">
+                            
+                            <div class="section-header">{{ t('form.secType') }}</div>
+                            <el-form-item required>
+                                <el-select v-model="form.type" :disabled="isEditMode" style="width: 100%">
+                                    <el-option label="Ceph RBD (Block Storage)" value="ceph"></el-option>
+                                    <el-option label="Local Path (HostPath) - Coming Soon" value="local" disabled></el-option>
+                                </el-select>
+                                <div class="form-help-text">{{ t('form.typeHelp') }}</div>
+                            </el-form-item>
+
+                            <div v-if="form.type === 'ceph'" class="animate-fade-in">
+                                <div class="section-header">{{ t('form.secConn') }}</div>
+                                <div class="bg-gray-50 p-6 rounded-lg border border-gray-100 mb-6 relative">
+                                    <el-form-item :label="t('form.clusterName')" required>
+                                        <el-input v-model="form.clusterName" :disabled="isEditMode" placeholder="e.g. ceph-prod-01"></el-input>
+                                        <div class="form-help-text" v-if="!isEditMode">
+                                            {{ t('form.clusterNameHelp') }} <span class="form-help-code">/opt/hyperone/ext/block-server/{name}/</span>
+                                        </div>
+                                    </el-form-item>
+
+                                    <el-form-item :label="t('form.monNodes')" required>
+                                        <el-input v-model="form.monNodes" type="textarea" :rows="2" placeholder="192.168.10.1:6789, 192.168.10.2:6789"></el-input>
+                                        <div class="form-help-text">
+                                            {{ t('form.monNodesHelp') }} <span class="form-help-code">192.168.1.10:6789, 192.168.1.11:6789</span>
+                                        </div>
+                                    </el-form-item>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                                        <el-form-item label="FSID (Cluster UUID)" required>
+                                            <el-input v-model="form.fsid" :disabled="isEditMode" placeholder="e.g. 4b830136-a83d-415e-8e6f-31234567890a"></el-input>
+                                            <div class="form-help-text">{{ t('form.fsidHelp') }}</div>
+                                        </el-form-item>
+
+                                        <el-form-item :label="t('form.pool')" required>
+                                            <el-select v-model="form.pool" :disabled="isEditMode" style="width: 100%" placeholder="Select Pool">
+                                                <el-option label="rbd-pool-ssd" value="rbd-pool-ssd"></el-option>
+                                                <el-option label="rbd-pool-hdd" value="rbd-pool-hdd"></el-option>
+                                            </el-select>
+                                            <div class="form-help-text">{{ t('form.poolHelp') }}</div>
+                                        </el-form-item>
+                                    </div>
+
+                                    <el-form-item :label="t('form.adminKey')" required>
+                                        <el-input v-model="form.adminKey" show-password :placeholder="isEditMode ? '********** (Unchanged)' : 'Paste Key Content (AQD7kyJq...)'"></el-input>
+                                        <div class="form-help-text">
+                                            {{ t('form.adminKeyHelp') }} <span class="form-help-code">AQD7kyJq8XXXXX...</span>
+                                        </div>
+                                    </el-form-item>
+
+                                    <div class="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+                                        <div class="text-xs text-gray-500">{{ t('form.testConnHint') }}</div>
+                                        <div class="flex items-center gap-3">
+                                            <div v-if="testConnResult.status === 'error'" class="text-xs text-red-500 bg-red-50 px-2 py-1 rounded flex items-center animate-pulse">
+                                                <el-icon class="mr-1"><Warning /></el-icon> {{ testConnResult.msg }}
+                                            </div>
+                                            <div v-if="testConnResult.status === 'success'" class="text-xs text-green-600 bg-green-50 px-2 py-1 rounded flex items-center">
+                                                <el-icon class="mr-1"><Check /></el-icon> {{ t('form.testConnSuccess') }}
+                                            </div>
+                                            <el-button type="info" plain size="small" :loading="isTestingConn" @click="testConnection">
+                                                {{ t('form.btnTestConn') }}
+                                            </el-button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="section-header">{{ t('form.secResource') }}</div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mb-6">
+                                    <el-form-item :label="t('form.overProvisionRatio')" prop="ratio">
+                                        <el-input-number v-model="form.ratio" :precision="1" :step="0.1" :min="1.0" style="width: 100%"></el-input-number>
+                                        <div class="form-help-text">{{ t('form.ratioHelp') }}</div>
+                                    </el-form-item>
+
+                                    <el-form-item :label="t('form.tenantQuota')" prop="tenantLimit">
+                                        <el-input v-model="form.tenantLimit" placeholder="Default: Unlimited"><template #append>GB</template></el-input>
+                                        <div class="form-help-text">{{ t('form.tenantQuotaHelp') }}</div>
+                                    </el-form-item>
+
+                                    <el-form-item :label="t('form.physicalThreshold')" prop="phyThreshold">
+                                        <el-input v-model="form.phyThreshold" placeholder="80"><template #append>%</template></el-input>
+                                        <div class="form-help-text">{{ t('form.phyThresholdHelp') }}</div>
+                                    </el-form-item>
+
+                                    <el-form-item :label="t('form.logicalThreshold')" prop="logThreshold">
+                                        <el-input v-model="form.logThreshold" placeholder="100"><template #append>%</template></el-input>
+                                        <div class="form-help-text">{{ t('form.logThresholdHelp') }}</div>
+                                    </el-form-item>
+
+                                    <el-form-item :label="t('form.snapshotLimit')">
+                                        <el-input-number v-model="form.snapLimit" :min="0" style="width: 100%" placeholder="64"></el-input-number>
+                                        <div class="form-help-text">{{ t('form.snapLimitHelp') }}</div>
+                                    </el-form-item>
+                                </div>
+
+                                <el-form-item :label="t('form.description')" class="border-t border-gray-100 pt-6">
+                                    <el-input v-model="form.description" type="textarea" :rows="2" placeholder="e.g. Primary storage for AI Training Team A"></el-input>
+                                    <div class="form-help-text">{{ t('form.descHelp') }}</div>
+                                </el-form-item>
+                            </div>
+
+                            <div class="flex justify-end gap-4 pt-6 mt-2 border-t border-gray-100">
+                                <el-button @click="currentView = 'list'">{{ t('btn.cancel') }}</el-button>
+                                <el-button type="primary" @click="saveForm">{{ t('btn.submit') }}</el-button>
+                            </div>
+                        </el-form>
+                    </div>
+                </div>
+
+                <div v-if="currentView === 'detail'" class="space-y-6">
+                    <div class="mb-4 cursor-pointer flex items-center text-gray-500 hover:text-blue-600 transition-colors" @click="currentView = 'list'">
+                        <el-icon class="mr-1"><Arrow-Left /></el-icon> {{ t('btn.backToList') }}
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center gap-3">
+                                <h2 class="text-xl font-bold m-0 text-gray-800">{{ currentDetail.name }}</h2>
+                                <el-tag :type="currentDetail.status === 1 ? 'success' : 'danger'" effect="dark">{{ getStatusText(currentDetail.status) }}</el-tag>
+                                <div v-if="currentDetail.status !== 1" class="text-xs text-red-500 flex items-center bg-red-50 px-2 py-1 rounded">
+                                    <el-icon class="mr-1"><Warning /></el-icon> {{ currentDetail.errorMsg }}
+                                </div>
+                            </div>
+                            <div class="text-sm text-gray-500 font-mono">{{ t('table.updateTime') }}: {{ currentDetail.updateTime }}</div>
+                        </div>
+
+                        <el-descriptions :column="isEn ? 2 : 3" border class="mb-8">
+                            <el-descriptions-item :label="t('table.region')">{{ currentDetail.region }}</el-descriptions-item>
+                            <el-descriptions-item label="FSID">{{ currentDetail.fsid }}</el-descriptions-item>
+                            <el-descriptions-item :label="t('form.pool')">{{ currentDetail.pool }}</el-descriptions-item>
+                            <el-descriptions-item :label="t('form.tenantQuota')">
+                                {{ currentDetail.tenantLimit ? currentDetail.tenantLimit + ' GB' : t('common.unlimited') }}
+                            </el-descriptions-item>
+                            <el-descriptions-item :label="t('form.snapshotLimit')">{{ currentDetail.snapLimit || 64 }}</el-descriptions-item>
+                            <el-descriptions-item :label="t('form.monNodes')">192.168.1.10, ...</el-descriptions-item>
+                            <el-descriptions-item :label="t('form.description')" :span="3">{{ currentDetail.description || '-' }}</el-descriptions-item>
+                        </el-descriptions>
+
+                        <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 grid grid-cols-1 md:grid-cols-2 gap-10">
+                            <div>
+                                <h4 class="font-bold text-sm mb-3 text-gray-700">{{ t('table.physical') }} (Backend Actual)</h4>
+                                <div class="mb-2">
+                                    <span class="detail-capacity-value tabular-nums">{{ currentDetail.physicalUsed }}<span class="detail-capacity-unit">GB</span></span>
+                                    <span class="text-gray-400 mx-2">/</span>
+                                    <span class="text-gray-600 font-medium tabular-nums">{{ currentDetail.physicalTotal }} GB</span>
+                                </div>
+                                <div class="flex justify-between text-xs mb-1 text-gray-500">
+                                    <span>Usage: {{ currentDetail.physicalPercent }}%</span>
+                                    <span>{{ t('table.threshold') }}: {{ currentDetail.phyThreshold }}%</span>
+                                </div>
+                                <el-progress :percentage="currentDetail.physicalPercent" :status="getPercentStatus(currentDetail.physicalPercent, currentDetail.phyThreshold)" :stroke-width="12"></el-progress>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm mb-3 text-gray-700">{{ t('table.logical') }} (Vol + Snap) <span class="text-green-600 ml-2 text-xs bg-green-50 px-2 py-0.5 rounded">Ratio: {{ currentDetail.ratio }}x</span></h4>
+                                <div class="mb-2">
+                                    <span class="detail-capacity-value tabular-nums">{{ currentDetail.logicalUsed }}<span class="detail-capacity-unit">GB</span></span>
+                                    <span class="text-gray-400 mx-2">/</span>
+                                    <span class="text-gray-600 font-medium tabular-nums">{{ currentDetail.logicalLimit }} GB</span>
+                                </div>
+                                <div class="flex justify-between text-xs mb-1 text-gray-500">
+                                    <span>Allocated: {{ currentDetail.logicalPercent }}%</span>
+                                    <span>{{ t('table.threshold') }}: {{ currentDetail.logThreshold }}%</span>
+                                </div>
+                                <el-progress :percentage="Math.min(currentDetail.logicalPercent, 100)" color="#67C23A" :stroke-width="12"></el-progress>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold text-gray-800">{{ t('detail.volumeList') }}</h3>
+                            <div class="flex gap-2">
+                                <el-input :placeholder="t('list.searchPlaceholder')" size="small" style="width: 240px">
+                                    <template #prefix><el-icon><Search /></el-icon></template>
+                                </el-input>
+                            </div>
+                        </div>
+                        
+                        <el-table :data="volumeList" style="width: 100%">
+                            <el-table-column prop="name" :label="t('detail.volName')" min-width="140" fixed>
+                                <template #default="scope"><span class="font-medium text-gray-700">{{ scope.row.name }}</span></template>
+                            </el-table-column>
+                            <el-table-column prop="desc" :label="t('detail.desc')" min-width="150" show-overflow-tooltip>
+                                <template #default="scope"><span class="description-text">{{ scope.row.desc || '-' }}</span></template>
+                            </el-table-column>
+                            <el-table-column prop="capacity" :label="t('detail.volSize')" width="100" align="right">
+                                <template #default="scope"><span class="tabular-nums font-mono">{{ scope.row.capacity }}</span></template>
+                            </el-table-column>
+                            <el-table-column :label="t('table.status')" width="150">
+                                <template #default="scope">
+                                    <div class="flex items-center gap-2">
+                                        <div v-if="scope.row.status === 4">
+                                            <el-tooltip :content="scope.row.errorMsg" placement="top" effect="dark">
+                                                <div class="flex items-center gap-1 cursor-help text-red-500">
+                                                    <el-icon><Circle-Close-Filled /></el-icon>
+                                                    <span class="text-sm font-medium">Error</span>
+                                                </div>
+                                            </el-tooltip>
+                                        </div>
+                                        <div v-else class="flex items-center gap-2">
+                                            <div class="w-2 h-2 rounded-full shadow-sm" :class="getVolStatusColor(scope.row.status)"></div>
+                                            <span class="text-sm">{{ getVolStatusText(scope.row.status) }}</span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="tenant" :label="t('detail.tenant')" width="120"></el-table-column>
+                            <el-table-column prop="job" :label="t('detail.job')" min-width="160">
+                                <template #default="scope">
+                                    <span v-if="scope.row.job" class="text-blue-600 cursor-pointer hover:underline flex items-center gap-1">
+                                        <el-icon size="10"><Link /></el-icon> {{ scope.row.job }}
+                                    </span>
+                                    <span v-else class="text-gray-300">--</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="snaps" :label="t('detail.snaps')" width="80" align="center">
+                                <template #default="scope"><el-tag size="small" type="info" effect="plain" round>{{ scope.row.snaps }}</el-tag></template>
+                            </el-table-column>
+                            <el-table-column prop="createTime" :label="t('table.createTime')" width="170" align="right">
+                                <template #default="scope"><span class="text-xs text-gray-500 tabular-nums">{{ scope.row.createTime }}</span></template>
+                            </el-table-column>
+                            <el-table-column :label="t('table.actions')" width="140" fixed="right">
+                                <template #default="scope">
+                                    <el-button link type="primary" size="small" @click="openSnapshotDrawer(scope.row)">{{ t('btn.snaps') }}</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </div>
+                </div>
+
+                <el-drawer v-model="snapshotDrawerVisible" :title="t('snap.title') + ': ' + currentVolumeName" direction="rtl" size="700px" destroy-on-close>
+                    <div class="drawer-content">
+                        <el-table :data="snapshotList" style="width: 100%">
+                            <el-table-column prop="name" :label="t('snap.name')" min-width="140"></el-table-column>
+                            <el-table-column prop="desc" :label="t('snap.desc')" min-width="120" show-overflow-tooltip>
+                                <template #default="scope"><span class="description-text">{{ scope.row.desc || '-' }}</span></template>
+                            </el-table-column>
+                            <el-table-column prop="capacity" :label="t('detail.volSize')" width="100"></el-table-column>
+                            <el-table-column :label="t('table.status')" width="100">
+                                <template #default="scope"><el-tag size="small" :type="getSnapStatusType(scope.row.status)">{{ getSnapStatusText(scope.row.status) }}</el-tag></template>
+                            </el-table-column>
+                            <el-table-column prop="creator" :label="t('snap.creator')" width="100"></el-table-column>
+                            <el-table-column prop="createTime" :label="t('table.createTime')" width="150" show-overflow-tooltip></el-table-column>
+                        </el-table>
+                    </div>
+                </el-drawer>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://unpkg.com/element-plus"></script>
+<script src="https://unpkg.com/@element-plus/icons-vue"></script>
+
+<script>
+    const { createApp, ref, computed, reactive } = Vue;
+    const { Menu, Document, Search, InfoFilled, Plus, ArrowLeft, Warning, Check, WarningFilled, CircleCloseFilled, Link } = ElementPlusIconsVue;
+
+    const app = createApp({
+        components: { Menu, Document, Search, InfoFilled, Plus, ArrowLeft, Warning, Check, WarningFilled, CircleCloseFilled, Link },
+        setup() {
+            const isEn = ref(false);
+            const currentView = ref('list');
+            const isEditMode = ref(false);
+            const searchKey = ref('');
+            const formRef = ref(null);
+            const isTestingConn = ref(false);
+            const testConnResult = reactive({ status: '', msg: '' });
+
+            const snapshotDrawerVisible = ref(false);
+            const currentVolumeName = ref('');
+            const snapshotList = ref([]);
+
+            const dict = {
+                menu: { dashboard: { zh: '概览', en: 'Dashboard' }, blockStorage: { zh: '块存储组件', en: 'Block Storage' } },
+                list: { title: { zh: '块存储组件', en: 'Block Storage Components' }, searchPlaceholder: { zh: '请输入名称搜索', en: 'Search by name' } },
+                btn: { registerComponent: { zh: '注册组件', en: 'Register Component' }, reset: { zh: '重置', en: 'Reset' }, edit: { zh: '编辑', en: 'Edit' }, delete: { zh: '删除', en: 'Delete' }, submit: { zh: '提交', en: 'Submit' }, cancel: { zh: '取消', en: 'Cancel' }, backToList: { zh: '返回列表', en: 'Back to List' }, detail: { zh: '详情', en: 'Detail' }, snaps: { zh: '快照详情', en: 'Snapshots' } },
+                form: {
+                    titleCreate: { zh: '注册块存储组件', en: 'Register Block Storage' },
+                    titleEdit: { zh: '编辑块存储组件', en: 'Edit Block Storage' },
+                    secType: { zh: '1. 存储类型', en: '1. Storage Type' },
+                    secConn: { zh: '2. 集群连接信息', en: '2. Cluster Connection' },
+                    secResource: { zh: '3. 资源控制配置', en: '3. Resource Control' },
+                    btnTestConn: { zh: '测试连接', en: 'Test Connection' },
+                    testConnHint: { zh: '提交前必须先测试连接。', en: 'Connection test required before submit.' },
+                    testConnSuccess: { zh: '连接成功', en: 'Connection Successful' },
+                    // V2.4 优化后的文案
+                    clusterName: { zh: '集群名称', en: 'Cluster Name' },
+                    clusterNameHelp: { zh: '唯一标识，将作为系统配置目录名。创建后不可更改。', en: 'Unique ID, config dir name. Immutable.' },
+                    monNodes: { zh: 'Mon 节点', en: 'Mon Nodes' },
+                    monNodesHelp: { zh: 'Ceph Monitor IP:Port 列表，逗号分隔。', en: 'Ceph Monitor IP:Port list (comma separated).' },
+                    fsidHelp: { zh: 'Ceph 集群 UUID，需与实际一致。', en: 'Ceph Cluster UUID.' },
+                    pool: { zh: '存储池', en: 'Pool' },
+                    poolHelp: { zh: 'RBD 专用存储池。', en: 'Dedicated pool for RBD.' },
+                    adminKey: { zh: '管理员 Key', en: 'Admin Key' },
+                    adminKeyHelp: { zh: 'ceph.client.admin.keyring 文件内容。', en: 'Content of ceph.client.admin.keyring.' },
+                    typeHelp: { zh: '目前仅支持 Ceph RBD。', en: 'Currently only supports Ceph RBD.' },
+                    overProvisionRatio: { zh: '超分比例', en: 'Over-provision Ratio' },
+                    ratioHelp: { zh: '逻辑可用容量 = 物理容量 * 比例。', en: 'Logical = Physical * Ratio.' },
+                    tenantQuota: { zh: '单租户用量上限', en: 'Tenant Quota Limit' },
+                    tenantQuotaHelp: { zh: '限制该租户下 盘+快照 的逻辑总量。', en: 'Limit total logical size (Vol+Snap) per tenant.' },
+                    physicalThreshold: { zh: '实际容量阈值', en: 'Physical Threshold' },
+                    phyThresholdHelp: { zh: '物理占用达到此值时阻断新建。', en: 'Block creation when physical usage hits limit.' },
+                    logicalThreshold: { zh: '超分容量阈值', en: 'Logical Threshold' },
+                    logThresholdHelp: { zh: '逻辑分配达到此值时阻断新建。', en: 'Block creation when logical alloc hits limit.' },
+                    snapshotLimit: { zh: '单盘快照上限', en: 'Snapshot Limit per Vol' },
+                    snapLimitHelp: { zh: '单盘允许最大快照数。', en: 'Max snapshots per volume.' },
+                    description: { zh: '描述', en: 'Description' },
+                    descHelp: { zh: '该组件的用途描述，将在卡片上展示。', en: 'Usage description, shown on card.' }
+                },
+                table: {
+                    physical: { zh: '物理容量', en: 'Physical' },
+                    logical: { zh: '逻辑容量', en: 'Logical' },
+                    threshold: { zh: '阈值', en: 'Limit' },
+                    ratio: { zh: '超分比', en: 'Ratio' },
+                    tenantLimit: { zh: '单租户限额', en: 'Tenant Quota' },
+                    volumeCount: { zh: '盘数', en: 'Vols' },
+                    updateTime: { zh: '更新时间', en: 'Updated' },
+                    createTime: { zh: '创建时间', en: 'Created Time' },
+                    status: { zh: '状态', en: 'Status' },
+                    region: { zh: '地域', en: 'Region' },
+                    actions: { zh: '操作', en: 'Actions' }
+                },
+                detail: { volumeList: { zh: '存储盘列表', en: 'Volume List' }, volName: { zh: '名称/ID', en: 'Name/ID' }, volSize: { zh: '容量', en: 'Size' }, tenant: { zh: '租户', en: 'Tenant' }, snaps: { zh: '快照数', en: 'Snaps' }, desc: { zh: '描述', en: 'Description' }, job: { zh: '关联任务', en: 'Associated Job' } },
+                snap: { title: { zh: '快照列表', en: 'Snapshots' }, name: { zh: '快照名称', en: 'Snapshot Name' }, desc: { zh: '描述', en: 'Description' }, creator: { zh: '创建者', en: 'Creator' }, status: { creating: { zh: '创建中', en: 'Creating' }, deleting: { zh: '删除中', en: 'Deleting' }, available: { zh: '可用', en: 'Available' } } },
+                common: { unlimited: { zh: '无限制', en: 'Unlimited' }, noDesc: { zh: '暂无描述', en: 'No description' } }
+            };
+
+            const t = (key) => {
+                const keys = key.split('.');
+                let val = dict;
+                for (let k of keys) val = val[k];
+                return isEn.value ? val.en : val.zh;
+            };
+
+            const currentPageTitle = computed(() => {
+                if (currentView.value === 'list') return 'list.title';
+                if (currentView.value === 'form') return isEditMode.value ? 'form.titleEdit' : 'form.titleCreate';
+                return 'menu.blockStorage'; 
+            });
+
+            // Mock Data
+            const componentList = ref([
+                { id: 1, name: 'ceph-bj-production-01', fsid: '6b840136-a83d-415e-8e6f-31234567890a', region: 'Beijing', description: 'Primary storage cluster for AI training jobs in Beijing region. High IOPS pool enabled.', physicalUsed: 300, physicalTotal: 1000, physicalPercent: 30, phyThreshold: 80, logicalUsed: 1200, logicalLimit: 2000, logicalPercent: 60, logThreshold: 100, ratio: 2.0, tenantLimit: 150, volumeCount: 12, status: 1, updateTime: '2026-01-29 10:30:00', pool: 'rbd-pool-ssd' },
+                { id: 2, name: 'ceph-sh-dev-02', fsid: 'a1b2c3d4-0000-0000-0000-e5f', region: 'Shanghai', description: 'Development environment. Low priority.', physicalUsed: 0, physicalTotal: 1000, physicalPercent: 0, phyThreshold: 80, logicalUsed: 0, logicalLimit: 1000, logicalPercent: 0, logThreshold: 100, ratio: 1.0, tenantLimit: null, volumeCount: 0, status: 3, updateTime: '2026-01-28 14:20:15', pool: 'rbd-pool-hdd', errorMsg: 'Connection timed out (192.168.2.10:6789)' }
+            ]);
+
+            const volumeList = ref([
+                { name: 'vol-user-001', desc: 'Pre-training dataset', capacity: '100 GB', status: 1, tenant: 'Project A', snaps: 2, createTime: '2026-01-10 12:00' },
+                { name: 'vol-user-002', desc: 'Model checkpoints', capacity: '500 GB', status: 4, tenant: 'Project A', snaps: 0, createTime: '2026-01-12 09:30', errorMsg: 'RBD image not found in pool' }, 
+                { name: 'vol-user-003', desc: 'Temp cache', capacity: '50 GB', status: 6, tenant: 'Project B', snaps: 0, createTime: '2026-01-28 15:45' }
+            ]);
+
+            const form = ref({ description: '', ratio: 1.0, tenantLimit: '', phyThreshold: 80, logThreshold: 100, snapLimit: 64, type: 'ceph', clusterName: '', monNodes: '', fsid: '', pool: '', adminKey: '' });
+            const currentDetail = ref({});
+
+            const openSnapshotDrawer = (row) => {
+                currentVolumeName.value = row.name;
+                snapshotList.value = [
+                    { name: row.name + '-snap1', desc: 'Backup before upgrade', capacity: row.capacity, creator: 'admin', status: 1, createTime: '2026-01-20 10:00' },
+                    { name: row.name + '-snap2', desc: 'Auto-snapshot policy', capacity: row.capacity, creator: 'user-01', status: 2, createTime: '2026-01-29 09:15' }, 
+                    { name: row.name + '-snap3', desc: '-', capacity: row.capacity, creator: 'system', status: 3, createTime: '2026-01-15 08:00' }
+                ];
+                snapshotDrawerVisible.value = true;
+            };
+
+            const getSnapStatusText = (s) => t(s===1 ? 'snap.status.available' : (s===2 ? 'snap.status.creating' : 'snap.status.deleting'));
+            const getSnapStatusType = (s) => s===1 ? 'success' : (s===2 ? 'primary' : 'danger');
+
+            const openCreateForm = () => { isEditMode.value = false; form.value = { description: '', ratio: 1.0, phyThreshold: 80, logThreshold: 100, snapLimit: 64, type: 'ceph' }; testConnResult.status = ''; currentView.value = 'form'; };
+            const openEditForm = (row) => { isEditMode.value = true; form.value = { ...row, adminKey: '' }; testConnResult.status = 'success'; currentView.value = 'form'; };
+            const viewDetails = (row) => { currentDetail.value = row; currentView.value = 'detail'; };
+            
+            const testConnection = () => { isTestingConn.value = true; setTimeout(() => { isTestingConn.value = false; testConnResult.status = (form.value.monNodes?.includes('fail')) ? 'error' : 'success'; testConnResult.msg = testConnResult.status === 'error' ? (isEn.value ? 'Network unreachable' : '网络不可达 (192.168.x.x)') : ''; }, 800); };
+            
+            const saveForm = () => { 
+                if (testConnResult.status !== 'success') { ElementPlus.ElMessage.error(isEn.value ? 'Please pass the connection test first.' : '请先通过连接测试。'); return; }
+                ElementPlus.ElMessage.success(isEn.value ? 'Saved successfully' : '保存成功'); currentView.value = 'list'; 
+            };
+
+            const getStatusText = (s) => isEn.value ? (s===1?'ACTIVE':'INVALID') : (s===1?'正常':'失效');
+            const getPercentStatus = (p, threshold) => p > threshold ? 'exception' : '';
+            const getVolStatusText = (s) => { const map = { 1: {zh:'可用', en:'Available'}, 2: {zh:'已挂载', en:'Mounted'}, 4: {zh:'错误', en:'Error'}, 6: {zh:'创建中', en:'Creating'} }; return isEn.value ? map[s]?.en : map[s]?.zh; };
+            const getVolStatusColor = (s) => s===1 ? 'bg-green-500' : (s===2 ? 'bg-blue-500' : (s===4 ? 'bg-red-500' : 'bg-yellow-500'));
+
+            return { isEn, currentView, isEditMode, searchKey, form, currentDetail, componentList, volumeList, snapshotDrawerVisible, currentVolumeName, snapshotList, t, currentPageTitle, openCreateForm, openEditForm, viewDetails, openSnapshotDrawer, saveForm, testConnection, isTestingConn, testConnResult, getStatusText, getPercentStatus, getVolStatusText, getVolStatusColor, getSnapStatusText, getSnapStatusType };
+        }
+    });
+
+    app.use(ElementPlus);
+    for (const [key, component] of Object.entries(ElementPlusIconsVue)) { app.component(key, component) }
+    app.mount('#app');
+</script>
+
+</body>
+</html>

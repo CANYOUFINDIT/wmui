@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wanmore Region Manager V4.1</title>
+    <style>
+        /* =========================================
+           1. System Tokens
+           ========================================= */
+        :root {
+            --primary: #4C5DF7;
+            --primary-bg: #EEF0FE;
+            --success: #67C23A;
+            --warning: #E6A23C;
+            --danger: #F56C6C;
+            --disabled: #909399;
+            --gpu-color: #722ED1;
+            
+            --text-main: #303133;
+            --text-regular: #606266;
+            --text-subtle: #909399;
+            --border: #E4E7ED;
+            --bg-body: #F5F7FA;
+            --bg-white: #FFFFFF;
+            --bg-card: #FAFBFC;
+
+            /* Label Widths */
+            --label-w: 90px;
+            --sidebar-w: 300px;
+        }
+
+        body.lang-en { --label-w: 120px; }
+        body.lang-cn .en-only { display: none !important; }
+        body.lang-en .cn-only { display: none !important; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-body); color: var(--text-main); font-size: 13px;
+            height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        /* =========================================
+           2. Layout Shell
+           ========================================= */
+        .header {
+            height: 52px; background: var(--bg-white); border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 20px; flex-shrink: 0;
+        }
+        .brand { font-size: 20px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 40px; }
+        .nav-links { display: flex; gap: 24px; font-size: 14px; font-weight: 500; color: var(--text-regular); }
+        .nav-item.active { color: var(--primary); }
+        .lang-btn {
+            padding: 5px 12px; background: #F2F3F5; border-radius: 4px; cursor: pointer;
+            font-size: 12px; transition: 0.2s; display: flex; align-items: center; gap: 6px;
+        }
+        .lang-btn:hover { color: var(--primary); background: #eef0f5; }
+
+        .layout { flex: 1; display: flex; overflow: hidden; }
+        .aside {
+            width: 220px; background: var(--bg-white); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; padding: 12px 0; flex-shrink: 0;
+        }
+        .menu-item {
+            height: 40px; padding: 0 20px; display: flex; align-items: center; color: var(--text-regular); cursor: pointer;
+            border-right: 3px solid transparent; transition: 0.2s;
+        }
+        .menu-item:hover { background: #F5F7FA; color: var(--text-main); }
+        .menu-item.active { background: var(--primary-bg); color: var(--primary); border-right-color: var(--primary); font-weight: 600; }
+
+        .workspace { flex: 1; display: flex; flex-direction: column; background: var(--bg-body); overflow: hidden; }
+        .toolbar {
+            padding: 12px 20px; background: var(--bg-white); border-bottom: 1px solid var(--border);
+            display: flex; gap: 20px; align-items: center; flex-shrink: 0;
+        }
+        .tool-group { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-subtle); }
+        .radio-box { display: inline-flex; background: #F2F3F5; padding: 2px; border-radius: 4px; }
+        .radio-opt { padding: 4px 12px; border-radius: 3px; cursor: pointer; color: var(--text-regular); transition: 0.2s; }
+        .radio-opt.active { background: #fff; color: var(--primary); font-weight: 500; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .btn-add { margin-left: auto; background: var(--primary); color: #fff; border: none; padding: 6px 16px; border-radius: 4px; cursor: pointer; }
+
+        .split-view { flex: 1; display: flex; overflow: hidden; padding: 20px; gap: 16px; }
+
+        /* Left List */
+        .list-col {
+            width: var(--sidebar-w); background: var(--bg-white); border: 1px solid var(--border); border-radius: 8px;
+            display: flex; flex-direction: column;
+        }
+        .search-box { padding: 12px; border-bottom: 1px solid #f0f0f0; }
+        .input { width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; }
+        .region-list { flex: 1; overflow-y: auto; }
+        
+        .list-item {
+            padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f9f9f9; border-left: 3px solid transparent; 
+            transition: all 0.2s; display: flex; flex-direction: column; gap: 6px;
+        }
+        .list-item:hover { background: #F5F7FA; }
+        .list-item.active { background: var(--primary-bg); border-left-color: var(--primary) !important; }
+        .li-head { display: flex; justify-content: space-between; align-items: center; }
+        .li-title { font-weight: 600; font-size: 14px; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
+        .li-meta { font-size: 11px; color: var(--text-subtle); display: flex; flex-direction: column; gap: 2px; }
+        .li-time-row { display: flex; justify-content: space-between; }
+
+        .list-badge { font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 600; text-transform: uppercase; border: 1px solid transparent; }
+        .st-normal .li-icon { color: var(--success); }
+        .st-normal .list-badge { background: #f0f9eb; color: var(--success); border-color: #e1f3d8; }
+        .st-failed { background: #fef0f0; border-left-color: rgba(245, 108, 108, 0.3); }
+        .st-failed .li-icon { color: var(--danger); }
+        .st-failed .list-badge { background: #fff; color: var(--danger); border-color: rgba(245,108,108,0.2); }
+        .st-disabled { opacity: 0.6; filter: grayscale(100%); }
+        .st-disabled .list-badge { background: #f4f4f5; color: #909399; border-color: #d3d4d6; }
+
+        /* =========================================
+           3. Detail Column
+           ========================================= */
+        .detail-col { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding-right: 4px; }
+        
+        .detail-header { display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; }
+        .dh-title-row { display: flex; align-items: center; justify-content: space-between; }
+        .dh-title { font-size: 20px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 12px; }
+        .error-banner {
+            background: #FEF0F0; border: 1px solid #FDE2E2; color: #F56C6C; padding: 10px 16px; border-radius: 6px;
+            font-size: 13px; display: flex; align-items: center; gap: 8px;
+        }
+
+        .card { background: var(--bg-white); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+        .card-head {
+            font-weight: 700; font-size: 15px; margin-bottom: 20px; padding-left: 10px;
+            border-left: 4px solid var(--primary); display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .group-block { margin-bottom: 24px; }
+        .group-block:last-child { margin-bottom: 0; }
+        
+        /* V4.1 Fix: Use flex-start + gap for Left Alignment */
+        .group-title {
+            font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;
+            display: flex; align-items: center; background: #F5F7FA; padding: 8px 12px; border-radius: 4px;
+            justify-content: flex-start; gap: 12px;
+        }
+        
+        /* Push AZ badge to right if needed, otherwise it sits next to title */
+        .az-badge { background:#fff; border:1px solid #ddd; padding:1px 8px; border-radius:12px; font-weight:normal; font-size:11px; color:#606266; margin-left: auto; }
+
+        /* Component Box */
+        .comp-box { background: #fff; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+        
+        /* V4.1 Fix: comp-head Left Alignment */
+        .comp-head { 
+            padding: 10px 16px; background: #FAFBFC; border-bottom: 1px solid #eee;
+            font-weight: 700; font-size: 13px; color: var(--text-main); 
+            display: flex; justify-content: flex-start; align-items: center; gap: 12px;
+        }
+        .comp-body { padding: 16px; }
+
+        /* Styles */
+        .lv-grid { display: flex; flex-direction: column; gap: 8px; }
+        .lv-row { display: flex; align-items: baseline; line-height: 1.5; border-bottom: 1px solid #f9f9f9; padding-bottom: 8px; }
+        .lv-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .lv-lbl { color: var(--text-subtle); width: var(--label-w); flex-shrink: 0; }
+        .lv-val { color: var(--text-main); font-weight: 500; word-break: break-all; }
+
+        .dd-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; background: #E4E7ED; margin-top: 16px; border-radius: 4px; overflow: hidden; }
+        .dd-item { background: #fff; padding: 8px 12px; display: flex; flex-direction: column; gap: 2px; }
+        .dd-label { font-size: 11px; color: var(--text-subtle); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dd-val { font-size: 13px; font-weight: 600; color: var(--text-main); }
+        @media (max-width: 1400px) { .dd-grid { grid-template-columns: 1fr 1fr; } }
+
+        /* Cluster Cards */
+        .cluster-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+        .cluster-card {
+            background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 16px;
+            transition: all 0.2s; display: flex; flex-direction: column; gap: 12px;
+        }
+        .cluster-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); transform: translateY(-1px); border-color: #dcdfe6; }
+        .cl-header { display: flex; justify-content: space-between; align-items: center; }
+        .cl-title { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .cl-res-grid { display: flex; flex-direction: column; gap: 8px; background: #FAFBFC; padding: 10px; border-radius: 4px; border: 1px solid #f0f0f0; }
+        .cl-res-row { display: flex; align-items: center; font-size: 12px; }
+        .cl-res-lbl { width: 40px; color: var(--text-subtle); font-weight: 500; }
+        .cl-res-track { flex: 1; height: 6px; background: #E4E7ED; border-radius: 3px; overflow: hidden; margin: 0 8px; }
+        .cl-res-fill { height: 100%; border-radius: 3px; }
+        .cl-res-val { width: 110px; text-align: right; color: var(--text-regular); font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
+        .cl-res-val span { color: var(--text-subtle); font-size: 11px; margin-left:2px;}
+
+        .cl-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px; color: var(--text-regular); border-top: 1px solid #f5f5f5; padding-top: 10px; }
+        .cl-meta-item { display: flex; gap: 6px; }
+
+        .grid-storage { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+        .prog-row { display: flex; align-items: center; margin-bottom: 8px; font-size: 12px; }
+        .prog-lbl { width: 100px; color: var(--text-subtle); flex-shrink: 0; white-space: nowrap; }
+        .prog-track { flex: 1; height: 6px; background: #e0e0e0; border-radius: 3px; margin: 0 10px; overflow: hidden; }
+        .prog-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+        .prog-val { width: 60px; text-align: right; font-weight: 600; }
+
+        .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
+        .badge.success { background: rgba(103,194,58,0.1); color: var(--success); }
+        .badge.danger { background: rgba(245,108,108,0.1); color: var(--danger); }
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; margin-right: 6px; }
+
+    </style>
+</head>
+<body class="lang-cn">
+
+    <header class="header">
+        <div class="brand">
+            <span>AGIONE</span>
+            <nav class="nav-links">
+                <div class="nav-item active"><span class="cn-only">AI基础设施</span><span class="en-only">Infrastructure</span></div>
+                <div class="nav-item"><span class="cn-only">用户空间</span><span class="en-only">Workspace</span></div>
+            </nav>
+        </div>
+        <div class="lang-btn" onclick="toggleLang()">
+            <span>🌐</span><span class="cn-only">中文 / EN</span><span class="en-only">English / CN</span>
+        </div>
+    </header>
+
+    <div class="layout">
+        <aside class="aside">
+            <div class="menu-item active"><span style="margin-right:10px;">📍</span><span class="cn-only">地域 / 可用区</span><span class="en-only">Regions / AZs</span></div>
+            <div class="menu-item"><span style="margin-right:10px;">💠</span><span class="cn-only">集群管理</span><span class="en-only">Clusters</span></div>
+        </aside>
+
+        <main class="workspace">
+            <div class="toolbar">
+                <div class="tool-group">
+                    <span class="cn-only">类型</span><span class="en-only">Type</span>
+                    <div class="radio-box">
+                        <div class="radio-opt"><span class="cn-only">公共</span><span class="en-only">Public</span></div>
+                        <div class="radio-opt active"><span class="cn-only">专属</span><span class="en-only">Private</span></div>
+                    </div>
+                </div>
+                <div class="tool-group">
+                    <span class="cn-only">状态</span><span class="en-only">Status</span>
+                    <div class="radio-box">
+                        <div class="radio-opt active"><span class="cn-only">全部</span><span class="en-only">All</span></div>
+                        <div class="radio-opt"><span class="cn-only">正常</span><span class="en-only">Normal</span></div>
+                    </div>
+                </div>
+                <button class="btn-add"><span class="cn-only">+ 新增地域</span><span class="en-only">+ New Region</span></button>
+            </div>
+
+            <div class="split-view">
+                <div class="list-col">
+                    <div class="search-box">
+                        <input type="text" class="input cn-only" placeholder="搜索地域名称...">
+                        <input type="text" class="input en-only" placeholder="Search region...">
+                    </div>
+                    <div class="region-list" id="regionList"></div>
+                </div>
+
+                <div class="detail-col" id="detailPanel"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const db = {
+            regions: [
+                {
+                    id: 'wuhan',
+                    name: { cn: '武汉 (核心)', en: 'Wuhan (Core)' },
+                    status: 'normal',
+                    reason: null, 
+                    meta: { updated: '2026-01-27 14:40', created: '2025-08-27 16:22' },
+                    components: {
+                        image: { name: 'harbor-wh', endpoint: 'https://harbor.icsb.shop', ip: '192.168.5.195:8090', desc: 'harbor' },
+                        object: { name: 'minio-wh', endpoint: 'https://minio.icsb.shop', ip: '192.168.5.195:9000', quota: 5, unit: 'GB', buckets: 5, desc: 'minio' },
+                        block: { name: 'ceph-blk-01', used: '59.9GB', alloc: '599GB', limit: '150GB', ratio: '10', disks: 2, used_pct: 10, alloc_pct: 60, act_thres:'100%', over_thres:'100%' },
+                        file: { name: 'ceph-fs-01', used: '73.4GB', alloc: '734GB', limit: '1000GB', ratio: '10', sys: 2, used_pct: 15, alloc_pct: 75, act_thres:'100%', over_thres:'100%' }
+                    },
+                    azs: [
+                        { 
+                            name: { cn: '武汉可用区 1', en: 'Wuhan AZ 1' }, 
+                            status: 'normal', 
+                            created: '2025-07-04', updated: '2026-01-20',
+                            // V4.1 Data: Added Disk, Removed Ver
+                            clusters: [
+                                { 
+                                    name: 'v100-gpu-01', status: 'available', 
+                                    cpu: {t:160,f:112}, mem: {t:503,f:404}, gpu: {t:16,f:14}, 
+                                    disk: {t:877.1, f:577.1}, // New Disk Info
+                                    nodes: 2, jobs: 4, created:'2025-07-04 10:00' 
+                                },
+                                { 
+                                    name: 'v100-gpu-02', status: 'available', 
+                                    cpu: {t:320,f:20}, mem: {t:1024,f:100}, gpu: {t:32,f:2}, 
+                                    disk: {t:2000, f:100},
+                                    nodes: 4, jobs: 12, created:'2025-08-10 14:30' 
+                                },
+                                { 
+                                    name: 'v100-cpu-01', status: 'available', 
+                                    cpu: {t:64,f:60}, mem: {t:128,f:100}, gpu: {t:0,f:0}, 
+                                    disk: {t:500, f:400},
+                                    nodes: 2, jobs: 0, created:'2025-09-01 09:00' 
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 'shanghai',
+                    name: { cn: '上海 (故障)', en: 'Shanghai (Failed)' },
+                    status: 'failed',
+                    reason: { cn: '存储集群 ceph-sh-02 心跳丢失', en: 'Heartbeat lost: ceph-sh-02' },
+                    meta: { updated: '2026-01-26 09:12', created: '2025-01-01 10:00' },
+                    components: {
+                        image: { name: 'harbor-sh', endpoint: 'https://harbor-sh.icsb.shop', ip: '10.0.0.1:8090', desc: 'harbor' },
+                        object: { name: 'ceph-obj-sh', endpoint: 'https://ceph.icsb.shop', ip: '10.0.0.1:9000', quota: 100, unit: 'TB', buckets: 20, desc: 'ceph' },
+                        block: { name: 'ceph-blk-02', used: '120GB', alloc: '0GB', limit: '500GB', ratio: '0', disks: 0, used_pct: 20, alloc_pct: 0, act_thres:'100%', over_thres:'100%' },
+                        file: { name: 'ceph-fs-02', used: '0GB', alloc: '0GB', limit: '0GB', ratio: '0', sys: 0, used_pct: 0, alloc_pct: 0, act_thres:'100%', over_thres:'100%' }
+                    },
+                    azs: []
+                }
+            ]
+        };
+
+        function renderList() {
+            const listEl = document.getElementById('regionList');
+            listEl.innerHTML = db.regions.map(r => {
+                let stClass = 'st-normal', badge = {cn:'正常', en:'Normal'};
+                if(r.status === 'failed') { stClass = 'st-failed'; badge = {cn:'异常', en:'Failed'}; }
+                
+                return `
+                <div class="list-item ${stClass} ${r.id === 'wuhan' ? 'active' : ''}" onclick="selectRegion('${r.id}', this)">
+                    <div class="li-head">
+                        <div class="li-title"><span class="li-icon">📍</span> <span class="cn-only">${r.name.cn}</span><span class="en-only">${r.name.en}</span></div>
+                        <div class="list-badge"><span class="cn-only">${badge.cn}</span><span class="en-only">${badge.en}</span></div>
+                    </div>
+                    <div class="li-meta">
+                        <div class="li-time-row"><span><span class="cn-only">建:</span><span class="en-only">C:</span></span> <span>${r.meta.created}</span></div>
+                        <div class="li-time-row"><span><span class="cn-only">更:</span><span class="en-only">U:</span></span> <span>${r.meta.updated}</span></div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderDetails(id) {
+            const r = db.regions.find(item => item.id === id);
+            const panel = document.getElementById('detailPanel');
+            const comp = r.components;
+            
+            let badgeClass = 'success', badgeText = {cn:'正常', en:'Normal'};
+            let errorHtml = '';
+
+            if(r.status === 'failed') { 
+                badgeClass = 'danger'; 
+                badgeText = {cn:'异常', en:'Failed'}; 
+                errorHtml = `
+                <div class="error-banner">
+                    <span style="font-size:16px;">⚠️</span>
+                    <div>
+                        <strong><span class="cn-only">异常原因:</span><span class="en-only">Error Reason:</span></strong>
+                        <span class="cn-only">${r.reason.cn}</span><span class="en-only">${r.reason.en}</span>
+                    </div>
+                </div>`;
+            }
+
+            // V4.1: Status Normal element for components (Left Aligned via CSS)
+            const statusNormal = `<span class="dd-val" style="color:var(--success); font-size:12px;"><span class="cn-only">正常</span><span class="en-only">Normal</span></span>`;
+
+            panel.innerHTML = `
+                <div class="detail-header">
+                    <div class="dh-title-row">
+                        <div class="dh-title">
+                            <span class="cn-only">${r.name.cn}</span><span class="en-only">${r.name.en}</span>
+                            <span class="badge ${badgeClass}"><span class="dot"></span><span class="cn-only">${badgeText.cn}</span><span class="en-only">${badgeText.en}</span></span>
+                        </div>
+                    </div>
+                    ${errorHtml}
+                </div>
+
+                <div class="card">
+                    <div class="card-head"><span class="cn-only">关联组件</span><span class="en-only">Related Components</span></div>
+
+                    <div class="group-block">
+                        <div class="group-title">1. <span class="cn-only">镜像组件</span><span class="en-only">Image Components</span></div>
+                        <div class="grid-2">
+                            <div class="comp-box">
+                                <div class="comp-head"><span>${comp.image.name}</span> ${statusNormal}</div>
+                                <div class="comp-body">
+                                    <div class="lv-grid">
+                                        <div class="lv-row"><span class="lv-lbl"><span class="cn-only">访问端点</span><span class="en-only">Endpoint</span>:</span><span class="lv-val">${comp.image.endpoint}</span></div>
+                                        <div class="lv-row"><span class="lv-lbl">IP:</span><span class="lv-val">${comp.image.ip}</span></div>
+                                        <div class="lv-row"><span class="lv-lbl"><span class="cn-only">描述</span><span class="en-only">Desc</span>:</span><span class="lv-val">${comp.image.desc}</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="group-block">
+                        <div class="group-title">2. <span class="cn-only">存储组件</span><span class="en-only">Storage Components</span></div>
+                        <div class="grid-storage">
+                            <div class="comp-box">
+                                <div class="comp-head">
+                                    <div><span class="cn-only">对象存储</span><span class="en-only">Object Store</span></div>
+                                    ${statusNormal}
+                                </div>
+                                <div class="comp-body">
+                                    <div style="font-weight:700; margin-bottom:8px;">${comp.object.name}</div>
+                                    <div class="dd-grid">
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">额度</span><span class="en-only">Quota</span></span><span class="dd-val">${comp.object.quota} ${comp.object.unit}</span></div>
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">桶数量</span><span class="en-only">Buckets</span></span><span class="dd-val">${comp.object.buckets}</span></div>
+                                        <div class="dd-item"><span class="dd-label">IP</span><span class="dd-val">${comp.object.ip}</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="comp-box">
+                                <div class="comp-head">
+                                    <div><span class="cn-only">块存储</span><span class="en-only">Block Store</span></div>
+                                    ${statusNormal}
+                                </div>
+                                <div class="comp-body">
+                                    <div style="font-weight:700; margin-bottom:8px;">${comp.block.name}</div>
+                                    <div class="prog-row">
+                                        <span class="prog-lbl"><span class="cn-only">实际已用</span><span class="en-only">Used</span>:</span>
+                                        <div class="prog-track"><div class="prog-fill" style="width:${comp.block.used_pct}%; background:var(--success);"></div></div>
+                                        <span class="prog-val">${comp.block.used}</span>
+                                    </div>
+                                    <div class="dd-grid">
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">实际阈值</span><span class="en-only">Act. Thres</span></span><span class="dd-val">${comp.block.act_thres}</span></div>
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">超分阈值</span><span class="en-only">Over Thres</span></span><span class="dd-val">${comp.block.over_thres}</span></div>
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">租户限制</span><span class="en-only">Tenant Limit</span></span><span class="dd-val">${comp.block.limit}</span></div>
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">运行盘符</span><span class="en-only">Disks</span></span><span class="dd-val">${comp.block.disks}</span></div>
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">超分比例</span><span class="en-only">Ratio</span></span><span class="dd-val">${comp.block.ratio}</span></div>
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">地域</span><span class="en-only">Region</span></span><span class="dd-val">Wuhan</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="comp-box">
+                                <div class="comp-head">
+                                    <div><span class="cn-only">文件存储</span><span class="en-only">File Store</span></div>
+                                    ${statusNormal}
+                                </div>
+                                <div class="comp-body">
+                                    <div style="font-weight:700; margin-bottom:8px;">${comp.file.name}</div>
+                                    <div class="prog-row">
+                                        <span class="prog-lbl"><span class="cn-only">实际已用</span><span class="en-only">Used</span>:</span>
+                                        <div class="prog-track"><div class="prog-fill" style="width:${comp.file.used_pct}%; background:var(--success);"></div></div>
+                                        <span class="prog-val">${comp.file.used}</span>
+                                    </div>
+                                    <div class="dd-grid">
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">实际阈值</span><span class="en-only">Act. Thres</span></span><span class="dd-val">${comp.file.act_thres}</span></div>
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">超分阈值</span><span class="en-only">Over Thres</span></span><span class="dd-val">${comp.file.over_thres}</span></div>
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">租户限制</span><span class="en-only">Tenant Limit</span></span><span class="dd-val">${comp.file.limit}</span></div>
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">文件系统</span><span class="en-only">Systems</span></span><span class="dd-val">${comp.file.sys}</span></div>
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">超分比例</span><span class="en-only">Ratio</span></span><span class="dd-val">${comp.file.ratio}</span></div>
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">地域</span><span class="en-only">Region</span></span><span class="dd-val">Wuhan</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-head"><span class="cn-only">可用区</span><span class="en-only">Availability Zones</span></div>
+                    
+                    ${r.azs.map(az => {
+                        let azC = az.status==='normal'?'success':'danger';
+                        let azT = az.status==='normal'?{cn:'正常',en:'Normal'}:{cn:'异常',en:'Failed'};
+                        
+                        return `
+                        <div class="group-block">
+                            <div class="group-title">
+                                <span style="font-size:14px;">🏢</span>
+                                <span style="font-weight:700;"><span class="cn-only">${az.name.cn}</span><span class="en-only">${az.name.en}</span></span>
+                                <span class="badge ${azC}"><span class="dot"></span><span class="cn-only">${azT.cn}</span><span class="en-only">${azT.en}</span></span>
+                                <span class="az-badge">
+                                    <span class="cn-only">${az.clusters.length} 集群</span>
+                                    <span class="en-only">${az.clusters.length} Clusters</span>
+                                </span>
+                            </div>
+
+                            <div class="cluster-grid">
+                                ${az.clusters.map(cl => {
+                                    const gpuPct = cl.gpu.t > 0 ? Math.round(((cl.gpu.t - cl.gpu.f)/cl.gpu.t)*100) : 0;
+                                    const cpuPct = Math.round(((cl.cpu.t - cl.cpu.f)/cl.cpu.t)*100);
+                                    const memPct = Math.round(((cl.mem.t - cl.mem.f)/cl.mem.t)*100);
+                                    
+                                    // V4.1: Disk Calculation
+                                    const diskUsed = (cl.disk.t - cl.disk.f).toFixed(1);
+                                    const diskPct = Math.round((diskUsed / cl.disk.t) * 100);
+
+                                    let gpuColor = gpuPct > 80 ? '#F56C6C' : 'var(--gpu-color)';
+                                    
+                                    return `
+                                    <div class="cluster-card">
+                                        <div class="cl-header">
+                                            <div class="cl-title"><span class="cl-icon">💠</span> ${cl.name}</div>
+                                            <span class="badge success" style="font-size:10px;"><span class="cn-only">可用</span><span class="en-only">Ready</span></span>
+                                        </div>
+                                        
+                                        <div class="cl-res-grid">
+                                            <div class="cl-res-row">
+                                                <div class="cl-res-lbl" style="color:var(--gpu-color);font-weight:700;">GPU</div>
+                                                <div class="cl-res-track"><div class="cl-res-fill" style="width:${gpuPct}%; background:${gpuColor};"></div></div>
+                                                <div class="cl-res-val">${cl.gpu.t-cl.gpu.f}/${cl.gpu.t} <span class="cn-only">卡</span><span class="en-only">Cards</span></div>
+                                            </div>
+                                            <div class="cl-res-row">
+                                                <div class="cl-res-lbl">CPU</div>
+                                                <div class="cl-res-track"><div class="cl-res-fill" style="width:${cpuPct}%; background:var(--success);"></div></div>
+                                                <div class="cl-res-val">${cl.cpu.t-cl.cpu.f}/${cl.cpu.t} <span class="cn-only">核</span><span class="en-only">Cores</span></div>
+                                            </div>
+                                            <div class="cl-res-row">
+                                                <div class="cl-res-lbl">MEM</div>
+                                                <div class="cl-res-track"><div class="cl-res-fill" style="width:${memPct}%; background:var(--warning);"></div></div>
+                                                <div class="cl-res-val">${Math.round(cl.mem.t-cl.mem.f)}/${Math.round(cl.mem.t)} <span>GB</span></div>
+                                            </div>
+                                            <div class="cl-res-row">
+                                                <div class="cl-res-lbl">DISK</div>
+                                                <div class="cl-res-track"><div class="cl-res-fill" style="width:${diskPct}%; background:#409EFF;"></div></div>
+                                                <div class="cl-res-val">${diskUsed}/${cl.disk.t} <span>GB</span></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="cl-meta">
+                                            <div class="cl-meta-item">
+                                                <span class="cl-meta-lbl"><span class="cn-only">节点</span><span class="en-only">Nodes</span></span>
+                                                <span class="cl-meta-val">${cl.nodes}</span>
+                                            </div>
+                                            <div class="cl-meta-item">
+                                                <span class="cl-meta-lbl"><span class="cn-only">作业</span><span class="en-only">Jobs</span></span>
+                                                <span class="cl-meta-val" style="color:var(--primary);">${cl.jobs}</span>
+                                            </div>
+                                            <div class="cl-footer">
+                                                <span class="cn-only">创建:</span><span class="en-only">Created:</span> ${cl.created}
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                }).join('')}
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function selectRegion(id, el) {
+            document.querySelectorAll('.list-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            renderDetails(id);
+        }
+
+        function toggleLang() {
+            const body = document.body;
+            body.className = body.classList.contains('lang-cn') ? 'lang-en' : 'lang-cn';
+        }
+
+        renderList();
+        renderDetails('wuhan');
+    </script>
+</body>
+</html>
