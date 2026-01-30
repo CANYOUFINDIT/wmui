@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wanmore Console - Spec Metrics V3.1</title>
+    
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --el-color-primary: #4C5DF7;
+            --el-color-primary-light-9: #edeffe;
+            --app-bg: #F5F7FA;
+            --sidebar-w: 220px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+            margin: 0; background-color: var(--app-bg); color: #1F2329; -webkit-font-smoothing: antialiased;
+        }
+
+        /* 1. 布局框架 */
+        .app-container { display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: var(--sidebar-w); background: #fff; border-right: 1px solid #E4E7ED; display: flex; flex-direction: column; z-index: 10; }
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .top-nav { height: 52px; background: #fff; border-bottom: 1px solid #E4E7ED; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 9; }
+        .page-body { flex: 1; padding: 24px; overflow-y: auto; }
+
+        /* 2. 列表页 (Card View) */
+        .filter-section { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 24px; border: 1px solid #E4E7ED; }
+        .ai-extra-filters { margin-top: 16px; padding-top: 16px; border-top: 1px dashed #E4E7ED; display: flex; flex-wrap: wrap; gap: 24px; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .metric-card {
+            background: #fff; border: 1px solid #EBEEF5; border-radius: 8px; padding: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); height: 100%; display: flex; flex-direction: column; position: relative;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .metric-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -8px rgba(76, 93, 247, 0.12); border-color: #D1D8FF; }
+        
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+        .card-title { font-weight: 700; color: #1F2329; font-size: 15px; }
+        
+        .card-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; align-items: center; line-height: 1.5; }
+        .card-label { color: #8F959E; min-width: 100px; }
+        .card-value { color: #303133; font-family: 'Inter', monospace; font-weight: 500; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #67C23A; display: inline-block; margin-right: 6px; }
+
+        /* 3. 抽屉样式 */
+        .wanmore-drawer .el-drawer__header { border-bottom: 1px solid #F2F6FC; padding: 20px 24px; color: #1F2329; font-weight: 700; margin-bottom: 0; }
+        .wanmore-drawer .el-drawer__body { padding: 40px 60px; background: #fff; overflow-y: auto; }
+        .vertical-form .el-form-item { margin-bottom: 32px; flex-direction: column; align-items: stretch; }
+        .vertical-form .el-form-item__label { font-weight: 600; color: #1F2329; margin-bottom: 8px; line-height: 1.2; padding: 0 !important; }
+
+        /* AI 硬件配置档案 (V3.0 Layout) */
+        .ai-profile-container {
+            background: #F9FAFF; border: 1px solid #EDEFFE; border-radius: 12px; padding: 24px;
+            margin-top: 12px; display: flex; gap: 32px; align-items: flex-start;
+        }
+        .ai-fields-area { flex: 1; display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+        .ai-icon-area { 
+            width: 140px; display: flex; flex-direction: column; align-items: center; 
+            border-left: 1px dashed #DCDFE6; padding-left: 32px; 
+        }
+
+        .icon-uploader {
+            width: 80px; height: 80px; border: 1px dashed #DCDFE6; border-radius: 50%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; background: #fff; transition: all 0.2s; color: #909399;
+        }
+        .icon-uploader:hover { border-color: var(--el-color-primary); color: var(--el-color-primary); background: #F5F7FF; }
+        
+        /* 监控卡片 */
+        .monitor-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .monitor-card {
+            border: 2px solid #F2F3F5; border-radius: 12px; padding: 18px; cursor: pointer;
+            transition: all 0.2s; background: #fff; display: flex; align-items: flex-start; gap: 14px;
+        }
+        .monitor-card.active { border-color: var(--el-color-primary); background: #F5F7FF; box-shadow: 0 4px 12px rgba(76, 93, 247, 0.08); }
+        .m-icon { width: 40px; height: 40px; background: #fff; border: 1px solid #E4E7ED; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .monitor-card.active .m-icon { background: var(--el-color-primary); color: #fff; border-color: var(--el-color-primary); }
+        .m-info h4 { margin: 0 0 4px 0; font-size: 14px; font-weight: 700; }
+        .m-info p { margin: 0; font-size: 12px; color: #8F959E; line-height: 1.4; }
+
+        .compact-radio .el-radio-button__inner { padding: 10px 28px; border-radius: 6px !important; margin-right: 12px; border: 1px solid #DCDFE6 !important; box-shadow: none !important; font-weight: 500; }
+        .compact-radio .el-radio-button__original-radio:checked + .el-radio-button__inner { background: #EEF2FF; color: var(--el-color-primary); border-color: var(--el-color-primary) !important; }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="h-[52px] flex items-center px-6 border-b border-gray-100">
+                <span class="text-[#4C5DF7] font-bold text-xl tracking-tight">Wanmore</span>
+                <span class="ml-2 px-1.5 py-0.5 bg-indigo-50 text-[#4C5DF7] text-[10px] rounded">V3.1</span>
+            </div>
+            <div class="flex-1 py-4 px-2">
+                <el-menu default-active="metrics" class="border-none">
+                    <el-sub-menu index="1">
+                        <template #title><el-icon><cpu /></el-icon><span>{{ t('menu.pool') }}</span></template>
+                        <el-menu-item index="metrics">{{ t('menu.metrics') }}</el-menu-item>
+                    </el-sub-menu>
+                </el-menu>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-nav">
+                <el-breadcrumb separator="/">
+                    <el-breadcrumb-item>{{ t('menu.pool') }}</el-breadcrumb-item>
+                    <el-breadcrumb-item>{{ t('menu.metrics') }}</el-breadcrumb-item>
+                </el-breadcrumb>
+                <div class="flex items-center gap-6">
+                    <el-dropdown @command="(c) => lang = c">
+                        <span class="cursor-pointer text-xs font-semibold text-gray-500 flex items-center gap-1.5 hover:text-primary transition-colors">
+                            <el-icon><collection /></el-icon> {{ lang === 'zh' ? '简体中文' : 'English' }}
+                        </span>
+                        <template #dropdown>
+                            <el-dropdown-menu>
+                                <el-dropdown-item command="zh">简体中文</el-dropdown-item>
+                                <el-dropdown-item command="en">English</el-dropdown-item>
+                            </el-dropdown-menu>
+                        </template>
+                    </el-dropdown>
+                    <div class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-[#4C5DF7] font-bold text-xs border border-indigo-100">M</div>
+                </div>
+            </header>
+
+            <div class="page-body">
+                <div class="flex justify-between items-end mb-8">
+                    <div>
+                        <h1 class="text-2xl font-bold text-[#1F2329] m-0">{{ t('page.title') }}</h1>
+                        <p class="text-[#8F959E] text-sm mt-2">{{ t('page.subtitle') }}</p>
+                    </div>
+                    <el-button type="primary" size="large" @click="openDrawer" style="border-radius: 10px; height: 44px; padding: 0 28px;">
+                        <el-icon class="mr-2"><plus /></el-icon> {{ t('action.create') }}
+                    </el-button>
+                </div>
+
+                <div class="filter-section">
+                    <div class="flex flex-wrap gap-8 items-center">
+                        <el-input v-model="filters.keyword" :placeholder="t('filter.search')" prefix-icon="Search" style="width: 320px;" clearable></el-input>
+                        
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm font-semibold text-gray-500">{{ t('col.type') }}:</span>
+                            <el-radio-group v-model="filters.type" size="default">
+                                <el-radio-button label="all">{{ t('common.all') }}</el-radio-button>
+                                <el-radio-button label="general">{{ t('types.general') }}</el-radio-button>
+                                <el-radio-button label="ai">{{ t('types.ai') }}</el-radio-button>
+                                <el-radio-button label="other">{{ t('types.other') }}</el-radio-button>
+                            </el-radio-group>
+                        </div>
+                    </div>
+
+                    <div v-if="filters.type === 'ai'" class="ai-extra-filters">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">{{ t('form.vendor') }}</span>
+                            <el-select v-model="filters.vendor" :placeholder="t('common.all')" clearable style="width: 140px">
+                                <el-option label="NVIDIA" value="NVIDIA"></el-option>
+                                <el-option label="Huawei" value="Huawei"></el-option>
+                            </el-select>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">{{ t('form.model') }}</span>
+                            <el-select v-model="filters.model" :placeholder="t('common.all')" clearable style="width: 140px">
+                                <el-option label="A100" value="A100"></el-option>
+                                <el-option label="910B" value="910B"></el-option>
+                            </el-select>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">{{ t('form.series') }}</span>
+                            <el-select v-model="filters.series" :placeholder="t('common.all')" clearable style="width: 140px">
+                                <el-option label="Ampere" value="Ampere"></el-option>
+                                <el-option label="Ascend" value="Ascend"></el-option>
+                            </el-select>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-loading="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div v-for="item in filteredData" :key="item.id" class="metric-card">
+                        <div class="card-header">
+                            <div class="card-title">{{ item.name }}</div>
+                            <el-dropdown trigger="click">
+                                <el-icon class="cursor-pointer text-gray-400 hover:text-indigo-600 transition-colors"><more-filled /></el-icon>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item>{{ t('action.edit') }}</el-dropdown-item>
+                                        <el-dropdown-item v-if="item.type !== 'general'" class="text-red-500">{{ t('action.delete') }}</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
+                        </div>
+                        
+                        <div class="flex-1 space-y-1.5 pt-3 border-t border-gray-50 mt-auto">
+                            <div class="card-row"><span class="card-label">{{ t('col.status') }}:</span><span class="card-value flex items-center text-[#67C23A] font-bold"><span class="status-dot"></span>{{ t('common.normal') }}</span></div>
+                            <div class="card-row"><span class="card-label">{{ t('col.monitor') }}:</span><span class="card-value uppercase tabular">{{ item.monitorKey || '--' }}</span></div>
+                            <div class="card-row"><span class="card-label">selector-key:</span><span class="card-value truncate" :title="item.selectorKey">{{ item.selectorKey || '--' }}</span></div>
+                            <div class="card-row"><span class="card-label">k8s-key:</span><span class="card-value truncate" :title="item.k8sKey">{{ item.k8sKey }}</span></div>
+                            <div class="card-row"><span class="card-label">{{ t('col.unit') }}:</span><span class="card-value">{{ item.unit }}</span></div>
+                            <div class="card-row"><span class="card-label">{{ t('col.isAI') }}:</span><span class="card-value">{{ item.type === 'ai' ? t('common.yes') : t('common.no') }}</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <el-drawer
+            v-model="drawerVisible"
+            :title="t('form.createTitle')"
+            size="1000px"
+            class="wanmore-drawer"
+            destroy-on-close
+        >
+            <div class="max-w-[860px] mx-auto">
+                <el-form :model="form" label-position="top" class="vertical-form">
+                    
+                    <el-form-item :label="t('col.type')" required>
+                        <el-radio-group v-model="form.type" @change="handleTypeChange" class="compact-radio">
+                            <el-radio-button label="ai">{{ t('types.ai') }}</el-radio-button>
+                            <el-radio-button label="other">{{ t('types.other') }}</el-radio-button>
+                        </el-radio-group>
+                        <div class="text-[12px] text-gray-400 mt-2 flex items-center gap-1.5">
+                            <el-icon><info-filled /></el-icon> {{ t('form.generalTip') }}
+                        </div>
+                    </el-form-item>
+
+                    <el-form-item :required="form.type === 'ai'">
+                        <template #label>
+                            <span>{{ t('col.monitor') }}</span>
+                            <span v-if="form.type === 'other'" class="text-xs font-normal text-gray-400 ml-2">({{ t('common.optional') }})</span>
+                        </template>
+                        
+                        <div v-if="form.type === 'ai'" class="monitor-grid">
+                            <div class="monitor-card active">
+                                <div class="m-icon"><el-icon><video-play /></el-icon></div>
+                                <div class="m-info">
+                                    <h4>XPU</h4>
+                                    <p>{{ t('monitor.xpuDesc') }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <el-input v-else v-model="form.monitorKey" :placeholder="t('form.phMonitor')"></el-input>
+                    </el-form-item>
+
+                    <div class="grid grid-cols-2 gap-x-12">
+                        <el-form-item :label="t('col.name')" required>
+                            <el-input v-model="form.name" :placeholder="namePh"></el-input>
+                        </el-form-item>
+                        <el-form-item :label="t('col.unit')" required>
+                            <el-select v-model="form.unit" class="w-full" :placeholder="t('common.select')">
+                                <el-option v-for="u in unitList" :key="u" :label="u" :value="u" />
+                            </el-select>
+                        </el-form-item>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-x-12">
+                        <el-form-item>
+                            <template #label>
+                                <span>k8s-key</span>
+                                <span class="text-xs font-normal text-gray-400 ml-2">({{ t('common.optional') }})</span>
+                            </template>
+                            <el-select v-model="form.k8sKey" filterable allow-create :placeholder="t('form.phK8s')" class="w-full">
+                                <el-option v-for="o in k8sPre" :key="o" :label="o" :value="o" />
+                            </el-select>
+                        </el-form-item>
+
+                        <el-form-item>
+                            <template #label>
+                                <span>selector-key</span>
+                                <span class="text-xs font-normal text-gray-400 ml-2">({{ t('common.optional') }})</span>
+                            </template>
+                            <el-select v-model="form.selectorKey" filterable allow-create :placeholder="t('form.phSelector')" class="w-full">
+                                <el-option v-for="o in selectorPre" :key="o" :label="o" :value="o" />
+                            </el-select>
+                            <div v-if="form.type === 'ai'" class="text-[11px] text-amber-600 mt-2 flex items-center gap-1.5 font-medium">
+                                <el-icon><warning /></el-icon> {{ t('form.selectorTip') }}
+                            </div>
+                        </el-form-item>
+                    </div>
+
+                    <div v-if="form.type === 'ai'" class="ai-profile-container animate-in fade-in zoom-in duration-300">
+                        <div class="ai-fields-area">
+                            <div class="col-span-2 text-xs font-bold text-indigo-500 uppercase tracking-widest mb-1">{{ t('form.hwProfile') }}</div>
+                            <el-form-item :label="t('form.vendor')" class="!mb-0">
+                                <el-input v-model="form.vendor" placeholder="e.g. NVIDIA"></el-input>
+                            </el-form-item>
+                            <el-form-item :label="t('form.model')" class="!mb-0">
+                                <el-input v-model="form.model" placeholder="e.g. A100-80G"></el-input>
+                            </el-form-item>
+                            <el-form-item :label="t('form.series')" class="!mb-0 col-span-2">
+                                <el-input v-model="form.series" placeholder="e.g. Ampere"></el-input>
+                            </el-form-item>
+                        </div>
+
+                        <div class="ai-icon-area">
+                            <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">{{ t('form.iconLabel') }}</div>
+                            <div class="icon-uploader">
+                                <el-icon size="24"><plus /></el-icon>
+                            </div>
+                            <div class="text-[10px] text-gray-400 text-center mt-3 leading-tight">{{ t('form.iconTip') }}</div>
+                        </div>
+                    </div>
+
+                </el-form>
+            </div>
+            <template #footer>
+                <div class="flex justify-end gap-3 px-12 pb-6">
+                    <el-button @click="drawerVisible = false" size="large" style="border-radius: 8px;">{{ t('common.cancel') }}</el-button>
+                    <el-button type="primary" @click="submit" :loading="loading" size="large" style="border-radius: 8px; padding: 0 40px;">{{ t('common.confirm') }}</el-button>
+                </div>
+            </template>
+        </el-drawer>
+    </div>
+</div>
+
+<script>
+const { createApp, ref, computed } = Vue;
+
+const i18n = {
+    zh: {
+        menu: { pool: '算力资源池', metrics: '规格指标' },
+        page: { title: '规格指标管理', subtitle: '定义作业使用的最小原子化计量单位及其底层调度映射关系。' },
+        action: { create: '新增规格指标', edit: '编辑', delete: '删除' },
+        filter: { search: '搜索名称或 K8s 键值...' },
+        common: { all: '全部', normal: '正常', yes: '是', no: '否', optional: '可选', select: '请选择', confirm: '确认录入', cancel: '取消' },
+        types: { general: '通算指标', ai: 'AI 加速卡指标', other: '其他指标' },
+        col: { type: '指标类型', status: '状态', monitor: '监控指标', name: '指标名称', unit: '单位', isAI: 'AI 加速卡类别' },
+        monitor: { xpuDesc: 'AI 加速卡硬件利用率监控。开启此项将触发资源感知调度，强制匹配 AI 集群节点。' },
+        form: {
+            createTitle: '录入规格指标',
+            generalTip: '通算指标（CPU/内存）为系统内置，暂不支持手动新增。',
+            phMonitor: '输入监控指标标识，如 gpu_vram_limit',
+            phK8s: '输入或搜索 K8s 键值',
+            phSelector: '匹配节点的类型标签',
+            selectorTip: '单个规格配置中仅允许存在一个 selector-key 指标。',
+            hwProfile: '硬件参数配置',
+            vendor: '厂商 Vendor',
+            model: '型号 Model',
+            series: '系列 Series',
+            iconLabel: '标识图标',
+            iconTip: '请上传硬件或指标的标识图标'
+        }
+    },
+    en: {
+        menu: { pool: 'Resource Pool', metrics: 'Spec Metrics' },
+        page: { title: 'Spec Metrics Management', subtitle: 'Define atomic resource units and underlying scheduling mappings.' },
+        action: { create: 'Add Metric', edit: 'Edit', delete: 'Delete' },
+        filter: { search: 'Search name or K8s key...' },
+        common: { all: 'All', normal: 'Normal', yes: 'Yes', no: 'No', optional: 'Optional', select: 'Select', confirm: 'Confirm', cancel: 'Cancel' },
+        types: { general: 'General', ai: 'AI Accelerator', other: 'Other Metrics' },
+        col: { type: 'Metric Type', status: 'Status', monitor: 'Monitor Key', name: 'Name', unit: 'Unit', isAI: 'AI Category' },
+        monitor: { xpuDesc: 'Hardware utilization monitoring. Enables resource-aware scheduling for AI nodes.' },
+        form: {
+            createTitle: 'Register Spec Metric',
+            generalTip: 'General metrics (CPU/Memory) are built-in and cannot be added manually.',
+            phMonitor: 'Enter monitor key, e.g. gpu_vram_limit',
+            phK8s: 'Enter or search K8s Key',
+            phSelector: 'Match node labels',
+            selectorTip: 'Only one selector-key allowed per spec config.',
+            hwProfile: 'Hardware Profile',
+            vendor: 'Vendor',
+            model: 'Model',
+            series: 'Series',
+            iconLabel: 'Icon',
+            iconTip: 'Upload hardware/metric identity icon'
+        }
+    }
+};
+
+const app = createApp({
+    setup() {
+        const lang = ref('zh');
+        const loading = ref(false);
+        const drawerVisible = ref(false);
+        const filters = ref({ keyword: '', type: 'all', vendor: '', model: '', series: '' });
+
+        // 模拟数据
+        const tableData = ref([
+            { id: 1, type: 'general', name: 'cpu', k8sKey: 'cpu', monitorKey: 'cpu', unit: 'vCPU', selectorKey: '', icon: '🧠' },
+            { id: 2, type: 'general', name: 'memory', k8sKey: 'memory', monitorKey: 'mem', unit: 'GiB', selectorKey: '', icon: '💾' },
+            { id: 3, type: 'ai', name: 'Nvidia_A100', k8sKey: 'nvidia.com/gpu', monitorKey: 'xpu', unit: 'XPU(s)', selectorKey: 'nvidia-a100-80g', vendor: 'NVIDIA', model: 'A100', series: 'Ampere', icon: '⚡' },
+            { id: 4, type: 'other', name: '英伟达GPU显存', k8sKey: 'nvidia.com/gpumem', monitorKey: 'gpu_vram_usage', unit: 'MiB', selectorKey: '', icon: '🕋' },
+        ]);
+
+        const form = ref({ type: 'ai', monitorKey: 'xpu', name: '', unit: 'XPU(s)', k8sKey: '', selectorKey: '', vendor: '', model: '', series: '' });
+        const k8sPre = ['nvidia.com/gpu', 'huawei.com/npu', 'nvidia.com/gpumem', 'cpu', 'memory'];
+        const selectorPre = ['nvidia-a100-80g', 'huawei-910b', 'nvidia-v100-32g'];
+
+        const t = (p) => {
+            const keys = p.split('.');
+            let val = i18n[lang.value];
+            keys.forEach(k => val = val?.[k]);
+            return val || p;
+        };
+
+        const filteredData = computed(() => {
+            return tableData.value.filter(i => {
+                const matchType = filters.value.type === 'all' || i.type === filters.value.type;
+                const matchKw = !filters.value.keyword || i.name.toLowerCase().includes(filters.value.keyword.toLowerCase()) || i.k8sKey.includes(filters.value.keyword);
+                if (filters.value.type === 'ai') {
+                    const matchV = !filters.value.vendor || i.vendor === filters.value.vendor;
+                    const matchM = !filters.value.model || i.model === filters.value.model;
+                    const matchS = !filters.value.series || i.series === filters.value.series;
+                    return matchType && matchKw && matchV && matchM && matchS;
+                }
+                return matchType && matchKw;
+            });
+        });
+
+        const unitList = computed(() => {
+            if (form.value.type === 'ai') return ['XPU(s)'];
+            return ['Byte', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
+        });
+
+        const namePh = computed(() => form.value.type === 'ai' ? (lang.value === 'zh' ? '如：Nvidia A100' : 'e.g. Nvidia A100') : (lang.value === 'zh' ? '如：GPU 显存上限' : 'e.g. GPU VRAM Limit'));
+
+        const handleTypeChange = (val) => {
+            form.value.unit = unitList.value[0];
+            form.value.monitorKey = (val === 'ai') ? 'xpu' : '';
+            form.value.selectorKey = '';
+        };
+
+        const openDrawer = () => {
+            form.value = { type: 'ai', monitorKey: 'xpu', name: '', unit: 'XPU(s)', k8sKey: '', selectorKey: '', vendor: '', model: '', series: '' };
+            drawerVisible.value = true;
+        };
+
+        const submit = () => {
+            loading.value = true;
+            setTimeout(() => {
+                loading.value = false;
+                drawerVisible.value = false;
+                ElementPlus.ElMessage.success(lang.value === 'zh' ? '录入成功' : 'Success');
+            }, 600);
+        };
+
+        return {
+            lang, loading, drawerVisible, tableData, form, filters,
+            k8sPre, selectorPre, t, filteredData, unitList, namePh,
+            handleTypeChange, openDrawer, submit,
+            toggleLang: () => lang.value = lang.value === 'zh' ? 'en' : 'zh'
+        };
+    }
+});
+
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) { app.component(key, component); }
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+</body>
+</html>
