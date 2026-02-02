@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>资源规格管理 - 算模方 Console V2.2</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4C5DF7;
+            --primary-hover: #3b4ad6;
+            --primary-light: #EEF0FF;
+            --text-main: #1D2129;
+            --text-regular: #4E5969;
+            --text-secondary: #86909C;
+            --border: #E5E6EB;
+            --bg-body: #F7F8FA;
+            --bg-white: #FFFFFF;
+            --success-bg: #E8FFEA;
+            --success-text: #00B42A;
+            --warning-bg: #FFF7E8;
+            --warning-text: #FF7D00;
+            --danger-text: #F53F3F;
+            --radius: 4px;
+            --header-h: 52px;
+            --nav-w: 200px;
+            --sub-nav-w: 240px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+        body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg-body); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* === Header === */
+        .top-bar { height: var(--header-h); background: #fff; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; flex-shrink: 0; z-index: 20; }
+        .brand { font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+        .brand-logo { width: 28px; height: 28px; background: var(--primary); color: #fff; border-radius: 4px; display: grid; place-items: center; }
+        .top-right { display: flex; gap: 16px; align-items: center; font-size: 14px; color: var(--text-regular); }
+        .lang-btn { cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 4px; transition: 0.2s; }
+        .lang-btn:hover { background: var(--bg-body); color: var(--primary); }
+
+        /* === Layout === */
+        .layout { display: flex; flex: 1; overflow: hidden; }
+        .global-nav { width: var(--nav-w); background: #fff; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 12px 0; flex-shrink: 0; }
+        .nav-item { height: 42px; display: flex; align-items: center; padding: 0 20px; color: var(--text-regular); font-size: 14px; gap: 10px; cursor: pointer; border-left: 3px solid transparent; }
+        .nav-item:hover { background: var(--bg-body); color: var(--text-main); }
+        .nav-item.active { background: var(--primary-light); color: var(--primary); border-left-color: var(--primary); font-weight: 500; }
+
+        .family-sidebar { width: var(--sub-nav-w); background: #fff; border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+        .family-header { padding: 16px 16px 8px 16px; display: flex; justify-content: space-between; align-items: center; }
+        .family-title { font-size: 12px; font-weight: 700; color: var(--text-secondary); letter-spacing: 0.5px; text-transform: uppercase; }
+        .btn-icon-sm { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 4px; cursor: pointer; color: var(--text-regular); transition: 0.2s; }
+        .btn-icon-sm:hover { background: var(--bg-body); color: var(--primary); }
+        .family-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-radius: var(--radius); cursor: pointer; font-size: 14px; color: var(--text-regular); margin-bottom: 2px; transition: all 0.2s; }
+        .family-item:hover { background: var(--bg-body); color: var(--text-main); }
+        .family-item.active { background: var(--primary-light); color: var(--primary); font-weight: 500; }
+        .family-count { font-size: 12px; color: var(--text-secondary); background: #F2F3F5; padding: 1px 6px; border-radius: 10px; }
+        .family-item.active .family-count { background: #fff; color: var(--primary); }
+
+        .spec-main { flex: 1; padding: 24px; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-body); }
+        
+        /* List Header with Tabs */
+        .list-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-shrink: 0; }
+        .list-title h2 { font-size: 20px; font-weight: 600; color: var(--text-main); margin-bottom: 12px; }
+        
+        /* === V2.2 New: View Tabs === */
+        .view-tabs { display: flex; gap: 4px; background: #E5E6EB; padding: 3px; border-radius: 6px; }
+        .view-tab { 
+            padding: 5px 16px; font-size: 13px; font-weight: 500; color: var(--text-regular); 
+            cursor: pointer; border-radius: 4px; transition: all 0.2s; user-select: none;
+        }
+        .view-tab:hover { color: var(--text-main); }
+        .view-tab.active { background: #fff; color: var(--primary); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .view-tab.active.tab-danger { color: var(--text-secondary); } /* Style for Disabled Tab */
+
+        /* Toolbar */
+        .toolbar { display: flex; gap: 12px; margin-bottom: 12px; flex-shrink: 0; flex-wrap: wrap; }
+        .filter-group { display: flex; gap: 12px; align-items: center; }
+        .search-input { height: 32px; border: 1px solid var(--border); border-radius: var(--radius); padding: 0 12px; font-size: 13px; background: #fff; min-width: 140px; }
+        .search-input.wide { min-width: 240px; }
+
+        /* Table */
+        .table-container { flex: 1; background: #fff; border: 1px solid var(--border); border-radius: var(--radius); overflow: auto; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .data-table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+        .data-table th { background: #F7F8FA; text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 600; color: var(--text-regular); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; white-space: nowrap; }
+        .data-table td { padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-main); vertical-align: middle; }
+        .data-table tr:hover { background: #F2F3F5; }
+
+        /* ID Column */
+        .col-id { font-family: 'Monaco', 'Consolas', monospace; font-weight: 600; color: var(--primary); font-size: 14px; }
+        .metric-val { font-weight: 600; font-size: 14px; }
+        .metric-unit { font-size: 12px; color: var(--text-secondary); margin-left: 2px; }
+
+        /* Tags */
+        .tags-wrapper { display: flex; flex-wrap: wrap; gap: 6px; }
+        .res-tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: 12px; border: 1px solid transparent; white-space: nowrap; }
+        .res-tag.acc { background: var(--success-bg); color: var(--success-text); border-color: #B7F4C1; }
+        .res-tag.disk { background: #F2F3F5; color: var(--text-regular); border-color: #E5E6EB; }
+        .res-tag.special { background: var(--warning-bg); color: var(--warning-text); border-color: #FFD59E; }
+        
+        /* Buttons */
+        .btn { height: 32px; padding: 0 16px; background: #fff; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; font-size: 13px; transition: 0.2s; white-space: nowrap;}
+        .btn:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-primary { background: var(--primary); color: #fff; border: none; }
+        .btn-primary:hover { background: var(--primary-hover); color: #fff; }
+        .btn-link { border: none; background: none; color: var(--primary); cursor: pointer; padding: 0 4px; font-size: 13px; }
+        .btn-link:hover { text-decoration: underline; }
+        .btn-link.danger { color: var(--danger-text); }
+        .btn-link.danger:hover { text-decoration: underline; background: transparent; }
+        .btn-icon-only { width: 32px; padding: 0; color: var(--text-secondary); border: none; }
+
+        /* Drawers & Modals */
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; opacity: 0; visibility: hidden; transition: 0.3s; }
+        .overlay.open { opacity: 1; visibility: visible; }
+        .drawer { position: fixed; top: 0; right: -600px; bottom: 0; width: 600px; background: #fff; z-index: 101; transition: 0.3s cubic-bezier(0.2, 0, 0, 1); display: flex; flex-direction: column; box-shadow: -4px 0 16px rgba(0,0,0,0.1); }
+        .drawer.open { right: 0; }
+        .drawer-body { flex: 1; padding: 24px; overflow-y: auto; }
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); width: 480px; background: #fff; z-index: 102; border-radius: 8px; opacity: 0; visibility: hidden; transition: 0.2s; box-shadow: 0 10px 24px rgba(0,0,0,0.15); }
+        .modal.open { transform: translate(-50%, -50%) scale(1); opacity: 1; visibility: visible; }
+
+        .form-row { margin-bottom: 20px; }
+        .label { font-size: 13px; font-weight: 500; margin-bottom: 6px; display: block; color: var(--text-regular); }
+        .inp { width: 100%; height: 36px; border: 1px solid var(--border); border-radius: var(--radius); padding: 0 10px; font-size: 13px; }
+        .inp:focus { border-color: var(--primary); }
+        .metric-builder-container { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; background: #F9FAFB; display: flex; flex-direction: column; gap: 8px; }
+        .metric-row { display: flex; gap: 8px; align-items: center; }
+        .metric-row .inp { background: #fff; }
+
+        /* Empty State */
+        .empty-state { padding: 40px; text-align: center; color: var(--text-secondary); font-size: 13px; }
+    </style>
+</head>
+<body>
+
+    <header class="top-bar">
+        <div class="brand">
+            <div class="brand-logo"><i class="ri-cpu-line"></i></div>
+            <span id="txt-app-name">算模方 控制台</span>
+        </div>
+        <div class="top-right">
+            <span>Region: Beijing-1</span>
+            <div class="lang-btn" onclick="toggleLang()">
+                <i class="ri-global-line"></i> <span id="txt-lang-switch">English</span>
+            </div>
+            <div style="width:24px; height:24px; background:#eee; border-radius:50%; display:grid; place-items:center;">A</div>
+        </div>
+    </header>
+
+    <div class="layout">
+        <nav class="global-nav">
+            <div class="nav-item"><i class="ri-dashboard-line"></i> <span class="i18n-nav-ov">概览</span></div>
+            <div class="nav-item"><i class="ri-server-line"></i> <span class="i18n-nav-cl">集群管理</span></div>
+            <div class="nav-item active"><i class="ri-macbook-line"></i> <span class="i18n-nav-sp">资源规格</span></div>
+            <div class="nav-item"><i class="ri-hard-drive-2-line"></i> <span class="i18n-nav-st">存储管理</span></div>
+        </nav>
+
+        <aside class="family-sidebar">
+            <div class="family-header">
+                <span class="family-title i18n-fam-title">资源规格族</span>
+                <div class="btn-icon-sm" onclick="openFamilyModal()" title="Create Family"><i class="ri-add-line"></i></div>
+            </div>
+            <div class="family-list" id="family-list-container"></div>
+        </aside>
+
+        <main class="spec-main">
+            <div class="list-header">
+                <div>
+                    <h2 id="page-title">全部资源规格</h2>
+                    <div class="view-tabs">
+                        <div class="view-tab active" id="tab-active" onclick="switchView('active')">正常可用</div>
+                        <div class="view-tab" id="tab-disabled" onclick="switchView('disabled')">已禁用</div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="openSpecDrawer()">
+                    <i class="ri-add-line"></i> <span class="i18n-btn-create">新建规格</span>
+                </button>
+            </div>
+
+            <div class="toolbar">
+                <input type="text" class="search-input wide" id="inp-search" placeholder="搜索规格 ID..." oninput="refreshData()">
+                
+                <div class="filter-group">
+                    <select class="search-input" id="filter-type" onchange="refreshData()">
+                        <option value="all" class="i18n-filter-type-all">类型: 全部</option>
+                        <option value="acc" class="i18n-filter-type-acc">仅看有卡 (GPU/NPU)</option>
+                        <option value="gen" class="i18n-filter-type-gen">仅看无卡 (通用)</option>
+                    </select>
+                </div>
+                
+                <div style="flex:1;"></div>
+
+                <div class="filter-group">
+                    <i class="ri-sort-desc" style="color:var(--text-secondary);"></i>
+                    <select class="search-input" id="sort-order" onchange="refreshData()" style="font-weight:500; color:var(--primary);">
+                        <option value="default" class="i18n-sort-def">默认排序</option>
+                        <option value="cpu-asc" class="i18n-sort-cpu-asc">CPU: 低 → 高</option>
+                        <option value="cpu-desc" class="i18n-sort-cpu-desc">CPU: 高 → 低</option>
+                        <option value="mem-asc" class="i18n-sort-mem-asc">内存: 小 → 大</option>
+                        <option value="mem-desc" class="i18n-sort-mem-desc">内存: 大 → 小</option>
+                        <option value="acc-first" class="i18n-sort-acc-first">加速卡: 有卡优先</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="i18n-th-id" style="width: 220px;">规格 ID</th>
+                            <th class="i18n-th-cpu" style="width: 100px;">CPU</th>
+                            <th class="i18n-th-mem" style="width: 100px;">内存</th>
+                            <th class="i18n-th-extra">扩展配置 (动态)</th>
+                            <th class="i18n-th-fam" style="width: 120px;">所属族</th>
+                            <th class="i18n-th-price" style="width: 120px;">定价 (小时)</th>
+                            <th class="i18n-th-action" style="width: 120px; text-align:right;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="spec-table-body"></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <div class="overlay" id="overlay" onclick="closeAll()"></div>
+
+    <div class="modal" id="family-modal">
+        <div style="padding:16px 24px; border-bottom:1px solid var(--border); font-weight:600;">
+            <span class="i18n-fam-modal-title">管理规格族</span>
+        </div>
+        <div style="padding:24px;">
+            <div class="form-row">
+                <label class="label i18n-fam-name">规格族名称</label>
+                <input type="text" class="inp" id="fam-inp-name">
+            </div>
+            <div class="form-row">
+                <label class="label i18n-fam-code">规格族代码 (ID)</label>
+                <input type="text" class="inp" id="fam-inp-code">
+            </div>
+        </div>
+        <div style="padding:16px 24px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:12px;">
+            <button class="btn i18n-btn-cancel" onclick="closeAll()">取消</button>
+            <button class="btn btn-primary i18n-btn-confirm" onclick="saveFamily()">确认</button>
+        </div>
+    </div>
+
+    <div class="drawer" id="spec-drawer">
+        <div style="height:52px; padding:0 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; font-weight:600;">
+            <span class="i18n-spec-drawer-title">新建资源规格</span>
+            <i class="ri-close-line" style="cursor:pointer; font-size:20px;" onclick="closeAll()"></i>
+        </div>
+        <div class="drawer-body">
+            <div class="form-row">
+                <label class="label"><span style="color:red">*</span> <span class="i18n-lbl-family">所属规格族</span></label>
+                <select class="inp" id="spec-inp-family"></select>
+            </div>
+            <div class="form-row">
+                <label class="label"><span style="color:red">*</span> <span class="i18n-lbl-id">规格 ID</span></label>
+                <input type="text" class="inp" id="spec-inp-id" placeholder="e.g. gpu.v100.2xlarge">
+            </div>
+            <div class="form-row">
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                    <label class="label i18n-lbl-metrics">配置指标组合</label>
+                    <span style="color:var(--primary); cursor:pointer; font-size:12px; font-weight:500;" onclick="addMetricRow()">
+                        <i class="ri-add-line" style="vertical-align:bottom;"></i> <span class="i18n-btn-add-metric">添加指标</span>
+                    </span>
+                </div>
+                <div class="metric-builder-container" id="metric-builder-list"></div>
+            </div>
+            <div class="form-row">
+                 <label class="label"><span class="i18n-lbl-price">定价 (元/小时)</span></label>
+                 <input type="number" class="inp" id="spec-inp-price" value="0.00">
+            </div>
+        </div>
+        <div style="padding:16px 24px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:12px;">
+            <button class="btn i18n-btn-cancel" onclick="closeAll()">取消</button>
+            <button class="btn btn-primary i18n-btn-confirm" onclick="createSpec()">立即创建</button>
+        </div>
+    </div>
+
+    <script>
+        // === 1. State Management ===
+        let currentLang = 'zh';
+        let activeFamilyFilter = 'all';
+        let currentView = 'active'; // 'active' or 'disabled'
+
+        // Mock Data
+        let families = [
+            { id: 'g5', name: { en: 'General g5', zh: '通用型 g5' }, count: 1 },
+            { id: 'v100', name: { en: 'GPU V100', zh: 'GPU V100 系列' }, count: 2 },
+        ];
+
+        let specs = [
+            { 
+                id: 'c6.xlarge', family: 'g5', 
+                base: { cpu: 4, mem: 8 }, 
+                extras: [], 
+                price: 0.8, status: 'active' 
+            },
+            { 
+                id: 'c6.large', family: 'g5', 
+                base: { cpu: 2, mem: 4 }, 
+                extras: [], 
+                price: 0.4, status: 'active' 
+            },
+            { 
+                id: 'gpu.v100.1', family: 'v100', 
+                base: { cpu: 8, mem: 32 }, 
+                extras: [ { k: 'GPU', v: '1x V100', type: 'acc' } ],
+                price: 25.0, status: 'active' 
+            },
+            { 
+                id: 'gpu.v100.deprecated', family: 'v100', 
+                base: { cpu: 16, mem: 64 }, 
+                extras: [ { k: 'GPU', v: '2x V100', type: 'acc' } ],
+                price: 45.0, status: 'disabled' 
+            }
+        ];
+
+        const metricTypes = [
+            { val: 'CPU', label: 'CPU', unit: 'Core', fixed: true },
+            { val: 'Memory', label: 'Memory (内存)', unit: 'GB', fixed: true },
+            { val: 'GPU', label: 'NVIDIA GPU', unit: 'Card', type: 'acc' },
+            { val: 'NPU', label: 'Ascend NPU', unit: 'Card', type: 'acc' },
+            { val: 'Disk', label: 'Local Disk (本地盘)', unit: 'GB', type: 'disk' },
+            { val: 'Feature', label: 'Special Feature (特性)', unit: '', type: 'special' }
+        ];
+
+        // === 2. I18n ===
+        const i18n = {
+            en: {
+                appName: "AI Model Console",
+                nav: { ov: "Overview", cl: "Clusters", sp: "Resource Specs", st: "Storage" },
+                fam: { title: "SPEC FAMILIES", all: "All Specs", modalTitle: "Manage Family", name: "Family Name", code: "Family Code (ID)" },
+                page: { title: "All Specifications", sub: "Manage compute templates for job scheduling." },
+                btn: { create: "Create Spec", cancel: "Cancel", confirm: "Confirm", switch: "中文", addMetric: "Add Metric" },
+                lbl: { family: "Spec Family", id: "Spec ID", metrics: "Configuration Metrics", price: "Price (Hour)" },
+                search: "Search Spec ID...",
+                tab: { active: "Active Specs", disabled: "Deprecated / Disabled" },
+                filter: { typeAll: "Type: All", typeAcc: "Acc (GPU/NPU)", typeGen: "General" },
+                sort: { def: "Sort: Default", cpuAsc: "CPU: Low → High", cpuDesc: "CPU: High → Low", memAsc: "Mem: Low → High", memDesc: "Mem: High → Low", accFirst: "Acc: With Card First" },
+                specDrawerTitle: "Create Specification",
+                th: { id: "Spec ID", cpu: "CPU", mem: "Memory", extra: "Extended Config (Tags)", fam: "Family", price: "Price", action: "Action" },
+                action: { edit: "Edit", disable: "Disable", enable: "Enable" }
+            },
+            zh: {
+                appName: "算模方 控制台",
+                nav: { ov: "概览", cl: "集群管理", sp: "资源规格", st: "存储管理" },
+                fam: { title: "资源规格族", all: "全部规格", modalTitle: "管理规格族", name: "规格族名称", code: "规格族代码 (ID)" },
+                page: { title: "资源规格列表", sub: "管理作业调度使用的标准算力模板。" },
+                btn: { create: "新建规格", cancel: "取消", confirm: "确认", switch: "English", addMetric: "添加指标" },
+                lbl: { family: "所属规格族", id: "规格 ID", metrics: "配置指标组合", price: "定价 (元/小时)" },
+                search: "搜索规格 ID...",
+                tab: { active: "正常可用", disabled: "已禁用" },
+                filter: { typeAll: "类型: 全部", typeAcc: "仅看有卡 (GPU/NPU)", typeGen: "仅看无卡 (通用)" },
+                sort: { def: "默认排序", cpuAsc: "CPU: 低 → 高", cpuDesc: "CPU: 高 → 低", memAsc: "内存: 小 → 大", memDesc: "内存: 大 → 小", accFirst: "加速卡: 有卡优先" },
+                specDrawerTitle: "新建资源规格",
+                th: { id: "规格 ID", cpu: "CPU", mem: "内存", extra: "扩展配置 (动态)", fam: "所属族", price: "定价", action: "操作" },
+                action: { edit: "编辑", disable: "禁用", enable: "启用" }
+            }
+        };
+
+        // === 3. Logic ===
+        function hasAccelerator(spec) { return spec.extras && spec.extras.some(e => e.type === 'acc'); }
+
+        function switchView(view) {
+            currentView = view;
+            document.getElementById('tab-active').classList.remove('active');
+            document.getElementById('tab-disabled').classList.remove('active');
+            document.getElementById('tab-' + view).classList.add('active');
+            refreshData();
+        }
+
+        function refreshData() {
+            const familyId = activeFamilyFilter;
+            const searchVal = document.getElementById('inp-search').value.toLowerCase();
+            const typeVal = document.getElementById('filter-type').value;
+            const sortVal = document.getElementById('sort-order').value;
+
+            // 1. Filter by Family
+            let list = familyId === 'all' ? [...specs] : specs.filter(s => s.family === familyId);
+
+            // 2. Filter by View Tab (Active vs Disabled)
+            list = list.filter(s => s.status === currentView);
+
+            // 3. Search (ID Only)
+            if (searchVal) list = list.filter(s => s.id.toLowerCase().includes(searchVal));
+
+            // 4. Filter by Type
+            if (typeVal === 'acc') list = list.filter(s => hasAccelerator(s));
+            else if (typeVal === 'gen') list = list.filter(s => !hasAccelerator(s));
+
+            // 5. Sort
+            list.sort((a, b) => {
+                switch(sortVal) {
+                    case 'cpu-asc': return a.base.cpu - b.base.cpu;
+                    case 'cpu-desc': return b.base.cpu - a.base.cpu;
+                    case 'mem-asc': return a.base.mem - b.base.mem;
+                    case 'mem-desc': return b.base.mem - a.base.mem;
+                    case 'acc-first': return (hasAccelerator(b) ? 1 : 0) - (hasAccelerator(a) ? 1 : 0);
+                    default: return 0;
+                }
+            });
+
+            renderTable(list);
+        }
+
+        function renderTable(dataList) {
+            const tbody = document.getElementById('spec-table-body');
+            tbody.innerHTML = '';
+            const t = i18n[currentLang];
+
+            // Page Title Logic
+            if (activeFamilyFilter === 'all') {
+                document.getElementById('page-title').innerText = t.page.title;
+            } else {
+                const f = families.find(f => f.id === activeFamilyFilter);
+                document.getElementById('page-title').innerText = currentLang === 'zh' ? f.name.zh : f.name.en;
+            }
+
+            if (dataList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No ${currentView} specifications found.</td></tr>`;
+                return;
+            }
+
+            dataList.forEach(s => {
+                const fObj = families.find(f => f.id === s.family);
+                const fName = fObj ? (currentLang === 'zh' ? fObj.name.zh : fObj.name.en) : s.family;
+
+                let extraHtml = '';
+                if (!s.extras || s.extras.length === 0) {
+                    extraHtml = '<span style="color:#C9CDD4">-</span>';
+                } else {
+                    extraHtml = '<div class="tags-wrapper">';
+                    s.extras.forEach(item => {
+                        let tagClass = 'res-tag disk'; 
+                        if (item.type === 'acc') tagClass = 'res-tag acc';
+                        else if (item.type === 'special') tagClass = 'res-tag special';
+                        extraHtml += `<div class="${tagClass}">${item.k}: ${item.v}</div>`;
+                    });
+                    extraHtml += '</div>';
+                }
+
+                // V2.2: Dynamic Action Button
+                let actionBtn = '';
+                if (currentView === 'active') {
+                    actionBtn = `<button class="btn-link danger" onclick="toggleStatus('${s.id}')">${t.action.disable}</button>`;
+                } else {
+                    actionBtn = `<button class="btn-link" onclick="toggleStatus('${s.id}')">${t.action.enable}</button>`;
+                }
+
+                const row = `
+                    <tr>
+                        <td><div class="col-id">${s.id}</div></td>
+                        <td><span class="metric-val">${s.base.cpu}</span> <span class="metric-unit">Core</span></td>
+                        <td><span class="metric-val">${s.base.mem}</span> <span class="metric-unit">GB</span></td>
+                        <td>${extraHtml}</td>
+                        <td style="color:var(--text-secondary);">${fName}</td>
+                        <td><span style="font-weight:600;">¥${s.price.toFixed(2)}</span></td>
+                        <td style="text-align:right;">
+                            <button class="btn-link">${t.action.edit}</button>
+                            ${actionBtn}
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function toggleStatus(id) {
+            const spec = specs.find(s => s.id === id);
+            if (spec) {
+                // Flip Status
+                spec.status = spec.status === 'active' ? 'disabled' : 'active';
+                refreshData(); // Re-render to move item to other tab
+            }
+        }
+
+        // === 4. UI Text Updates ===
+        function updateText() {
+            const t = i18n[currentLang];
+            document.getElementById('txt-app-name').innerText = t.appName;
+            document.getElementById('txt-lang-switch').innerText = t.btn.switch;
+            document.querySelector('.i18n-nav-sp').innerText = t.nav.sp;
+            document.querySelector('.i18n-fam-title').innerText = t.fam.title;
+            
+            document.querySelector('.i18n-filter-type-all').innerText = t.filter.typeAll;
+            document.querySelector('.i18n-filter-type-acc').innerText = t.filter.typeAcc;
+            document.querySelector('.i18n-filter-type-gen').innerText = t.filter.typeGen;
+            
+            document.getElementById('tab-active').innerText = t.tab.active;
+            document.getElementById('tab-disabled').innerText = t.tab.disabled;
+            
+            document.querySelector('.i18n-lbl-metrics').innerText = t.lbl.metrics;
+            document.querySelector('.i18n-btn-add-metric').innerText = t.btn.addMetric;
+            
+            document.querySelector('.i18n-th-id').innerText = t.th.id;
+            document.querySelector('.i18n-th-extra').innerText = t.th.extra;
+            document.querySelector('.i18n-th-action').innerText = t.th.action;
+
+            renderFamilies();
+            refreshData();
+        }
+
+        function renderFamilies() {
+            const container = document.getElementById('family-list-container');
+            const t = i18n[currentLang];
+            let html = `
+                <div class="family-item ${activeFamilyFilter === 'all' ? 'active' : ''}" onclick="filterFamily('all')">
+                    <span style="font-weight:600;"><i class="ri-apps-line" style="margin-right:6px; vertical-align:middle;"></i>${t.fam.all}</span>
+                    <span class="family-count">${specs.length}</span>
+                </div>
+            `;
+            families.forEach(f => {
+                const name = currentLang === 'zh' ? f.name.zh : f.name.en;
+                const isActive = activeFamilyFilter === f.id;
+                html += `
+                    <div class="family-item ${isActive ? 'active' : ''}" onclick="filterFamily('${f.id}')">
+                        <span>${name}</span>
+                        <span class="family-count">${f.count}</span>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // === 5. Global Actions ===
+        function toggleLang() { currentLang = currentLang === 'zh' ? 'en' : 'zh'; updateText(); }
+        function filterFamily(id) { activeFamilyFilter = id; updateText(); }
+        function closeAll() { document.getElementById('overlay').classList.remove('open'); document.getElementById('spec-drawer').classList.remove('open'); document.getElementById('family-modal').classList.remove('open'); }
+        function openFamilyModal() { document.getElementById('overlay').classList.add('open'); document.getElementById('family-modal').classList.add('open'); }
+        function saveFamily() { closeAll(); }
+
+        // Create Drawer Actions
+        function openSpecDrawer() {
+            const sel = document.getElementById('spec-inp-family');
+            sel.innerHTML = '';
+            families.forEach(f => {
+                sel.innerHTML += `<option value="${f.id}">${currentLang === 'zh' ? f.name.zh : f.name.en}</option>`;
+            });
+            document.getElementById('spec-inp-id').value = '';
+            document.getElementById('metric-builder-list').innerHTML = '';
+            addMetricRow('CPU', 4, true);
+            addMetricRow('Memory', 8, true);
+            document.getElementById('overlay').classList.add('open');
+            document.getElementById('spec-drawer').classList.add('open');
+        }
+
+        function addMetricRow(defaultType = null, defaultVal = '', isFixed = false) {
+            const container = document.getElementById('metric-builder-list');
+            const div = document.createElement('div');
+            div.className = 'metric-row';
+            let typeOptions = '';
+            metricTypes.forEach(t => {
+                const selected = t.val === defaultType ? 'selected' : '';
+                typeOptions += `<option value="${t.val}" data-unit="${t.unit}" ${selected}>${t.label}</option>`;
+            });
+            const deleteBtn = isFixed 
+                ? `<button class="btn btn-icon-only" style="opacity:0; cursor:default;" disabled><i class="ri-delete-bin-line"></i></button>`
+                : `<button class="btn btn-icon-only" onclick="this.parentElement.remove()"><i class="ri-delete-bin-line"></i></button>`;
+
+            div.innerHTML = `
+                <select class="inp metric-type" style="width:140px;" onchange="updateRowUnit(this)" ${isFixed?'disabled':''}>${typeOptions}</select>
+                <input type="text" class="inp metric-val" style="flex:1;" placeholder="Value" value="${defaultVal}">
+                <input type="text" class="inp metric-unit" style="width:80px; background:#f9f9f9;" value="${isFixed ? (defaultType==='CPU'?'Core':'GB') : 'Card'}" disabled>
+                ${deleteBtn}
+            `;
+            container.appendChild(div);
+        }
+
+        window.updateRowUnit = function(selectEl) {
+            const unit = selectEl.options[selectEl.selectedIndex].getAttribute('data-unit');
+            selectEl.parentElement.querySelector('.metric-unit').value = unit;
+        }
+
+        function createSpec() {
+            const id = document.getElementById('spec-inp-id').value;
+            if(!id) return;
+            const family = document.getElementById('spec-inp-family').value;
+            const price = parseFloat(document.getElementById('spec-inp-price').value);
+
+            const rows = document.querySelectorAll('.metric-row');
+            let base = { cpu: 0, mem: 0 };
+            let extras = [];
+
+            rows.forEach(row => {
+                const typeKey = row.querySelector('.metric-type').value;
+                const val = row.querySelector('.metric-val').value;
+                const unit = row.querySelector('.metric-unit').value;
+                if (typeKey === 'CPU') base.cpu = parseFloat(val);
+                else if (typeKey === 'Memory') base.mem = parseFloat(val);
+                else {
+                    const def = metricTypes.find(t => t.val === typeKey);
+                    extras.push({ k: typeKey, v: val + (unit?unit:''), type: def ? def.type : 'special' });
+                }
+            });
+
+            specs.push({ id, family, base, extras, price, status: 'active' });
+            const fam = families.find(f => f.id === family);
+            if(fam) fam.count++;
+            
+            closeAll();
+            refreshData();
+        }
+
+        // Init
+        updateText();
+    </script>
+</body>
+</html>
