@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuanMoFang - Storage Console V7.4 (Final Fixed)</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --el-color-primary: #4C5DF7;
+            --bg-body: #F5F7FA;
+            --text-main: #1D2129;
+            --text-secondary: #86909C;
+            --border-color: #E5E6EB;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0; 
+        }
+
+        /* --- Global Layout --- */
+        .top-nav { height: 52px; background: #fff; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; position: fixed; top: 0; width: 100%; z-index: 1000; }
+        .sidebar { width: 200px; background: #fff; border-right: 1px solid var(--border-color); position: fixed; top: 52px; bottom: 0; padding-top: 16px; z-index: 900; }
+        .main-content { margin-left: 200px; margin-top: 52px; min-height: calc(100vh - 52px); padding: 24px; }
+
+        /* --- Filter Box --- */
+        .custom-filter-input .el-input-group__prepend { background-color: #F5F7FA !important; color: #606266 !important; font-weight: 500; padding: 0 16px; box-shadow: none !important; border-right: 1px solid #DCDFE6; border-top-left-radius: 4px; border-bottom-left-radius: 4px; }
+        .custom-filter-input .el-input__wrapper { box-shadow: none !important; border: 1px solid #DCDFE6; border-left: 0; border-top-right-radius: 4px; border-bottom-right-radius: 4px; }
+        .custom-filter-input .el-input__wrapper.is-focus { border-color: var(--el-color-primary); z-index: 1; }
+
+        /* --- Card Styles --- */
+        .storage-card { border: 1px solid var(--border-color); border-radius: 8px; background: #fff; transition: all 0.3s; position: relative; display: flex; flex-direction: column; overflow: hidden; }
+        .storage-card:hover { box-shadow: 0 8px 16px rgba(0,0,0,0.06); transform: translateY(-2px); border-color: #C9CDD4; }
+        .card-header { padding: 20px 20px 12px; }
+        .card-body { padding: 0 20px 16px; flex: 1; }
+        .status-area { height: 40px; margin-bottom: 12px; display: flex; align-items: center; }
+        .error-strip { width: 100%; background: #FFF5F4; border: 1px solid #FFECE8; border-radius: 4px; padding: 8px 12px; font-size: 12px; color: #D12E32; display: flex; align-items: center; gap: 6px; }
+        .normal-strip { font-size: 12px; color: #86909C; opacity: 0.8; display: flex; align-items: center; gap: 4px; }
+        .desc-area { height: 36px; font-size: 12px; color: #86909C; margin-bottom: 16px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.5; }
+        .card-meta { padding: 12px 20px; border-top: 1px dashed #F2F3F5; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; color: #86909C; }
+        .card-meta-full { grid-column: span 2; padding-top: 4px; border-top: 1px dashed #F2F3F5; margin-top: 4px; font-size: 11px; color: #86909C; }
+        .meta-label { font-size: 11px; opacity: 0.8; }
+        .meta-value { color: #1D2129; font-weight: 500; }
+        .card-footer { padding: 12px 20px; background: #FAFAFB; border-top: 1px solid #F2F3F5; display: flex; justify-content: flex-end; gap: 12px; }
+        .status-badge { position: absolute; top: 0; right: 0; padding: 4px 12px; font-size: 12px; border-bottom-left-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .bg-active { background: #E8FFEA; color: #00B42A; } .bg-error { background: #FFECE8; color: #F53F3F; }
+
+        /* --- Page & Form --- */
+        .page-container { max-width: 1000px; margin: 0 auto; background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #E5E6EB; overflow: hidden; }
+        .page-header { padding: 20px 32px; border-bottom: 1px solid #E5E6EB; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+        .page-header-left { display: flex; align-items: center; gap: 12px; }
+        .page-body { padding: 32px; }
+
+        .form-block { margin-bottom: 40px; }
+        .form-block-title { font-size: 16px; font-weight: 700; color: #1D2129; margin-bottom: 20px; display: flex; align-items: center; border-left: 4px solid var(--el-color-primary); padding-left: 12px; line-height: 1; }
+        .form-group-container { background-color: #F9FAFC; border: 1px solid #EBEEF5; border-radius: 8px; padding: 24px 24px; margin-bottom: 24px; }
+        .group-header { font-size: 14px; font-weight: 700; color: #4E5969; margin-bottom: 20px; border-bottom: 1px solid #EBEEF5; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .el-form-item { margin-bottom: 28px; }
+        .el-form-item__label { color: #1D2129 !important; font-weight: 600; padding-bottom: 6px !important; }
+        
+        .form-helper-text { font-size: 12px; color: #909399; line-height: 1.5; margin-top: 6px; display: block; padding: 0; }
+        .path-code { font-family: 'JetBrains Mono', monospace; background: #F2F3F5; padding: 1px 4px; border-radius: 3px; color: #4C5DF7; font-size: 11px; }
+        
+        .code-input textarea { font-family: 'JetBrains Mono', monospace; font-size: 12px; background-color: #FFFFFF; color: #4E5969; }
+        .compact-radio-group .el-radio-button__inner { padding: 10px 24px; }
+        .auth-tabs { width: 100%; display: flex; margin-bottom: 0; }
+        .auth-tabs .el-radio-button { flex: 1; }
+        .auth-tabs .el-radio-button__inner { width: 100%; padding: 10px 0; }
+        
+        .auto-yaml-box { background: #1E1E1E; border-radius: 6px; padding: 16px; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 13px; line-height: 1.5; color: #D4D4D4; border: 1px solid #3E4451; white-space: pre; overflow-x: auto; }
+        .y-key { color: #569CD6; font-weight: bold; } .y-val { color: #CE9178; } .y-dash { color: #D4D4D4; }
+
+        /* Detail */
+        .detail-section { margin-bottom: 40px; }
+        .detail-title { font-size: 16px; font-weight: 700; color: #1D2129; margin-bottom: 16px; display: flex; align-items: center; border-left: 4px solid var(--el-color-primary); padding-left: 12px; line-height: 1; }
+        .capacity-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 32px; }
+        .capacity-block { background: #F9FAFC; border: 1px solid #EBEEF5; border-radius: 8px; padding: 24px; display: flex; flex-direction: column; justify-content: center; }
+        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; background: #fff; border: 1px solid #EBEEF5; border-radius: 8px; padding: 24px; }
+        .info-item { margin-bottom: 8px; }
+        .info-label { font-size: 12px; color: #86909C; margin-bottom: 4px; }
+        .info-value { font-size: 14px; font-weight: 500; color: #1D2129; }
+        .info-value-mono { font-family: 'JetBrains Mono', monospace; background: #F2F3F5; padding: 2px 6px; border-radius: 4px; font-size: 12px; color: #4E5969; }
+        .fs-table-wrap { overflow-x: auto; background: #fff; border: 1px solid #EBEEF5; border-radius: 8px; padding: 16px; }
+        .fs-table-wrap .el-table { width: 100%; }
+        .fs-filter-row { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
+        .fs-filter-name { width: 280px; }
+        .fs-filter-status { width: 220px; }
+
+        /* Icons & Animation */
+        .conn-status { margin-top: 16px; padding: 12px; border-radius: 6px; display: flex; align-items: center; gap: 8px; font-size: 13px; }
+        .conn-success { background: #E8FFEA; color: #00B42A; border: 1px solid #BEF5C8; }
+        .conn-error { background: #FFECE8; color: #F53F3F; border: 1px solid #FFD0C8; }
+        .highlight-warn { animation: pulse-yellow 1s infinite; border: 1px solid #E6A23C; border-radius: 4px; padding: 12px; }
+        @keyframes pulse-yellow { 0% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(250, 204, 21, 0); } 100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); } }
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
+        .fade-enter-from, .fade-leave-to { opacity: 0; }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <header class="top-nav">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center text-white font-bold">S</div>
+            <span class="font-semibold text-lg">SuanMoFang</span>
+            <span class="text-xs text-gray-400 ml-2 border px-1 rounded">V7.4</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <el-dropdown @command="(val) => lang = val">
+                <span class="cursor-pointer text-sm text-gray-600 hover:text-primary flex items-center">
+                    {{ lang === 'zh' ? '中文' : 'English' }}
+                    <el-icon class="ml-1"><arrow-down></arrow-down></el-icon>
+                </span>
+                <template #dropdown>
+                    <el-dropdown-menu>
+                        <el-dropdown-item command="zh">中文</el-dropdown-item>
+                        <el-dropdown-item command="en">English</el-dropdown-item>
+                    </el-dropdown-menu>
+                </template>
+            </el-dropdown>
+            <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs">Admin</div>
+        </div>
+    </header>
+
+    <aside class="sidebar">
+        <div class="flex items-center px-4 py-2 mx-2 rounded text-gray-600 hover:bg-gray-50 cursor-pointer mb-1"><el-icon class="mr-2"><monitor></monitor></el-icon> {{ t('menu.dashboard') }}</div>
+        <div class="flex items-center px-4 py-2 mx-2 rounded bg-indigo-50 text-indigo-600 font-semibold cursor-pointer mb-1"><el-icon class="mr-2"><files></files></el-icon> {{ t('menu.storage') }}</div>
+        <div class="flex items-center px-4 py-2 mx-2 rounded text-gray-600 hover:bg-gray-50 cursor-pointer"><el-icon class="mr-2"><setting></setting></el-icon> {{ t('menu.settings') }}</div>
+    </aside>
+
+    <main class="main-content">
+        <transition name="fade" mode="out-in">
+            
+            <div v-if="currentView === 'list'" key="list">
+                <div class="flex justify-between items-end mb-6">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">{{ t('page.title') }}</h1>
+                        <p class="text-gray-500 text-sm mt-1">{{ t('page.subtitle') }}</p>
+                    </div>
+                    <el-button type="primary" size="large" @click="navigateToCreate">
+                        <el-icon class="mr-1"><plus></plus></el-icon> {{ t('btn.register') }}
+                    </el-button>
+                </div>
+
+                <div class="flex gap-3 mb-6">
+                    <div class="w-80">
+                        <el-input v-model="filterText" class="custom-filter-input" :placeholder="t('filter.placeholder')">
+                            <template #prepend>{{ t('filter.name') }}</template>
+                        </el-input>
+                    </div>
+                    <el-button type="primary" class="!bg-[#4C5DF7] !border-[#4C5DF7]">{{ t('btn.search') }}</el-button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <div v-for="item in storageList" :key="item.id" class="storage-card">
+                        <div class="status-badge" :class="item.status === 1 ? 'bg-active' : 'bg-error'">
+                            <el-icon v-if="item.status===1"><check></check></el-icon>
+                            <el-icon v-else><warning></warning></el-icon>
+                            {{ item.status === 1 ? t('status.active') : t('status.invalid') }}
+                        </div>
+                        <div class="card-header">
+                            <h3 class="font-bold text-lg truncate w-full" :title="item.name">{{ item.name }}</h3>
+                            <div class="text-xs text-gray-400 mt-1 flex items-center gap-1"><el-icon><location></location></el-icon> {{ item.region }}</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="status-area">
+                                <div v-if="item.status === 3" class="error-strip"><el-icon class="flex-shrink-0"><warning-filled></warning-filled></el-icon><span class="truncate">{{ item.errorReason }}</span></div>
+                                <div v-else class="normal-strip"><el-icon class="text-green-500"><circle-check-filled></circle-check-filled></el-icon> {{ t('status.healthy') }}</div>
+                            </div>
+                            <div class="desc-area" :title="item.desc">{{ item.desc || t('common.nodesc') }}</div>
+                            <div class="mb-4">
+                                <div class="flex justify-between text-xs text-gray-500 mb-1"><span>{{ t('card.phyCap') }}</span><span class="text-gray-900 font-mono text-[10px]">{{ t('card.threshold') }}: {{ item.phyThreshold }}%</span></div>
+                                <div class="flex justify-between items-end mb-1 text-xs"><span class="font-mono text-gray-700 font-bold">{{ item.actualUsed }} / {{ item.actualTotal }} GB</span></div>
+                                <el-progress :percentage="calcPct(item.actualUsed, item.actualTotal)" :stroke-width="6" :show-text="false" :color="getUsageColor(calcPct(item.actualUsed, item.actualTotal))"></el-progress>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs text-gray-500 mb-1"><span>{{ t('card.logCap') }} (x{{ item.ratio }})</span><span class="text-gray-900 font-mono text-[10px]">{{ t('card.threshold') }}: {{ item.logThreshold }}%</span></div>
+                                <div class="flex justify-between items-end mb-1 text-xs"><span class="font-mono text-indigo-600 font-bold">{{ item.logicUsed }} / {{ item.logicTotal }} GB</span></div>
+                                <el-progress :percentage="calcPct(item.logicUsed, item.logicTotal)" :stroke-width="6" :show-text="false" color="#8F9DF9"></el-progress>
+                            </div>
+                        </div>
+                        <div class="card-meta">
+                            <div class="card-meta-item"><span class="meta-label">{{ t('card.tenantLimit') }}</span><span class="meta-value">{{ item.tenantLimit }} GB</span></div>
+                            <div class="card-meta-item text-right"><span class="meta-label">{{ t('card.volumes') }}</span><span class="meta-value">{{ item.volumeCount }}</span></div>
+                            <div class="card-meta-full">{{ t('card.updated') }}: {{ item.updatedAt }}</div>
+                        </div>
+                        <div class="card-footer">
+                            <el-button link type="primary" @click="navigateToDetail(item)">{{ t('btn.manage') }}</el-button>
+                            <el-button link type="primary" @click="openConfigDialog(item)">{{ t('btn.config') }}</el-button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-else-if="currentView === 'create'" key="create">
+                <div class="page-container">
+                    <div class="page-header">
+                        <div class="page-header-left">
+                            <el-button circle icon="ArrowLeft" @click="navigateToList"></el-button>
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-900">{{ t('form.title') }}</h2>
+                                <p class="text-xs text-gray-500 mt-0.5">{{ t('form.subtitle') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="page-body">
+                        <el-form :model="form" label-position="top" :rules="rules" ref="formRef" hide-required-asterisk>
+                            <div class="form-block">
+                                <div class="form-block-title">{{ t('sec.basic') }}</div>
+                                <div class="form-group-container">
+                                    <el-row :gutter="32">
+                                        <el-col :span="12"><el-form-item :label="t('f.name')" required prop="name"><el-input v-model="form.name" :placeholder="t('p.name')"></el-input><div class="form-helper-text" v-html="t('h.name')"></div></el-form-item></el-col>
+                                        <el-col :span="12"><el-form-item :label="t('f.tenant')" required><el-input v-model="form.tenantLimit" :placeholder="t('p.tenant')"></el-input><div class="form-helper-text" v-html="t('h.tenant')"></div></el-form-item></el-col>
+                                    </el-row>
+                                    <el-row :gutter="32">
+                                        <el-col :span="8"><el-form-item :label="t('f.ratio')" required><el-input-number v-model="form.ratio" :min="1" controls-position="right" class="w-full" :placeholder="t('p.ratio')"></el-input-number><div class="form-helper-text" v-html="t('h.ratio')"></div></el-form-item></el-col>
+                                        <el-col :span="8"><el-form-item :label="t('f.phy')"><el-input v-model="form.phyThreshold" :placeholder="t('p.phy')"></el-input><div class="form-helper-text" v-html="t('h.phy')"></div></el-form-item></el-col>
+                                        <el-col :span="8"><el-form-item :label="t('f.log')"><el-input v-model="form.logThreshold" :placeholder="t('p.log')"></el-input><div class="form-helper-text" v-html="t('h.log')"></div></el-form-item></el-col>
+                                    </el-row>
+                                </div>
+                            </div>
+                            <div class="form-block">
+                                <div class="form-block-title">{{ t('sec.connect') }}</div>
+                                <el-radio-group v-model="connectMode" class="compact-radio-group mb-6">
+                                    <el-radio-button label="paste">{{ t('mode.paste') }}</el-radio-button>
+                                    <el-radio-button label="upload">{{ t('mode.upload') }}</el-radio-button>
+                                    <el-radio-button label="manual">{{ t('mode.manual') }}</el-radio-button>
+                                </el-radio-group>
+                                <div v-if="connectMode === 'paste'" class="animate-fade mb-6">
+                                    <el-form-item :label="t('mode.paste')"><el-input v-model="rawConfig" type="textarea" :rows="12" class="code-input" placeholder="apiVersion: v1..." @input="handleConfigInput"></el-input><div class="form-helper-text" v-html="t('h.paste')"></div></el-form-item>
+                                    <div v-if="parsedContexts.length > 0" class="mt-4"><el-form-item :label="t('f.selectCtx')" required><el-select v-model="form.selectedContext" class="w-full"><el-option v-for="ctx in parsedContexts" :key="ctx.name" :label="ctx.name" :value="ctx.name"></el-option></el-select></el-form-item></div>
+                                </div>
+                                <div v-if="connectMode === 'upload'" class="animate-fade mb-6">
+                                    <el-upload class="upload-demo" drag action="#" :auto-upload="false" :on-change="handleFileChange">
+                                        <el-icon class="el-icon--upload"><upload-filled></upload-filled></el-icon>
+                                        <div class="el-upload__text">{{ t('tip.upload') }}</div>
+                                    </el-upload>
+                                    <div class="form-helper-text mt-2" v-html="t('h.upload')"></div>
+                                </div>
+                                <div v-if="connectMode === 'manual'" class="animate-fade">
+                                    <div class="form-group-container">
+                                        <div class="group-header">{{ t('sec.cluster') }}</div>
+                                        <el-form-item :label="t('f.ca')" required><el-input v-model="form.caCert" type="textarea" :rows="3" :placeholder="t('p.ca')" class="code-input"></el-input><div class="form-helper-text" v-html="t('h.ca')"></div></el-form-item>
+                                        <el-row :gutter="32">
+                                            <el-col :span="12"><el-form-item :label="t('f.server')" required><el-input v-model="form.serverAddr" :placeholder="t('p.server')"></el-input><div class="form-helper-text" v-html="t('h.server')"></div></el-form-item></el-col>
+                                            <el-col :span="12"><el-form-item :label="t('f.cluster')" required><el-input v-model="form.clusterName" :placeholder="t('p.cluster')"></el-input><div class="form-helper-text" v-html="t('h.cluster')"></div></el-form-item></el-col>
+                                        </el-row>
+                                    </div>
+                                    <div class="form-group-container">
+                                        <div class="group-header">{{ t('sec.auth') }}</div>
+                                        <el-form-item :label="t('f.user')" required><el-input v-model="form.userName" :placeholder="t('p.user')"></el-input><div class="form-helper-text" v-html="t('h.user')"></div></el-form-item>
+                                        <el-form-item :label="t('f.authMethod')" class="mb-4">
+                                            <el-radio-group v-model="form.authType" class="auth-tabs">
+                                                <el-radio-button label="cert">Cert</el-radio-button><el-radio-button label="userpass">User/Pass</el-radio-button><el-radio-button label="token">Token</el-radio-button><el-radio-button label="provider">Plugin</el-radio-button>
+                                            </el-radio-group>
+                                            <div class="form-helper-text" v-html="t('h.authMethod')"></div>
+                                        </el-form-item>
+                                        <div class="bg-white p-6 border rounded">
+                                            <div v-if="form.authType === 'cert'">
+                                                <el-form-item :label="t('f.clientCert')" required><el-input v-model="form.clientCert" type="textarea" :rows="3" class="code-input" :placeholder="t('p.clientCert')"></el-input><div class="form-helper-text" v-html="t('h.clientCert')"></div></el-form-item>
+                                                <el-form-item :label="t('f.clientKey')" required><el-input v-model="form.clientKey" type="textarea" :rows="3" class="code-input" :placeholder="t('p.clientKey')"></el-input><div class="form-helper-text" v-html="t('h.clientKey')"></div></el-form-item>
+                                            </div>
+                                            <div v-if="form.authType === 'userpass'">
+                                                <el-form-item :label="t('f.authUsername')" required><el-input v-model="form.authUsername"></el-input><div class="form-helper-text" v-html="t('h.authUsername')"></div></el-form-item>
+                                                <el-form-item :label="t('f.authPassword')" required><el-input v-model="form.authPassword" type="password" show-password></el-input><div class="form-helper-text" v-html="t('h.authPassword')"></div></el-form-item>
+                                            </div>
+                                            <div v-if="form.authType === 'token'">
+                                                <el-form-item :label="t('f.authToken')" required><el-input v-model="form.authToken" type="textarea" :rows="3" class="code-input"></el-input><div class="form-helper-text" v-html="t('h.authToken')"></div></el-form-item>
+                                            </div>
+                                            <div v-if="form.authType === 'provider'">
+                                                <el-form-item :label="t('f.authProviderName')"><el-input v-model="form.authProviderName"></el-input><div class="form-helper-text" v-html="t('h.authProviderName')"></div></el-form-item>
+                                                <el-form-item :label="t('f.authProvider')" required><el-input v-model="form.authProvider" type="textarea" :rows="5" class="code-input"></el-input><div class="form-helper-text" v-html="t('h.authProvider')"></div></el-form-item>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group-container">
+                                        <div class="group-header mb-0 border-0 flex justify-between">{{ t('sec.ctx') }} <el-tag size="small" type="info">{{ t('common.readonly') }}</el-tag></div>
+                                        <div class="yaml-preview-container mt-2">
+<span class="y-key">contexts</span>:
+<span class="y-dash">-</span> <span class="y-key">context</span>:
+    <span class="y-key">cluster</span>: <span class="y-val">{{ form.clusterName || '&lt;cluster&gt;' }}</span>
+    <span class="y-key">user</span>: <span class="y-val">{{ form.userName || '&lt;user&gt;' }}</span>
+  <span class="y-key">name</span>: <span class="y-val">{{ generatedContextName || '&lt;name&gt;' }}</span>
+                                        </div>
+                                        <div class="form-helper-text mt-2" v-html="t('h.ctx')"></div>
+                                    </div>
+                                    <div class="form-group-container"><el-form-item :label="t('f.ip')"><el-input v-model="form.publicIp" :placeholder="t('p.ip')"></el-input><div class="form-helper-text">{{ t('h.ip') }}</div></el-form-item></div>
+                                </div>
+                            </div>
+                            <div class="border-t pt-8 mt-8" :class="{'highlight-warn': highlightTest}">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div><span class="font-bold text-gray-700 text-lg">{{ t('f.test') }}</span><span class="block text-sm text-gray-400 mt-1">{{ t('h.test') }}</span></div>
+                                    <el-button :loading="testing" @click="testConnection" :type="connStatus === 'success' ? 'success' : 'primary'" plain icon="Link">{{ testing ? t('common.loading') : t('btn.testConn') }}</el-button>
+                                </div>
+                                <div v-if="connStatus === 'success'" class="conn-status conn-success animate-fade"><el-icon><circle-check-filled></circle-check-filled></el-icon> {{ t('msg.testPass') }}</div>
+                                <div v-if="connStatus === 'error'" class="conn-status conn-error animate-fade"><el-icon><circle-close-filled></circle-close-filled></el-icon> {{ t('msg.testFail') }}: {{ errorMsg }}</div>
+                            </div>
+                            <div class="form-block mt-8">
+                                <div class="form-block-title">{{ t('sec.desc') }}</div>
+                                <div class="form-group-container"><el-form-item :label="t('f.desc')" class="mb-0"><el-input v-model="form.desc" type="textarea" :rows="3" :placeholder="t('p.desc')"></el-input><div class="form-helper-text">{{ t('h.desc') }}</div></el-form-item></div>
+                            </div>
+                            <div class="flex justify-end gap-3 mt-8 pt-6 border-t">
+                                <el-button @click="navigateToList" size="large">{{ t('btn.cancel') }}</el-button>
+                                <el-button type="primary" :disabled="connStatus !== 'success'" @click="handleSubmit" size="large">{{ t('btn.submit') }}</el-button>
+                            </div>
+                        </el-form>
+                    </div>
+                </div>
+            </div>
+
+            <div v-else-if="currentView === 'detail'" key="detail">
+                <div class="page-container">
+                    <div class="page-header">
+                        <div class="page-header-left">
+                            <el-button circle icon="ArrowLeft" @click="navigateToList"></el-button>
+                            <div>
+                                <div class="flex items-center gap-3">
+                                    <h2 class="text-xl font-bold text-gray-900">{{ currentItem.name }}</h2>
+                                    <div class="status-badge !static" :class="currentItem.status === 1 ? 'bg-active' : 'bg-error'">
+                                        <el-icon v-if="currentItem.status===1"><check></check></el-icon>
+                                        <el-icon v-else><warning></warning></el-icon>
+                                        {{ currentItem.status === 1 ? t('status.active') : t('status.invalid') }}
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1 flex items-center gap-1"><el-icon><location></location></el-icon> {{ currentItem.region }} <span class="mx-2">|</span> {{ t('card.updated') }}: {{ currentItem.updatedAt }}</p>
+                            </div>
+                        </div>
+                        <el-button type="primary" plain @click="openConfigDialog(currentItem)">{{ t('btn.config') }}</el-button>
+                    </div>
+
+                    <div class="page-body">
+                        <div class="detail-section">
+                            <div class="detail-title">{{ t('detail.capacity') }}</div>
+                            <div class="capacity-grid">
+                                <div class="capacity-block">
+                                    <div class="text-sm text-gray-500 mb-2">{{ t('card.phyCap') }}</div>
+                                    <div class="text-2xl font-bold text-gray-900 mb-2 font-mono">{{ currentItem.actualUsed }} <span class="text-sm font-normal text-gray-500">/ {{ currentItem.actualTotal }} GB</span></div>
+                                    <el-progress :percentage="calcPct(currentItem.actualUsed, currentItem.actualTotal)" :stroke-width="8" :color="getUsageColor(calcPct(currentItem.actualUsed, currentItem.actualTotal))"></el-progress>
+                                </div>
+                                <div class="capacity-block">
+                                    <div class="text-sm text-gray-500 mb-2">{{ t('card.logCap') }} (x{{ currentItem.ratio }})</div>
+                                    <div class="text-2xl font-bold text-indigo-600 mb-2 font-mono">{{ currentItem.logicUsed }} <span class="text-sm font-normal text-gray-500">/ {{ currentItem.logicTotal }} GB</span></div>
+                                    <el-progress :percentage="calcPct(currentItem.logicUsed, currentItem.logicTotal)" :stroke-width="8" color="#8F9DF9"></el-progress>
+                                </div>
+                                <div class="capacity-block flex flex-col justify-center items-center">
+                                    <div class="text-sm text-gray-500 mb-1">{{ t('card.volumes') }}</div>
+                                    <div class="text-4xl font-bold text-gray-900">{{ currentItem.volumeCount }}</div>
+                                    <div class="text-xs text-gray-400 mt-1">Volumes Created</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="detail-section">
+                            <div class="detail-title">{{ t('sec.basic') }}</div>
+                            <div class="info-grid">
+                                <div class="info-item"><div class="info-label">{{ t('f.tenant') }}</div><div class="info-value">{{ currentItem.tenantLimit }} GB</div></div>
+                                <div class="info-item"><div class="info-label">{{ t('f.ratio') }}</div><div class="info-value">x{{ currentItem.ratio }}</div></div>
+                                <div class="info-item"><div class="info-label">{{ t('f.phy') }}</div><div class="info-value">{{ currentItem.phyThreshold }}%</div></div>
+                                <div class="info-item"><div class="info-label">{{ t('f.log') }}</div><div class="info-value">{{ currentItem.logThreshold }}%</div></div>
+                                <div class="info-item col-span-2"><div class="info-label">{{ t('f.desc') }}</div><div class="info-value text-gray-600">{{ currentItem.desc || '-' }}</div></div>
+                            </div>
+                        </div>
+                        <div class="detail-section">
+                            <div class="detail-title">{{ t('sec.connect') }}</div>
+                            <div class="info-grid">
+                                <div class="info-item col-span-2"><div class="info-label">{{ t('f.server') }}</div><div class="info-value-mono">https://192.168.5.146:6443</div></div>
+                                <div class="info-item"><div class="info-label">{{ t('f.cluster') }}</div><div class="info-value-mono">cluster1</div></div>
+                                <div class="info-item"><div class="info-label">{{ t('f.user') }}</div><div class="info-value-mono">admin</div></div>
+                                <div class="info-item"><div class="info-label">{{ t('f.authMethod') }}</div><div class="info-value">{{ t('auth.cert') }}</div></div>
+                                <div class="info-item col-span-2"><div class="info-label">{{ t('f.ip') }}</div><div class="info-value-mono">https://k8s.example.com</div></div>
+                            </div>
+                        </div>
+                        <div class="detail-section">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="detail-title" style="margin-bottom: 0;">{{ t('detail.fsList') }}</div>
+                                <el-tag type="info" effect="plain">{{ t('detail.fsCount') }}: {{ filteredFileSystems.length }} / {{ activeFileSystems.length }}</el-tag>
+                            </div>
+                            <div class="fs-table-wrap">
+                                <template v-if="activeFileSystems.length">
+                                    <div class="fs-filter-row">
+                                        <div class="fs-filter-name">
+                                            <el-input v-model="fsQuery.name" :placeholder="t('detail.fsNameFilterPh')" clearable></el-input>
+                                        </div>
+                                        <div class="fs-filter-status">
+                                            <el-select v-model="fsQuery.status" :placeholder="t('detail.fsStatusFilterPh')" clearable class="w-full">
+                                                <el-option :label="t('fsStatus.creating')" value="creating"></el-option>
+                                                <el-option :label="t('fsStatus.running')" value="running"></el-option>
+                                                <el-option :label="t('fsStatus.extending')" value="extending"></el-option>
+                                                <el-option :label="t('fsStatus.error')" value="error"></el-option>
+                                            </el-select>
+                                        </div>
+                                    </div>
+                                    <template v-if="filteredFileSystems.length">
+                                        <el-table ref="fsTableRef" :data="filteredFileSystems" border stripe table-layout="fixed" style="width: 100%">
+                                            <el-table-column prop="name" :label="t('detail.fsName')" min-width="180" show-overflow-tooltip></el-table-column>
+                                            <el-table-column :label="t('detail.fsCapacityUsed')" min-width="180">
+                                                <template #default="{ row }">
+                                                    <span class="font-mono text-xs">{{ row.usedCapacity }} / {{ row.totalCapacity }} GB</span>
+                                                </template>
+                                            </el-table-column>
+                                            <el-table-column :label="t('detail.fsStatus')" width="120">
+                                                <template #default="{ row }">
+                                                    <el-tag :type="getFsStatusType(row.status)" effect="light">
+                                                        {{ getFsStatusText(row.status) }}
+                                                    </el-tag>
+                                                </template>
+                                            </el-table-column>
+                                            <el-table-column prop="creator" :label="t('detail.fsCreator')" min-width="120"></el-table-column>
+                                            <el-table-column prop="enterpriseName" :label="t('detail.fsEnterprise')" min-width="160" show-overflow-tooltip></el-table-column>
+                                            <el-table-column prop="desc" :label="t('detail.fsDesc')" min-width="220" show-overflow-tooltip></el-table-column>
+                                            <el-table-column prop="createdAt" :label="t('detail.fsCreatedAt')" min-width="170"></el-table-column>
+                                        </el-table>
+                                    </template>
+                                    <el-empty v-else :description="t('detail.fsNoMatch')"></el-empty>
+                                </template>
+                                <el-empty v-else :description="t('detail.fsEmpty')"></el-empty>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </transition>
+    </main>
+
+    <el-dialog v-model="showConfigDialog" :title="t('config.title')" width="600px" append-to-body>
+        <el-form :model="configForm" label-position="top">
+            <el-form-item :label="t('f.tenant')" required>
+                <el-input v-model="configForm.tenantLimit"></el-input>
+                <div class="form-helper-text" v-html="t('h.tenant')"></div>
+            </el-form-item>
+            <el-form-item :label="t('f.ratio')" required>
+                <el-input-number v-model="configForm.ratio" class="w-full" controls-position="right"></el-input-number>
+                <div class="form-helper-text" v-html="t('h.ratio')"></div>
+            </el-form-item>
+            <el-row :gutter="20">
+                <el-col :span="12"><el-form-item :label="t('f.phy')"><el-input v-model="configForm.phyThreshold"><template #append>%</template></el-input><div class="form-helper-text" v-html="t('h.phy')"></div></el-form-item></el-col>
+                <el-col :span="12"><el-form-item :label="t('f.log')"><el-input v-model="configForm.logThreshold"><template #append>%</template></el-input><div class="form-helper-text" v-html="t('h.log')"></div></el-form-item></el-col>
+            </el-row>
+            <el-form-item :label="t('f.desc')">
+                <el-input v-model="configForm.desc" type="textarea" :rows="3"></el-input>
+                <div class="form-helper-text">{{ t('h.desc') }}</div>
+            </el-form-item>
+        </el-form>
+        <template #footer>
+            <span class="dialog-footer">
+                <el-button @click="showConfigDialog = false">{{ t('btn.cancel') }}</el-button>
+                <el-button type="primary" @click="saveConfig">{{ t('btn.submit') }}</el-button>
+            </span>
+        </template>
+    </el-dialog>
+
+</div>
+
+<script>
+const { createApp, ref, reactive, computed, watch, nextTick } = Vue;
+
+const messages = {
+    zh: {
+        page: { title: '文件存储组件', subtitle: '管理 Kubernetes 集群内的 OpenEBS 存储资源' },
+        menu: { dashboard: '概览', storage: '文件存储', settings: '设置' },
+        filter: { name: '名称', placeholder: '请输入名称' },
+        btn: { register: '注册组件', search: '搜索', manage: '详情', config: '配置', testConn: '连接检测', cancel: '取消', submit: '保存' },
+        status: { active: '正常', invalid: '失效', healthy: '运行状态良好' },
+        common: { nodesc: '暂无描述', readonly: '系统自动生成', loading: '检测中...' },
+        card: { phyCap: '实际物理容量', logCap: '逻辑超分容量', threshold: '阈值', tenantLimit: '租户限额', volumes: '文件卷数量', updated: '更新时间' },
+        form: { title: '注册文件存储组件', subtitle: '请填写以下信息以注册一个新的存储集群。' },
+        config: { title: '修改策略配置' },
+        detail: {
+            capacity: '容量状态概览',
+            fsList: '文件系统列表（未删除）',
+            fsCount: '文件系统数量',
+            fsName: '名称',
+            fsCapacityUsed: '容量/已使用量',
+            fsStatus: '状态',
+            fsCreator: '创建人',
+            fsEnterprise: '企业名称',
+            fsDesc: '描述',
+            fsCreatedAt: '创建时间',
+            fsNameFilterPh: '请输入名称关键词',
+            fsStatusFilterPh: '请选择状态',
+            fsNoMatch: '暂无符合筛选条件的文件系统',
+            fsEmpty: '当前组件下暂无未删除的文件系统'
+        },
+        fsStatus: { creating: '创建中', running: '运行中', extending: '扩展中', error: '错误' },
+        sec: { basic: '一、基础策略配置', connect: '二、集群连接配置', cluster: '集群基本信息', auth: '用户认证信息', ctx: '四、Context 信息（系统自动生成）', desc: '七、描述说明' },
+        auth: { cert: '证书认证 (Certificate)' },
+        f: { name: '组件名称', tenant: '租户限额（GB）', ratio: '超分比例', phy: '物理阻断阈值', log: '逻辑阻断阈值', ca: '身份验证证书（CA）', server: '服务器地址', cluster: '集群名称', user: '用户名称', authMethod: '认证方式', clientCert: 'client-certificate', clientKey: 'client-key', ip: '五、外网 IP / 域名', test: '六、连接检测', desc: '描述说明', selectCtx: '选择生效 Context', authUsername: 'Username', authPassword: 'Password', authToken: 'Bearer Token', authProvider: 'Config JSON', authProviderName: 'Provider Name' },
+        p: { name: 'fs-prod', tenant: '1000', ratio: '10', phy: '90', log: '100', ca: '-----BEGIN CERTIFICATE-----\nMIIC...', server: 'https://192.168.5.146:6443', cluster: 'k8s-cluster-01', user: 'admin', clientCert: '-----BEGIN CERTIFICATE-----\nMIIC...', clientKey: '-----BEGIN PRIVATE KEY-----\nMIIE...', ip: 'https://k8s.example.com', desc: '用于生产环境训练任务的文件存储组件' },
+        h: {
+            name: '文件存储组件的唯一标识，用于地域引用和资源管理。',
+            tenant: '单个租户在该组件下可使用的文件卷总容量上限。',
+            ratio: '逻辑可分配容量与实际物理容量的倍数关系。推荐值 10-20。',
+            phy: '基于实际物理使用量的阻断阈值，达到后禁止创建新的文件卷。',
+            log: '基于逻辑容量使用量的阻断阈值，达到后禁止继续分配容量。',
+            ca: 'Kubernetes 集群的 CA 证书，对应 <span class="path-code">certificate-authority-data</span>。',
+            server: 'Kubernetes API Server 的访问地址，格式 <span class="path-code">https://IP:6443</span>。',
+            cluster: 'Kubernetes 集群的逻辑标识名称，对应 <span class="path-code">clusters.name</span>。',
+            user: 'kubeconfig 中定义的用户名称，对应 <span class="path-code">users.name</span>。',
+            authMethod: '推荐使用证书认证，安全性更高且长期有效。',
+            clientCert: '对应 kubeconfig 中的 <span class="path-code">client-certificate-data</span>。',
+            clientKey: '对应 kubeconfig 中的 <span class="path-code">client-key-data</span>。',
+            authUsername: '对应 <span class="path-code">users.user.username</span>。',
+            authPassword: '对应 <span class="path-code">users.user.password</span>。',
+            authToken: '对应 <span class="path-code">users.user.token</span>。',
+            authProvider: '对应 <span class="path-code">users.user.auth-provider.config</span>。',
+            authProviderName: '对应 <span class="path-code">users.user.auth-provider.name</span> (如 oidc)。',
+            ctx: 'Context 由系统自动生成，用于作为连接 Kubernetes 的唯一生效配置。',
+            ip: '集群对外访问地址，主要用于运维和外部访问场景，可选填写。',
+            test: '建议在保存前进行连接测试，以验证集群可达性和认证信息有效性。',
+            desc: '文件存储组件的补充说明信息。',
+            paste: '请复制主节点上的 <span class="path-code">~/.kube/config</span> 文件内容。',
+            upload: '文件一般位于集群主节点的 <span class="path-code">~/.kube/config</span> 路径下。'
+        },
+        mode: { paste: '粘贴配置', upload: '上传文件', manual: '手动录入' },
+        tip: { upload: '拖拽 Kubeconfig 文件到此处', uploadPath: '文件一般位于集群主节点的 ~/.kube/config 路径下' },
+        msg: { testPass: '测试通过: API Server 可达，认证成功', testFail: '连接失败', warn: '请先点击连接检测，并通过验证' }
+    },
+    en: {
+        page: { title: 'File Storage', subtitle: 'Manage OpenEBS storage resources in K8s clusters' },
+        menu: { dashboard: 'Dashboard', storage: 'Storage', settings: 'Settings' },
+        filter: { name: 'Name', placeholder: 'Enter Name' },
+        btn: { register: 'Register', search: 'Search', manage: 'Manage', config: 'Config', testConn: 'Connection Test', cancel: 'Cancel', submit: 'Save' },
+        status: { active: 'Active', invalid: 'Invalid', healthy: 'Healthy Status' },
+        common: { nodesc: 'No Description', readonly: 'Auto-Generated', loading: 'Testing...' },
+        card: { phyCap: 'Phy. Cap.', logCap: 'Log. Cap.', threshold: 'Threshold', tenantLimit: 'Tenant Quota', volumes: 'Volumes', updated: 'Updated At' },
+        form: { title: 'Register Storage', subtitle: 'Fill in details to register a new storage cluster.' },
+        config: { title: 'Edit Strategy' },
+        detail: {
+            capacity: 'Capacity Overview',
+            fsList: 'File Systems (Not Deleted)',
+            fsCount: 'File System Count',
+            fsName: 'Name',
+            fsCapacityUsed: 'Capacity / Used',
+            fsStatus: 'Status',
+            fsCreator: 'Creator',
+            fsEnterprise: 'Enterprise',
+            fsDesc: 'Description',
+            fsCreatedAt: 'Created At',
+            fsNameFilterPh: 'Enter file system name',
+            fsStatusFilterPh: 'Select status',
+            fsNoMatch: 'No file systems match current filters',
+            fsEmpty: 'No active file systems under this component'
+        },
+        fsStatus: { creating: 'Creating', running: 'Running', extending: 'Extending', error: 'Error' },
+        sec: { basic: 'I. Basic Policy', connect: 'II. Connection Config', cluster: 'Cluster Info', auth: 'User Auth', ctx: 'IV. Context (Auto)', desc: 'VII. Description' },
+        auth: { cert: 'Certificate (Recommended)' },
+        f: { name: 'Component Name', tenant: 'Tenant Quota (GB)', ratio: 'Overcommit Ratio', phy: 'Phy. Threshold', log: 'Log. Threshold', ca: 'CA Certificate', server: 'API Server', cluster: 'Cluster Name', user: 'User Name', authMethod: 'Auth Method', clientCert: 'Client Cert', clientKey: 'Client Key', ip: 'V. External IP', test: 'VI. Connection Test', desc: 'Description', selectCtx: 'Select Context', authUsername: 'Username', authPassword: 'Password', authToken: 'Bearer Token', authProvider: 'Config JSON', authProviderName: 'Provider Name' },
+        p: { name: 'fs-prod', tenant: '1000', ratio: '10', phy: '90', log: '100', ca: '-----BEGIN CERTIFICATE-----\nMIIC...', server: 'https://192.168.5.146:6443', cluster: 'k8s-cluster-01', user: 'admin', clientCert: '-----BEGIN CERTIFICATE-----\nMIIC...', clientKey: '-----BEGIN PRIVATE KEY-----\nMIIE...', ip: 'https://k8s.example.com', desc: 'File storage for production' },
+        h: { name: 'Unique identifier for resource management.', tenant: 'Max volume capacity per tenant.', ratio: 'Logic = Physical * Ratio.', phy: 'Block new writes when reached.', log: 'Block allocation when reached.', ca: 'Cluster Identity (CA).', server: 'K8s Management URL.', cluster: 'Cluster name.', user: 'User name.', authMethod: 'Certificate is recommended.', clientCert: 'client-certificate-data.', clientKey: 'client-key-data.', authUsername: '`users.user.username`', authPassword: '`users.user.password`', authToken: '`users.user.token`', authProvider: '`users.user.auth-provider.config`', authProviderName: '`users.user.auth-provider.name`', ctx: 'Auto-generated context.', ip: 'Public IP.', test: 'Test connection before saving.', desc: 'Notes on usage.', paste: 'Copy content from ~/.kube/config.', upload: 'Upload kubeconfig file.' },
+        mode: { paste: 'Paste Config', upload: 'Upload File', manual: 'Manual Entry' },
+        tip: { upload: 'Drag Kubeconfig', uploadPath: 'File at ~/.kube/config' },
+        msg: { testPass: 'Test Passed', testFail: 'Connection Failed', warn: 'Please pass the connection test first' }
+    }
+};
+
+createApp({
+    setup() {
+        const lang = ref('zh');
+        const currentView = ref('list'); 
+        const filterText = ref('');
+        const connectMode = ref('paste');
+        const rawConfig = ref(`apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURtak...
+    server: https://192.168.5.146:6443
+  name: cluster1
+contexts:
+- context:
+    cluster: cluster1
+    user: admin
+  name: context-cluster1
+current-context: context-cluster1
+kind: Config
+preferences: {}
+users:
+- name: admin
+  user:
+    client-certificate-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUQyV...
+    client-key-data: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb3d...`); 
+        const testing = ref(false);
+        const connStatus = ref('idle'); 
+        const errorMsg = ref('');
+        const highlightTest = ref(false);
+        const showConfigDialog = ref(false);
+
+        const currentItem = ref({});
+        const configForm = reactive({ id: null, ratio: 10, tenantLimit: 1000, phyThreshold: 90, logThreshold: 100, desc: '' });
+        const fsQuery = reactive({ name: '', status: '' });
+        const fsTableRef = ref(null);
+
+        const form = reactive({
+            name: '', ratio: 10, tenantLimit: 1000, phyThreshold: 90, logThreshold: 100,
+            selectedContext: '', caCert: '', serverAddr: '', clusterName: '', userName: '',
+            authType: 'cert', clientCert: '', clientKey: '',
+            authUsername: '', authPassword: '', authToken: '', authProvider: '', authProviderName: '',
+            publicIp: '', desc: ''
+        });
+
+        const generatedContextName = computed(() => form.name ? `ctx-${form.name}` : '');
+        const parsedContexts = ref([]);
+        
+        // Register Icons
+        const app = Vue.getCurrentInstance().appContext.app;
+        for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+            app.component(key, component);
+        }
+
+        const storageList = ref([
+            {
+                id: 1, name: 'wuhan-ai-cluster-01', region: 'Wuhan', status: 1, desc: 'Primary storage for AI Training workloads.',
+                actualUsed: 720, actualTotal: 1000, phyThreshold: 90, logicUsed: 7200, logicTotal: 10000, ratio: 10, logThreshold: 100,
+                tenantLimit: 2000, volumeCount: 42, updatedAt: '2026-02-04 10:30',
+                fileSystems: [
+                    { id: 101, name: 'training-fs-prod', totalCapacity: 3000, usedCapacity: 1820, status: 'running', creator: '王宁', enterpriseName: '武汉算模科技有限公司', desc: 'AI 训练任务主文件系统', createdAt: '2026-01-12 09:20', deleted: false },
+                    { id: 102, name: 'inference-fs-cache', totalCapacity: 1200, usedCapacity: 760, status: 'extending', creator: '张涛', enterpriseName: '武汉算模科技有限公司', desc: '在线推理缓存数据文件系统', createdAt: '2026-01-26 14:05', deleted: false },
+                    { id: 103, name: 'legacy-fs-archive', totalCapacity: 800, usedCapacity: 430, status: 'error', creator: '陈晨', enterpriseName: '武汉算模科技有限公司', desc: '历史归档，已删除保留记录', createdAt: '2025-12-09 11:32', deleted: true }
+                ]
+            },
+            {
+                id: 2, name: 'beijing-dev-storage', region: 'Beijing', status: 3, desc: 'Dev cluster.', errorReason: 'Connection Refused (503)',
+                actualUsed: 0, actualTotal: 500, phyThreshold: 85, logicUsed: 0, logicTotal: 5000, ratio: 10, logThreshold: 100,
+                tenantLimit: 500, volumeCount: 0, updatedAt: '2026-02-03 16:20',
+                fileSystems: [
+                    { id: 201, name: 'dev-fs-alpha', totalCapacity: 600, usedCapacity: 65, status: 'creating', creator: '赵倩', enterpriseName: '北京算模信息技术有限公司', desc: '测试环境共享文件系统', createdAt: '2026-02-02 13:40', deleted: false }
+                ]
+            }
+        ]);
+
+        const t = (path) => path.split('.').reduce((o, i) => (o || {})[i], messages[lang.value]) || path;
+        const activeFileSystems = computed(() => {
+            if (!currentItem.value || !Array.isArray(currentItem.value.fileSystems)) return [];
+            return currentItem.value.fileSystems.filter((item) => !item.deleted);
+        });
+        const filteredFileSystems = computed(() => {
+            const keyword = fsQuery.name.trim().toLowerCase();
+            return activeFileSystems.value.filter((item) => {
+                const name = (item.name || '').toLowerCase();
+                const matchName = !keyword || name.includes(keyword);
+                const matchStatus = !fsQuery.status || item.status === fsQuery.status;
+                return matchName && matchStatus;
+            });
+        });
+
+        const relayoutFsTable = () => {
+            nextTick(() => {
+                if (fsTableRef.value && typeof fsTableRef.value.doLayout === 'function') {
+                    fsTableRef.value.doLayout();
+                }
+            });
+        };
+
+        const resetConn = () => { connStatus.value = 'idle'; errorMsg.value = ''; highlightTest.value = false; };
+        
+        const handleConfigInput = () => { 
+            resetConn(); 
+            if (rawConfig.value.length > 20) {
+                setTimeout(() => {
+                    parsedContexts.value = [{ name: 'context-cluster1', cluster: 'cluster1', user: 'admin' }];
+                    if (parsedContexts.value.length > 0) form.selectedContext = parsedContexts.value[0].name;
+                }, 300);
+            }
+        };
+        const handleFileChange = () => { resetConn(); connectMode.value = 'paste'; };
+
+        const testConnection = () => {
+            testing.value = true; connStatus.value = 'idle'; highlightTest.value = false;
+            setTimeout(() => {
+                testing.value = false;
+                const success = Math.random() > 0.1;
+                if (success) connStatus.value = 'success';
+                else { connStatus.value = 'error'; errorMsg.value = "Error: 401 Unauthorized."; }
+            }, 1000);
+        };
+
+        const handleSubmit = () => {
+            if (connStatus.value !== 'success') {
+                ElementPlus.ElMessage.warning(t('msg.warn'));
+                highlightTest.value = true;
+                setTimeout(() => highlightTest.value = false, 1500);
+                return;
+            }
+            navigateToList();
+            ElementPlus.ElMessage.success(t('msg.testPass'));
+            storageList.value.unshift({ id: Date.now(), name: form.name, region: 'Manual', status: 1, desc: form.desc, actualUsed: 0, actualTotal: 1000, phyThreshold: form.phyThreshold, logicUsed: 0, logicTotal: 1000 * form.ratio, ratio: form.ratio, logThreshold: form.logThreshold, tenantLimit: form.tenantLimit, volumeCount: 0, updatedAt: 'Just Now', fileSystems: [] });
+        };
+
+        const calcPct = (u, t) => t ? Math.round((u/t)*100) : 0;
+        const getUsageColor = (p) => p > 90 ? '#F53F3F' : (p > 75 ? '#FF7D00' : '#4C5DF7');
+
+        const navigateToCreate = () => { currentView.value = 'create'; resetConn(); if(connectMode.value==='paste') handleConfigInput(); };
+        const navigateToList = () => { currentView.value = 'list'; };
+        const navigateToDetail = (item) => {
+            fsQuery.name = '';
+            fsQuery.status = '';
+            currentItem.value = item;
+            currentView.value = 'detail';
+            relayoutFsTable();
+        };
+
+        const getFsStatusType = (status) => {
+            if (status === 'creating') return 'info';
+            if (status === 'running') return 'success';
+            if (status === 'extending') return 'warning';
+            if (status === 'error') return 'danger';
+            return 'info';
+        };
+
+        const getFsStatusText = (status) => {
+            if (status === 'creating') return t('fsStatus.creating');
+            if (status === 'running') return t('fsStatus.running');
+            if (status === 'extending') return t('fsStatus.extending');
+            if (status === 'error') return t('fsStatus.error');
+            return status;
+        };
+
+        const openConfigDialog = (item) => {
+            configForm.id = item.id;
+            configForm.ratio = item.ratio;
+            configForm.tenantLimit = item.tenantLimit;
+            configForm.phyThreshold = item.phyThreshold;
+            configForm.logThreshold = item.logThreshold;
+            configForm.desc = item.desc;
+            currentItem.value = item; 
+            showConfigDialog.value = true;
+        };
+
+        const saveConfig = () => {
+            const target = storageList.value.find(i => i.id === configForm.id);
+            if (target) {
+                target.ratio = configForm.ratio;
+                target.tenantLimit = configForm.tenantLimit;
+                target.phyThreshold = configForm.phyThreshold;
+                target.logThreshold = configForm.logThreshold;
+                target.desc = configForm.desc;
+            }
+            showConfigDialog.value = false;
+            ElementPlus.ElMessage.success('Configuration updated successfully');
+        };
+
+        watch(() => lang.value, () => { if (currentView.value === 'detail') relayoutFsTable(); });
+        watch(() => filteredFileSystems.value.length, () => { if (currentView.value === 'detail') relayoutFsTable(); });
+        watch(() => currentView.value, (view) => {
+            if (view === 'detail') {
+                relayoutFsTable();
+                setTimeout(relayoutFsTable, 320);
+            }
+        });
+
+        return {
+            lang, t, currentView, connectMode, rawConfig, filterText, form, storageList, parsedContexts, testing, connStatus, errorMsg, highlightTest, generatedContextName,
+            currentItem, showConfigDialog, configForm, fsQuery, fsTableRef, activeFileSystems, filteredFileSystems,
+            navigateToCreate, navigateToList, navigateToDetail, openConfigDialog, saveConfig,
+            handleConfigInput, handleFileChange, resetConn, testConnection, handleSubmit, calcPct, getUsageColor,
+            getFsStatusType, getFsStatusText
+        };
+    }
+}).use(ElementPlus).mount('#app');
+</script>
+
+</body>
+</html>
