@@ -1,0 +1,1840 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wanmore Region Manager V4.2</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+        /* =========================================
+           1. System Tokens
+           ========================================= */
+        :root {
+            --primary: #4C5DF7;
+            --primary-bg: #EEF0FE;
+            --success: #67C23A;
+            --warning: #E6A23C;
+            --danger: #F56C6C;
+            --disabled: #909399;
+            --gpu-color: #722ED1;
+            
+            --text-main: #303133;
+            --text-regular: #606266;
+            --text-subtle: #909399;
+            --border: #E4E7ED;
+            --bg-body: #F5F7FA;
+            --bg-white: #FFFFFF;
+            --bg-card: #FAFBFC;
+
+            /* Label Widths */
+            --label-w: 90px;
+            --sidebar-w: 300px;
+        }
+
+        body.lang-en { --label-w: 120px; }
+        body.lang-cn .en-only { display: none !important; }
+        body.lang-en .cn-only { display: none !important; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-body); color: var(--text-main); font-size: 13px;
+            height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        /* =========================================
+           2. Layout Shell
+           ========================================= */
+        .header {
+            height: 52px; background: var(--bg-white); border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 20px; flex-shrink: 0;
+        }
+        .brand { font-size: 20px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 40px; }
+        .nav-links { display: flex; gap: 24px; font-size: 14px; font-weight: 500; color: var(--text-regular); }
+        .nav-item.active { color: var(--primary); }
+        .lang-btn {
+            padding: 5px 12px; background: #F2F3F5; border-radius: 4px; cursor: pointer;
+            font-size: 12px; transition: 0.2s; display: flex; align-items: center; gap: 6px;
+        }
+        .lang-btn:hover { color: var(--primary); background: #eef0f5; }
+
+        .layout { flex: 1; display: flex; overflow: hidden; }
+        .aside {
+            width: 220px; background: var(--bg-white); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; padding: 12px 0; flex-shrink: 0;
+        }
+        .menu-item {
+            height: 40px; padding: 0 20px; display: flex; align-items: center; color: var(--text-regular); cursor: pointer;
+            border-right: 3px solid transparent; transition: 0.2s;
+        }
+        .menu-item:hover { background: #F5F7FA; color: var(--text-main); }
+        .menu-item.active { background: var(--primary-bg); color: var(--primary); border-right-color: var(--primary); font-weight: 600; }
+
+        .workspace { flex: 1; display: flex; flex-direction: column; background: var(--bg-body); overflow: hidden; }
+        .toolbar {
+            padding: 12px 20px; background: var(--bg-white); border-bottom: 1px solid var(--border);
+            display: flex; gap: 20px; align-items: center; flex-shrink: 0;
+        }
+        .tool-group { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-subtle); }
+        .radio-box { display: inline-flex; background: #F2F3F5; padding: 2px; border-radius: 4px; }
+        .radio-opt { padding: 4px 12px; border-radius: 3px; cursor: pointer; color: var(--text-regular); transition: 0.2s; }
+        .radio-opt.active { background: #fff; color: var(--primary); font-weight: 500; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .btn-add { margin-left: auto; background: var(--primary); color: #fff; border: none; padding: 6px 16px; border-radius: 4px; cursor: pointer; }
+
+        .split-view { flex: 1; display: flex; overflow: hidden; padding: 20px; gap: 16px; }
+
+        /* Left List */
+        .list-col {
+            width: var(--sidebar-w); background: var(--bg-white); border: 1px solid var(--border); border-radius: 8px;
+            display: flex; flex-direction: column;
+        }
+        .search-box { padding: 12px; border-bottom: 1px solid #f0f0f0; }
+        .input { width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; }
+        .region-list { flex: 1; overflow-y: auto; }
+        
+        .list-item {
+            padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f9f9f9; border-left: 3px solid transparent; 
+            transition: all 0.2s; display: flex; flex-direction: column; gap: 6px;
+        }
+        .list-item:hover { background: #F5F7FA; }
+        .list-item.active { background: var(--primary-bg); border-left-color: var(--primary) !important; }
+        .li-head { display: flex; justify-content: space-between; align-items: center; }
+        .li-title { font-weight: 600; font-size: 14px; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
+        .li-meta { font-size: 11px; color: var(--text-subtle); display: flex; flex-direction: column; gap: 2px; }
+        .li-time-row { display: flex; justify-content: space-between; }
+
+        .list-badge { font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 600; text-transform: uppercase; border: 1px solid transparent; }
+        .st-normal .li-icon { color: var(--success); }
+        .st-normal .list-badge { background: #f0f9eb; color: var(--success); border-color: #e1f3d8; }
+        .st-failed { background: #fef0f0; border-left-color: rgba(245, 108, 108, 0.3); }
+        .st-failed .li-icon { color: var(--danger); }
+        .st-failed .list-badge { background: #fff; color: var(--danger); border-color: rgba(245,108,108,0.2); }
+        .st-disabled { opacity: 0.6; filter: grayscale(100%); }
+        .st-disabled .list-badge { background: #f4f4f5; color: #909399; border-color: #d3d4d6; }
+
+        /* =========================================
+           3. Detail Column
+           ========================================= */
+        .detail-col { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding-right: 4px; }
+        
+        .detail-header { display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; }
+        .dh-title-row { display: flex; align-items: center; justify-content: space-between; }
+        .dh-title { font-size: 20px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 12px; }
+        .error-banner {
+            background: #FEF0F0; border: 1px solid #FDE2E2; color: #F56C6C; padding: 10px 16px; border-radius: 6px;
+            font-size: 13px; display: flex; align-items: center; gap: 8px;
+        }
+
+        .card { background: var(--bg-white); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+        .card-head {
+            font-weight: 700; font-size: 15px; margin-bottom: 20px; padding-left: 10px;
+            border-left: 4px solid var(--primary); display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .group-block { margin-bottom: 24px; }
+        .group-block:last-child { margin-bottom: 0; }
+        
+        /* V4.1 Fix: Use flex-start + gap for Left Alignment */
+        .group-title {
+            font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;
+            display: flex; align-items: center; background: #F5F7FA; padding: 8px 12px; border-radius: 4px;
+            justify-content: flex-start; gap: 12px;
+        }
+        
+        /* Push AZ badge to right if needed, otherwise it sits next to title */
+        .az-badge { background:#fff; border:1px solid #ddd; padding:1px 8px; border-radius:12px; font-weight:normal; font-size:11px; color:#606266; margin-left: auto; }
+
+        /* Component Box */
+        .comp-box { background: #fff; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+        
+        /* V4.1 Fix: comp-head Left Alignment */
+        .comp-head { 
+            padding: 10px 16px; background: #FAFBFC; border-bottom: 1px solid #eee;
+            font-weight: 700; font-size: 13px; color: var(--text-main); 
+            display: flex; justify-content: flex-start; align-items: center; gap: 12px;
+        }
+        .comp-body { padding: 16px; }
+
+        /* Styles */
+        .lv-grid { display: flex; flex-direction: column; gap: 8px; }
+        .lv-row { display: flex; align-items: baseline; line-height: 1.5; border-bottom: 1px solid #f9f9f9; padding-bottom: 8px; }
+        .lv-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .lv-lbl { color: var(--text-subtle); width: var(--label-w); flex-shrink: 0; }
+        .lv-val { color: var(--text-main); font-weight: 500; word-break: break-all; }
+
+        .dd-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; background: #E4E7ED; margin-top: 16px; border-radius: 4px; overflow: hidden; }
+        .dd-item { background: #fff; padding: 8px 12px; display: flex; flex-direction: column; gap: 2px; }
+        .dd-label { font-size: 11px; color: var(--text-subtle); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dd-val { font-size: 13px; font-weight: 600; color: var(--text-main); }
+        @media (max-width: 1400px) { .dd-grid { grid-template-columns: 1fr 1fr; } }
+
+        /* Cluster Cards */
+        .cluster-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+        .cluster-card {
+            background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 16px;
+            transition: all 0.2s; display: flex; flex-direction: column; gap: 12px;
+        }
+        .cluster-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); transform: translateY(-1px); border-color: #dcdfe6; }
+        .cl-header { display: flex; justify-content: space-between; align-items: center; }
+        .cl-title { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .cl-res-grid { display: flex; flex-direction: column; gap: 8px; background: #FAFBFC; padding: 10px; border-radius: 4px; border: 1px solid #f0f0f0; }
+        .cl-res-row { display: flex; align-items: center; font-size: 12px; }
+        .cl-res-lbl { width: 40px; color: var(--text-subtle); font-weight: 500; }
+        .cl-res-track { flex: 1; height: 6px; background: #E4E7ED; border-radius: 3px; overflow: hidden; margin: 0 8px; }
+        .cl-res-fill { height: 100%; border-radius: 3px; }
+        .cl-res-val { width: 110px; text-align: right; color: var(--text-regular); font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
+        .cl-res-val span { color: var(--text-subtle); font-size: 11px; margin-left:2px;}
+
+        .cl-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px; color: var(--text-regular); border-top: 1px solid #f5f5f5; padding-top: 10px; }
+        .cl-meta-item { display: flex; gap: 6px; }
+
+        .grid-storage { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+        .prog-row { display: flex; align-items: center; margin-bottom: 8px; font-size: 12px; }
+        .prog-lbl { width: 100px; color: var(--text-subtle); flex-shrink: 0; white-space: nowrap; }
+        .prog-track { flex: 1; height: 6px; background: #e0e0e0; border-radius: 3px; margin: 0 10px; overflow: hidden; }
+        .prog-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+        .prog-val { width: 60px; text-align: right; font-weight: 600; }
+
+        .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
+        .badge.success { background: rgba(103,194,58,0.1); color: var(--success); }
+        .badge.danger { background: rgba(245,108,108,0.1); color: var(--danger); }
+        .badge.disabled { background: rgba(144,147,153,0.14); color: #909399; }
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; margin-right: 6px; }
+
+        .card-head-actions { display: inline-flex; align-items: center; gap: 8px; }
+        .az-head-actions { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+        .btn-subtle {
+            border: 1px solid #dcdfe6; background: #fff; color: var(--text-regular); border-radius: 4px;
+            padding: 4px 10px; font-size: 12px; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-subtle:hover { border-color: var(--primary); color: var(--primary); background: #f6f8ff; }
+        .btn-subtle.primary { border-color: var(--primary); color: var(--primary); background: #eef0fe; font-weight: 600; }
+        .btn-subtle.primary:hover { background: #e4e8ff; }
+        .btn-subtle.danger { border-color: #fecaca; color: #dc2626; background: #fff1f2; }
+        .btn-subtle.danger:hover { border-color: #fca5a5; color: #b91c1c; background: #ffe4e6; }
+
+        .az-meta {
+            display: flex; flex-wrap: wrap; gap: 8px 14px; padding-left: 34px; margin: -4px 0 12px;
+            font-size: 12px; color: var(--text-regular);
+        }
+        .az-meta-item { display: inline-flex; align-items: center; gap: 4px; }
+        .az-meta-item strong { font-weight: 600; color: var(--text-main); }
+        .az-empty {
+            border: 1px dashed #dcdfe6; border-radius: 8px; padding: 20px; text-align: center;
+            color: var(--text-subtle); background: #fafbfd;
+        }
+        .az-empty .btn-subtle { margin-top: 10px; }
+        .az-disabled-block .cluster-card { opacity: 0.72; filter: grayscale(28%); }
+
+        .modal-mask {
+            position: fixed; inset: 0; z-index: 999;
+            display: none; align-items: center; justify-content: center; padding: 16px;
+            background: rgba(15, 23, 42, 0.42);
+        }
+        .modal-mask.show { display: flex; }
+
+        .azp-card {
+            width: 100%; max-width: 600px; overflow: hidden; border-radius: 16px;
+            border: 1px solid #f1f5f9; background: #ffffff;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        .azp-head {
+            padding: 24px 32px; display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #f8fafc;
+        }
+        .azp-head-title { font-size: 20px; font-weight: 600; color: #1e293b; line-height: 1.2; }
+        .azp-head-sub { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+        .azp-close {
+            width: 36px; height: 36px; border: none; border-radius: 10px; background: transparent;
+            color: #94a3b8; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .azp-close:hover { background: #f8fafc; color: #64748b; }
+
+        .azp-body { padding: 24px 32px 32px; max-height: 70vh; overflow-y: auto; }
+        .azp-tip {
+            display: flex; gap: 12px; border-radius: 12px; border: 1px solid #fef3c7;
+            background: #fffbeb; padding: 16px; margin-bottom: 32px;
+        }
+        .azp-tip-text { font-size: 14px; line-height: 1.6; color: #92400e; }
+
+        .azp-form { display: flex; flex-direction: column; gap: 24px; }
+        .azp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .azp-item { min-width: 0; }
+        .azp-label {
+            display: block; margin-bottom: 8px;
+            font-size: 14px; font-weight: 500; color: #334155;
+        }
+        .azp-label.required::after { content: ' *'; color: #ef4444; }
+
+        .azp-select-wrap { position: relative; }
+        .azp-select,
+        .azp-input,
+        .azp-name-input,
+        .azp-textarea {
+            width: 100%; border: 1px solid #e2e8f0; border-radius: 12px;
+            padding: 10px 16px; font-size: 14px; line-height: 1.4;
+            color: #334155; background: #ffffff; transition: all 0.2s;
+        }
+        .azp-select { appearance: none; background: #f8fafc; color: #64748b; cursor: not-allowed; }
+        .azp-select-arrow {
+            position: absolute; top: 50%; right: 16px; transform: translateY(-50%);
+            pointer-events: none; color: #cbd5e1;
+        }
+        .azp-input:focus,
+        .azp-name-input:focus,
+        .azp-textarea:focus {
+            border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08); outline: none;
+        }
+        .azp-input[disabled],
+        .azp-name-input[disabled],
+        .azp-textarea[disabled] {
+            background: #f8fafc; color: #94a3b8; cursor: not-allowed;
+        }
+        .azp-input::placeholder,
+        .azp-name-input::placeholder,
+        .azp-textarea::placeholder { color: #cbd5e1; }
+        .azp-help { margin-top: 6px; font-size: 12px; color: #94a3b8; }
+
+        .azp-name-block { display: flex; flex-direction: column; gap: 12px; }
+        .azp-lang-tabs {
+            display: inline-flex; align-items: center; min-width: 200px;
+            border-radius: 12px; background: rgba(241, 245, 249, 0.8); padding: 4px;
+        }
+        .azp-tab-btn {
+            border: none; border-radius: 8px; padding: 6px 24px;
+            font-size: 12px; font-weight: 500; color: #64748b; background: transparent;
+            cursor: pointer; transition: all 0.2s ease;
+        }
+        .azp-tab-btn:hover { color: #334155; }
+        .azp-tab-btn.active {
+            background: #ffffff; color: #2563eb; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .azp-textarea { min-height: 96px; resize: none; }
+
+        .azp-foot {
+            padding: 20px 32px; display: flex; justify-content: flex-end; align-items: center; gap: 12px;
+            border-top: 1px solid #f1f5f9; background: #f8fafc;
+        }
+        .azp-btn-cancel {
+            border: none; background: transparent; padding: 8px 24px;
+            font-size: 14px; font-weight: 500; color: #64748b; cursor: pointer; transition: color 0.2s;
+        }
+        .azp-btn-cancel:hover { color: #334155; }
+        .azp-btn-submit {
+            border: none; border-radius: 12px; padding: 10px 40px;
+            background: #2563eb; color: #ffffff; font-size: 14px; font-weight: 600;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.2); cursor: pointer; transition: all 0.2s;
+        }
+        .azp-btn-submit:hover { background: #1d4ed8; }
+        .azp-btn-submit:active { transform: scale(0.98); }
+
+        .azc-card {
+            width: 100%; max-width: 520px; overflow: hidden; border-radius: 14px;
+            border: 1px solid #e5e7eb; background: #ffffff;
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
+        }
+        .azc-head {
+            padding: 18px 22px; border-bottom: 1px solid #f1f5f9;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .azc-title { font-size: 17px; font-weight: 700; color: #1f2937; }
+        .azc-close {
+            width: 30px; height: 30px; border: none; border-radius: 8px;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: transparent; color: #9ca3af; cursor: pointer; transition: all 0.2s;
+        }
+        .azc-close:hover { background: #f3f4f6; color: #6b7280; }
+        .azc-body { padding: 18px 22px; }
+        .azc-target {
+            margin-bottom: 12px; padding: 10px 12px; border-radius: 10px;
+            background: #fff7ed; border: 1px solid #fed7aa;
+            font-size: 13px; color: #9a3412;
+        }
+        .azc-impact-title { font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 8px; }
+        .azc-impact-list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: #4b5563; font-size: 13px; line-height: 1.5; }
+        .azc-foot {
+            padding: 14px 22px; border-top: 1px solid #f1f5f9; background: #f8fafc;
+            display: flex; justify-content: flex-end; gap: 10px;
+        }
+        .azc-btn-cancel, .azc-btn-confirm {
+            border-radius: 10px; padding: 8px 18px; font-size: 13px; cursor: pointer; transition: all 0.2s;
+        }
+        .azc-btn-cancel { border: 1px solid #d1d5db; background: #ffffff; color: #4b5563; }
+        .azc-btn-cancel:hover { border-color: #9ca3af; color: #111827; }
+        .azc-btn-confirm { border: 1px solid #dc2626; background: #dc2626; color: #ffffff; font-weight: 600; }
+        .azc-btn-confirm:hover { border-color: #b91c1c; background: #b91c1c; }
+
+        .rgp-card {
+            width: min(860px, 96vw);
+            max-height: 90vh;
+            overflow: hidden;
+            border-radius: 14px;
+            border: 1px solid #e5e7eb;
+            background: #ffffff;
+            box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        .rgp-head {
+            padding: 22px 28px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .rgp-head-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .rgp-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: #9ca3af;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .rgp-close:hover { background: #f3f4f6; color: #6b7280; }
+        .rgp-body { padding: 28px; max-height: calc(90vh - 130px); overflow-y: auto; }
+        .rgp-section {
+            font-size: 15px;
+            font-weight: 700;
+            color: #374151;
+            margin: 0 0 20px;
+            position: relative;
+            padding-left: 12px;
+        }
+        .rgp-section::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 3px;
+            width: 4px;
+            height: 15px;
+            border-radius: 2px;
+            background: #4c5df7;
+        }
+        .rgp-item { margin-bottom: 20px; }
+        .rgp-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #374151;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .rgp-label small {
+            margin-left: 6px;
+            color: #9ca3af;
+            font-size: 12px;
+            font-weight: 400;
+        }
+        .rgp-input, .rgp-select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #111827;
+            background: #ffffff;
+            transition: all 0.2s;
+        }
+        .rgp-input:focus, .rgp-select:focus {
+            border-color: #4c5df7;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(76, 93, 247, 0.12);
+        }
+        .rgp-type-box {
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            background: #fafafa;
+            padding: 14px;
+        }
+        .rgp-type-selector {
+            display: flex;
+            background: #e5e7eb;
+            padding: 3px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        .rgp-type-btn {
+            flex: 1;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 13px;
+            color: #6b7280;
+            cursor: pointer;
+            background: transparent;
+            transition: all 0.2s;
+        }
+        .rgp-type-btn.active {
+            background: #ffffff;
+            color: #4c5df7;
+            font-weight: 700;
+        }
+        .rgp-type-hint {
+            font-size: 12px;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+        .rgp-auth-area {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .rgp-auth-area.show {
+            max-height: 260px;
+            opacity: 1;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px dashed #d1d5db;
+        }
+        .rgp-tenant-box {
+            min-height: 42px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: #ffffff;
+            padding: 6px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .rgp-tenant-tag {
+            border: 1px solid rgba(76, 93, 247, 0.2);
+            border-radius: 4px;
+            background: #eef0fe;
+            color: #4c5df7;
+            font-size: 12px;
+            padding: 3px 10px;
+        }
+        .rgp-tenant-input {
+            border: none;
+            outline: none;
+            min-width: 150px;
+            padding: 4px;
+            font-size: 13px;
+            color: #6b7280;
+        }
+        .rgp-lang-tabs {
+            display: inline-flex;
+            gap: 0;
+            border-bottom: 1px solid #f0f0f0;
+            margin-bottom: 10px;
+        }
+        .rgp-lang-tab {
+            border: none;
+            border-bottom: 2px solid transparent;
+            background: transparent;
+            padding: 8px 16px;
+            font-size: 13px;
+            color: #9ca3af;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .rgp-lang-tab.active {
+            color: #4c5df7;
+            border-bottom-color: #4c5df7;
+            font-weight: 700;
+        }
+        .rgp-res-card {
+            border: 1px solid #f0f0f0;
+            border-radius: 10px;
+            background: #fafafa;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+        .rgp-res-card.enabled {
+            border-color: #4c5df7;
+            background: #ffffff;
+        }
+        .rgp-res-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .rgp-res-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+        .rgp-res-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            background: #e5e7eb;
+            color: #9ca3af;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .rgp-res-card.enabled .rgp-res-icon {
+            background: #eef0fe;
+            color: #4c5df7;
+        }
+        .rgp-res-title { min-width: 0; }
+        .rgp-res-title b {
+            display: block;
+            font-size: 14px;
+            color: #111827;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .rgp-res-title span {
+            display: block;
+            margin-top: 2px;
+            font-size: 11px;
+            color: #9ca3af;
+        }
+        .rgp-res-required {
+            font-size: 11px;
+            color: #16a34a;
+            font-weight: 700;
+        }
+        .rgp-switch {
+            position: relative;
+            width: 38px;
+            height: 20px;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+        .rgp-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .rgp-slider {
+            position: absolute;
+            inset: 0;
+            background: #d1d5db;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .rgp-slider::before {
+            content: "";
+            position: absolute;
+            left: 2px;
+            top: 2px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ffffff;
+            transition: all 0.2s;
+        }
+        .rgp-switch input:checked + .rgp-slider { background: #52c41a; }
+        .rgp-switch input:checked + .rgp-slider::before { transform: translateX(18px); }
+        .rgp-res-expand {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: all 0.2s;
+        }
+        .rgp-res-card.enabled .rgp-res-expand {
+            max-height: 100px;
+            opacity: 1;
+            margin-top: 10px;
+        }
+        .rgp-footer {
+            padding: 18px 28px;
+            border-top: 1px solid #f0f0f0;
+            background: #ffffff;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .rgp-btn {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #4b5563;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 9px 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .rgp-btn:hover { border-color: #9ca3af; color: #111827; }
+        .rgp-btn-primary {
+            border-color: #4c5df7;
+            background: #4c5df7;
+            color: #ffffff;
+        }
+        .rgp-btn-primary:hover {
+            border-color: #3f4fe0;
+            background: #3f4fe0;
+            color: #ffffff;
+        }
+
+        @media (max-width: 900px) {
+            .az-meta { padding-left: 0; }
+            .azp-grid { grid-template-columns: 1fr; gap: 16px; }
+            .azp-head, .azp-body, .azp-foot { padding-left: 20px; padding-right: 20px; }
+            .rgp-body, .rgp-head, .rgp-footer { padding-left: 16px; padding-right: 16px; }
+        }
+
+    </style>
+</head>
+<body class="lang-cn">
+
+    <header class="header">
+        <div class="brand">
+            <span>AGIONE</span>
+            <nav class="nav-links">
+                <div class="nav-item active"><span class="cn-only">AI基础设施</span><span class="en-only">Infrastructure</span></div>
+                <div class="nav-item"><span class="cn-only">用户空间</span><span class="en-only">Workspace</span></div>
+            </nav>
+        </div>
+        <div class="lang-btn" onclick="toggleLang()">
+            <span>🌐</span><span class="cn-only">中文 / EN</span><span class="en-only">English / CN</span>
+        </div>
+    </header>
+
+    <div class="layout">
+        <aside class="aside">
+            <div class="menu-item active"><span style="margin-right:10px;">📍</span><span class="cn-only">地域 / 可用区</span><span class="en-only">Regions / AZs</span></div>
+            <div class="menu-item"><span style="margin-right:10px;">💠</span><span class="cn-only">集群管理</span><span class="en-only">Clusters</span></div>
+        </aside>
+
+        <main class="workspace">
+            <div class="toolbar">
+                <div class="tool-group">
+                    <span class="cn-only">类型</span><span class="en-only">Type</span>
+                    <div class="radio-box">
+                        <div class="radio-opt"><span class="cn-only">公共</span><span class="en-only">Public</span></div>
+                        <div class="radio-opt active"><span class="cn-only">专属</span><span class="en-only">Private</span></div>
+                    </div>
+                </div>
+                <div class="tool-group">
+                    <span class="cn-only">状态</span><span class="en-only">Status</span>
+                    <div class="radio-box">
+                        <div class="radio-opt active"><span class="cn-only">全部</span><span class="en-only">All</span></div>
+                        <div class="radio-opt"><span class="cn-only">正常</span><span class="en-only">Normal</span></div>
+                    </div>
+                </div>
+                <button class="btn-add" type="button" onclick="openRegionDialog()"><span class="cn-only">+ 新增地域</span><span class="en-only">+ New Region</span></button>
+            </div>
+
+            <div class="split-view">
+                <div class="list-col">
+                    <div class="search-box">
+                        <input type="text" class="input cn-only" placeholder="搜索地域名称...">
+                        <input type="text" class="input en-only" placeholder="Search region...">
+                    </div>
+                    <div class="region-list" id="regionList"></div>
+                </div>
+
+                <div class="detail-col" id="detailPanel"></div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-mask" id="azModalMask">
+        <div class="azp-card">
+            <div class="azp-head">
+                <div>
+                    <h2 class="azp-head-title">
+                        <span class="cn-only" id="azModalTitleCn">新增可用区</span>
+                        <span class="en-only" id="azModalTitleEn">Create Availability Zone</span>
+                    </h2>
+                    <p class="azp-head-sub">Availability Zone Configuration</p>
+                </div>
+                <button class="azp-close" type="button" onclick="closeAzDialog()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M6 18L18 6M6 6l12 12" stroke-width="2" stroke-linecap="round"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="azp-body">
+                <div class="azp-tip">
+                    <div style="margin-top:2px;">
+                        <svg width="20" height="20" class="text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="azp-tip-text">
+                        <span class="cn-only">可用区是算力调度的核心边界。创建后 <span style="font-weight:700; text-decoration: underline; text-decoration-color: #fcd34d;">所属地域</span> 与 <span style="font-weight:700; text-decoration: underline; text-decoration-color: #fcd34d;">可用区 ID</span> 将无法修改。请确保已明确对应的集群规划及算力类型。</span>
+                        <span class="en-only">Availability zone is a core scheduling boundary. After creation, <strong>Region</strong> and <strong>AZ ID</strong> cannot be changed. Please confirm cluster planning and compute types before submitting.</span>
+                    </div>
+                </div>
+
+                <form class="azp-form" onsubmit="return false;">
+                    <div class="azp-grid">
+                        <div class="azp-item">
+                            <label class="azp-label required"><span class="cn-only">所属地域</span><span class="en-only">Region</span></label>
+                            <div class="azp-select-wrap">
+                                <select id="azRegionSelect" class="azp-select" disabled>
+                                    <option value="">--</option>
+                                </select>
+                                <div class="azp-select-arrow">
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path d="M19 9l-7 7-7-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="azp-item">
+                            <label class="azp-label required"><span class="cn-only">可用区 ID</span><span class="en-only">AZ ID</span></label>
+                            <input id="azIdInput" type="text" class="azp-input" placeholder="如: zone-a">
+                            <div class="azp-help">
+                                <span class="cn-only">建议使用小写字母/数字/中划线，如 `zone-a`。</span>
+                                <span class="en-only">Use lowercase letters, digits and dashes, e.g. `zone-a`.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="azp-name-block">
+                        <label class="azp-label required"><span class="cn-only">显示名称</span><span class="en-only">Display Name</span></label>
+                        <div class="azp-lang-tabs">
+                            <button id="azNameTabEn" type="button" class="azp-tab-btn active" onclick="switchAzNameTab('en')">English</button>
+                            <button id="azNameTabCn" type="button" class="azp-tab-btn" onclick="switchAzNameTab('cn')">中文简体</button>
+                        </div>
+                        <input id="azNameInput" type="text" class="azp-name-input" placeholder="请输入在 English 环境下的显示名称">
+                        <input id="azNameEnInput" type="hidden">
+                        <input id="azNameCnInput" type="hidden">
+                    </div>
+
+                    <div class="azp-item">
+                        <label class="azp-label"><span class="cn-only">描述说明</span><span class="en-only">Description</span></label>
+                        <textarea id="azDescInput" class="azp-textarea" placeholder="可选，简述该可用区的算力资源构成..."></textarea>
+                    </div>
+                </form>
+            </div>
+
+            <div class="azp-foot">
+                <button type="button" class="azp-btn-cancel" onclick="closeAzDialog()">
+                    <span class="cn-only">取消</span>
+                    <span class="en-only">Cancel</span>
+                </button>
+                <button type="button" class="azp-btn-submit" onclick="saveAzDialog()">
+                    <span class="cn-only" id="azModalSubmitCn">提交创建</span>
+                    <span class="en-only" id="azModalSubmitEn">Create</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-mask" id="azDisableMask">
+        <div class="azc-card">
+            <div class="azc-head">
+                <div class="azc-title">
+                    <span class="cn-only">确认禁用可用区</span>
+                    <span class="en-only">Confirm Disable AZ</span>
+                </div>
+                <button class="azc-close" type="button" onclick="closeAzDisableConfirm()">×</button>
+            </div>
+            <div class="azc-body">
+                <div class="azc-target">
+                    <span class="cn-only">目标可用区：</span><span class="en-only">Target AZ:</span>
+                    <strong id="azDisableTarget">--</strong>
+                </div>
+                <div class="azc-impact-title">
+                    <span class="cn-only">禁用后将产生以下影响：</span>
+                    <span class="en-only">Disabling will have the following impacts:</span>
+                </div>
+                <ul class="azc-impact-list">
+                    <li><span class="cn-only">该可用区将不再参与新任务调度。</span><span class="en-only">This AZ will be excluded from new scheduling.</span></li>
+                    <li><span class="cn-only">业务侧可用区列表中将显示为“已禁用”。</span><span class="en-only">The AZ will be marked as "Disabled" in listings.</span></li>
+                    <li><span class="cn-only">如需恢复，需要手动执行“启用”操作。</span><span class="en-only">Manual enable action is required to restore it.</span></li>
+                </ul>
+            </div>
+            <div class="azc-foot">
+                <button type="button" class="azc-btn-cancel" onclick="closeAzDisableConfirm()">
+                    <span class="cn-only">取消</span><span class="en-only">Cancel</span>
+                </button>
+                <button type="button" class="azc-btn-confirm" onclick="confirmAzDisableAction()">
+                    <span class="cn-only">确认禁用</span><span class="en-only">Confirm Disable</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-mask" id="regionModalMask">
+        <div class="rgp-card">
+            <div class="rgp-head">
+                <h2 class="rgp-head-title">
+                    <span style="color:#4c5df7;">🛡</span>
+                    <span class="cn-only">新增地域</span>
+                    <span class="en-only">Create Region</span>
+                </h2>
+                <button class="rgp-close" type="button" onclick="closeRegionDialog()">×</button>
+            </div>
+
+            <div class="rgp-body">
+                <div class="rgp-section">
+                    <span class="cn-only">地域基础信息</span>
+                    <span class="en-only">Region Basics</span>
+                </div>
+
+                <div class="rgp-item">
+                    <label class="rgp-label">
+                        <span class="cn-only">地域唯一标识</span><span class="en-only">Region ID</span>
+                        <small>(Region ID)</small>
+                    </label>
+                    <input id="regionIdInput" type="text" class="rgp-input" placeholder="例如: wuhan-central">
+                </div>
+
+                <div class="rgp-item">
+                    <label class="rgp-label">
+                        <span class="cn-only">可见性策略</span>
+                        <span class="en-only">Visibility Policy</span>
+                    </label>
+                    <div class="rgp-type-box">
+                        <div class="rgp-type-selector">
+                            <button id="regionTypePublicBtn" class="rgp-type-btn active" type="button" onclick="switchRegionType('public')">
+                                <span class="cn-only">公共地域</span><span class="en-only">Public</span>
+                            </button>
+                            <button id="regionTypePrivateBtn" class="rgp-type-btn" type="button" onclick="switchRegionType('private')">
+                                <span class="cn-only">专属地域</span><span class="en-only">Private</span>
+                            </button>
+                        </div>
+                        <div class="rgp-type-hint" id="regionTypeHint"></div>
+                        <div class="rgp-auth-area" id="regionTenantArea">
+                            <div class="rgp-item" style="margin-bottom:12px;">
+                                <label class="rgp-label">
+                                    <span class="cn-only">地域管理员租户</span><span class="en-only">Admin Tenant</span>
+                                    <small style="color:#d97706;">* <span class="cn-only">必选</span><span class="en-only">Required</span></small>
+                                </label>
+                                <select id="regionAdminTenantSelect" class="rgp-select">
+                                    <option value="">选择主责租户 / Select owner tenant...</option>
+                                    <option value="gov-cloud">政务云管理租户 / Gov Cloud</option>
+                                    <option value="ai-rnd">AI 核心研发组 / AI R&D</option>
+                                    <option value="bigdata">大数据中心 / Big Data Center</option>
+                                </select>
+                            </div>
+                            <div class="rgp-item" style="margin-bottom:0;">
+                                <label class="rgp-label">
+                                    <span class="cn-only">普通授权租户</span><span class="en-only">Authorized Tenants</span>
+                                    <small><span class="cn-only">可选</span><span class="en-only">Optional</span></small>
+                                </label>
+                                <div class="rgp-tenant-box">
+                                    <span class="rgp-tenant-tag">外部合作租户-A</span>
+                                    <input class="rgp-tenant-input" type="text" placeholder="输入名称搜索...">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rgp-item">
+                    <label class="rgp-label">
+                        <span class="cn-only">显示名称</span><span class="en-only">Display Name</span>
+                    </label>
+                    <div class="rgp-lang-tabs">
+                        <button id="regionNameTabEn" class="rgp-lang-tab" type="button" onclick="switchRegionNameTab('en')">English</button>
+                        <button id="regionNameTabCn" class="rgp-lang-tab active" type="button" onclick="switchRegionNameTab('cn')">中文简体</button>
+                    </div>
+                    <input id="regionDisplayNameInput" type="text" class="rgp-input" placeholder="请输入在 中文简体 环境下的显示名称">
+                    <input id="regionNameEnInput" type="hidden">
+                    <input id="regionNameCnInput" type="hidden">
+                </div>
+
+                <div class="rgp-section" style="margin-top:32px;">
+                    <span class="cn-only">资源能力绑定</span>
+                    <span class="en-only">Resource Binding</span>
+                </div>
+
+                <div class="rgp-res-card enabled">
+                    <div class="rgp-res-main">
+                        <div class="rgp-res-info">
+                            <div class="rgp-res-icon">IMG</div>
+                            <div class="rgp-res-title">
+                                <b><span class="cn-only">镜像服务 (Harbor)</span><span class="en-only">Image Service (Harbor)</span></b>
+                                <span><span class="cn-only">必须关联镜像源以支撑作业运行</span><span class="en-only">Required for workloads</span></span>
+                            </div>
+                        </div>
+                        <span class="rgp-res-required"><span class="cn-only">必选项</span><span class="en-only">Required</span></span>
+                    </div>
+                    <div class="rgp-res-expand" style="max-height:100px;opacity:1;margin-top:10px;">
+                        <select id="regionImageSelect" class="rgp-select">
+                            <option value="harbor.cluster.default">harbor.cluster.default</option>
+                            <option value="harbor-shared-main">harbor-shared-main</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="rgp-res-card enabled" id="regionObjectCard">
+                    <div class="rgp-res-main">
+                        <div class="rgp-res-info">
+                            <div class="rgp-res-icon">OBJ</div>
+                            <div class="rgp-res-title">
+                                <b><span class="cn-only">对象存储</span><span class="en-only">Object Storage</span></b>
+                                <span><span class="cn-only">支持非结构化数据与模型存储</span><span class="en-only">For unstructured data</span></span>
+                            </div>
+                        </div>
+                        <label class="rgp-switch">
+                            <input id="regionObjectToggle" type="checkbox" checked onchange="toggleRegionResCard('object')">
+                            <span class="rgp-slider"></span>
+                        </label>
+                    </div>
+                    <div class="rgp-res-expand">
+                        <select id="regionObjectSelect" class="rgp-select">
+                            <option value="minio-cluster-01">minio-cluster-01</option>
+                            <option value="ceph-object-02">ceph-object-02</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="rgp-res-card" id="regionFileCard">
+                    <div class="rgp-res-main">
+                        <div class="rgp-res-info">
+                            <div class="rgp-res-icon">FILE</div>
+                            <div class="rgp-res-title">
+                                <b><span class="cn-only">文件存储</span><span class="en-only">File Storage</span></b>
+                                <span><span class="cn-only">支持多节点并发读写</span><span class="en-only">Shared FS for multi-node IO</span></span>
+                            </div>
+                        </div>
+                        <label class="rgp-switch">
+                            <input id="regionFileToggle" type="checkbox" onchange="toggleRegionResCard('file')">
+                            <span class="rgp-slider"></span>
+                        </label>
+                    </div>
+                    <div class="rgp-res-expand">
+                        <select id="regionFileSelect" class="rgp-select">
+                            <option value="nas-storage-v3">nas-storage-v3</option>
+                            <option value="ceph-fs-std">ceph-fs-std</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="rgp-res-card" id="regionBlockCard">
+                    <div class="rgp-res-main">
+                        <div class="rgp-res-info">
+                            <div class="rgp-res-icon">BLK</div>
+                            <div class="rgp-res-title">
+                                <b><span class="cn-only">块存储</span><span class="en-only">Block Storage</span></b>
+                                <span><span class="cn-only">为计算节点提供独立磁盘卷</span><span class="en-only">High-performance volume pool</span></span>
+                            </div>
+                        </div>
+                        <label class="rgp-switch">
+                            <input id="regionBlockToggle" type="checkbox" onchange="toggleRegionResCard('block')">
+                            <span class="rgp-slider"></span>
+                        </label>
+                    </div>
+                    <div class="rgp-res-expand">
+                        <select id="regionBlockSelect" class="rgp-select">
+                            <option value="ceph-ssd-pool-01">ceph-ssd-pool-01</option>
+                            <option value="local-nvme-pool">local-nvme-pool</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rgp-footer">
+                <button type="button" class="rgp-btn" onclick="closeRegionDialog()">
+                    <span class="cn-only">取消</span><span class="en-only">Cancel</span>
+                </button>
+                <button type="button" class="rgp-btn rgp-btn-primary" onclick="saveRegionDialog()">
+                    <span class="cn-only">确认添加地域</span><span class="en-only">Create Region</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const db = {
+            regions: [
+                {
+                    id: 'wuhan',
+                    name: { cn: '武汉 (核心)', en: 'Wuhan (Core)' },
+                    status: 'normal',
+                    reason: null,
+                    meta: { updated: '2026-01-27 14:40', created: '2025-08-27 16:22' },
+                    components: {
+                        image: { name: 'harbor-wh', endpoint: 'https://harbor.icsb.shop', ip: '192.168.5.195:8090', desc: 'harbor' },
+                        object: { name: 'minio-wh', endpoint: 'https://minio.icsb.shop', ip: '192.168.5.195:9000', quota: 5, unit: 'GB', buckets: 5, desc: 'minio' },
+                        block: { name: 'ceph-blk-01', used: '59.9GB', alloc: '599GB', limit: '150GB', ratio: '10', disks: 2, used_pct: 10, alloc_pct: 60, act_thres: '100%', over_thres: '100%' },
+                        file: { name: 'ceph-fs-01', used: '73.4GB', alloc: '734GB', limit: '1000GB', ratio: '10', sys: 2, used_pct: 15, alloc_pct: 75, act_thres: '100%', over_thres: '100%' }
+                    },
+                    azs: [
+                        {
+                            azId: 'wh-az-1',
+                            name: { cn: '武汉可用区 1', en: 'Wuhan AZ 1' },
+                            desc: '武汉核心可用区，承载 GPU 与通用算力集群。',
+                            status: 'normal',
+                            created: '2025-07-04',
+                            updated: '2026-01-20',
+                            clusters: [
+                                {
+                                    name: 'v100-gpu-01', status: 'available',
+                                    cpu: { t: 160, f: 112 }, mem: { t: 503, f: 404 }, gpu: { t: 16, f: 14 },
+                                    disk: { t: 877.1, f: 577.1 },
+                                    nodes: 2, jobs: 4, created: '2025-07-04 10:00'
+                                },
+                                {
+                                    name: 'v100-gpu-02', status: 'available',
+                                    cpu: { t: 320, f: 20 }, mem: { t: 1024, f: 100 }, gpu: { t: 32, f: 2 },
+                                    disk: { t: 2000, f: 100 },
+                                    nodes: 4, jobs: 12, created: '2025-08-10 14:30'
+                                },
+                                {
+                                    name: 'v100-cpu-01', status: 'available',
+                                    cpu: { t: 64, f: 60 }, mem: { t: 128, f: 100 }, gpu: { t: 0, f: 0 },
+                                    disk: { t: 500, f: 400 },
+                                    nodes: 2, jobs: 0, created: '2025-09-01 09:00'
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: 'shanghai',
+                    name: { cn: '上海 (故障)', en: 'Shanghai (Failed)' },
+                    status: 'failed',
+                    reason: { cn: '存储集群 ceph-sh-02 心跳丢失', en: 'Heartbeat lost: ceph-sh-02' },
+                    meta: { updated: '2026-01-26 09:12', created: '2025-01-01 10:00' },
+                    components: {
+                        image: { name: 'harbor-sh', endpoint: 'https://harbor-sh.icsb.shop', ip: '10.0.0.1:8090', desc: 'harbor' },
+                        object: { name: 'ceph-obj-sh', endpoint: 'https://ceph.icsb.shop', ip: '10.0.0.1:9000', quota: 100, unit: 'TB', buckets: 20, desc: 'ceph' },
+                        block: { name: 'ceph-blk-02', used: '120GB', alloc: '0GB', limit: '500GB', ratio: '0', disks: 0, used_pct: 20, alloc_pct: 0, act_thres: '100%', over_thres: '100%' },
+                        file: { name: 'ceph-fs-02', used: '0GB', alloc: '0GB', limit: '0GB', ratio: '0', sys: 0, used_pct: 0, alloc_pct: 0, act_thres: '100%', over_thres: '100%' }
+                    },
+                    azs: []
+                }
+            ]
+        };
+
+        let selectedRegionId = db.regions[0] ? db.regions[0].id : '';
+        const azDialogState = { mode: 'add', regionId: '', azIndex: -1 };
+        const azDisableConfirmState = { regionId: '', azIndex: -1 };
+        const regionDialogState = { type: 'public', nameTab: 'cn' };
+        let azNameTab = 'en';
+
+        function escapeHtml(value) {
+            return String(value || '').replace(/[&<>"']/g, (char) => (
+                { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]
+            ));
+        }
+
+        function formatDate(date = new Date()) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function formatDateTime(date = new Date()) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hour = String(date.getHours()).padStart(2, '0');
+            const minute = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hour}:${minute}`;
+        }
+
+        function getLangMessage(cn, en) {
+            return document.body.classList.contains('lang-cn') ? cn : en;
+        }
+
+        function syncRegionNameInputToHidden() {
+            const inputEl = document.getElementById('regionDisplayNameInput');
+            if (!inputEl) return;
+            if (regionDialogState.nameTab === 'en') {
+                document.getElementById('regionNameEnInput').value = inputEl.value;
+            } else {
+                document.getElementById('regionNameCnInput').value = inputEl.value;
+            }
+        }
+
+        function switchRegionNameTab(tab) {
+            syncRegionNameInputToHidden();
+            regionDialogState.nameTab = tab === 'en' ? 'en' : 'cn';
+
+            const tabEn = document.getElementById('regionNameTabEn');
+            const tabCn = document.getElementById('regionNameTabCn');
+            const inputEl = document.getElementById('regionDisplayNameInput');
+            if (!tabEn || !tabCn || !inputEl) return;
+
+            tabEn.classList.toggle('active', regionDialogState.nameTab === 'en');
+            tabCn.classList.toggle('active', regionDialogState.nameTab === 'cn');
+
+            if (regionDialogState.nameTab === 'en') {
+                inputEl.placeholder = 'Please enter display name in English';
+                inputEl.value = document.getElementById('regionNameEnInput').value || '';
+            } else {
+                inputEl.placeholder = '请输入在 中文简体 环境下的显示名称';
+                inputEl.value = document.getElementById('regionNameCnInput').value || '';
+            }
+        }
+
+        function switchRegionType(type) {
+            const publicBtn = document.getElementById('regionTypePublicBtn');
+            const privateBtn = document.getElementById('regionTypePrivateBtn');
+            const hintEl = document.getElementById('regionTypeHint');
+            const authEl = document.getElementById('regionTenantArea');
+            if (!publicBtn || !privateBtn || !hintEl || !authEl) return;
+
+            regionDialogState.type = type === 'private' ? 'private' : 'public';
+            const isPublic = regionDialogState.type === 'public';
+            publicBtn.classList.toggle('active', isPublic);
+            privateBtn.classList.toggle('active', !isPublic);
+
+            if (isPublic) {
+                hintEl.innerHTML = `
+                    <span class="cn-only"><b>公共地域：</b>全平台租户共享。任何用户均可在此地域下创建并运行作业。</span>
+                    <span class="en-only"><b>Public:</b> Shared by all tenants across the platform.</span>
+                `;
+                authEl.classList.remove('show');
+            } else {
+                hintEl.innerHTML = `
+                    <span class="cn-only"><b>专属地域：</b>仅对选定租户开放，需指定一个主责租户负责该地域管理。</span>
+                    <span class="en-only"><b>Private:</b> Open only to selected tenants with one owner tenant.</span>
+                `;
+                authEl.classList.add('show');
+            }
+        }
+
+        function toggleRegionResCard(kind) {
+            const mapping = {
+                object: { card: 'regionObjectCard', toggle: 'regionObjectToggle', select: 'regionObjectSelect' },
+                file: { card: 'regionFileCard', toggle: 'regionFileToggle', select: 'regionFileSelect' },
+                block: { card: 'regionBlockCard', toggle: 'regionBlockToggle', select: 'regionBlockSelect' }
+            };
+            const ref = mapping[kind];
+            if (!ref) return;
+
+            const cardEl = document.getElementById(ref.card);
+            const toggleEl = document.getElementById(ref.toggle);
+            const selectEl = document.getElementById(ref.select);
+            if (!cardEl || !toggleEl || !selectEl) return;
+
+            cardEl.classList.toggle('enabled', toggleEl.checked);
+            selectEl.disabled = !toggleEl.checked;
+        }
+
+        function openRegionDialog() {
+            document.getElementById('regionIdInput').value = '';
+            document.getElementById('regionDisplayNameInput').value = '';
+            regionDialogState.nameTab = 'cn';
+            document.getElementById('regionNameEnInput').value = '';
+            document.getElementById('regionNameCnInput').value = '';
+            document.getElementById('regionAdminTenantSelect').value = '';
+            document.getElementById('regionObjectToggle').checked = true;
+            document.getElementById('regionFileToggle').checked = false;
+            document.getElementById('regionBlockToggle').checked = false;
+            toggleRegionResCard('object');
+            toggleRegionResCard('file');
+            toggleRegionResCard('block');
+            switchRegionType('public');
+            switchRegionNameTab('cn');
+            document.getElementById('regionModalMask').classList.add('show');
+        }
+
+        function closeRegionDialog() {
+            document.getElementById('regionModalMask').classList.remove('show');
+        }
+
+        function buildRegionComponents() {
+            const imageName = document.getElementById('regionImageSelect').value;
+
+            const objectEnabled = document.getElementById('regionObjectToggle').checked;
+            const fileEnabled = document.getElementById('regionFileToggle').checked;
+            const blockEnabled = document.getElementById('regionBlockToggle').checked;
+
+            const objectName = document.getElementById('regionObjectSelect').value;
+            const fileName = document.getElementById('regionFileSelect').value;
+            const blockName = document.getElementById('regionBlockSelect').value;
+
+            return {
+                image: {
+                    name: imageName,
+                    endpoint: '--',
+                    ip: '--',
+                    desc: 'harbor'
+                },
+                object: objectEnabled
+                    ? { name: objectName, endpoint: '--', ip: '--', quota: 0, unit: 'GB', buckets: 0, desc: 'object-store' }
+                    : { name: 'unbound', endpoint: '--', ip: '--', quota: 0, unit: 'GB', buckets: 0, desc: 'unbound' },
+                block: blockEnabled
+                    ? { name: blockName, used: '0GB', alloc: '0GB', limit: '0GB', ratio: '0', disks: 0, used_pct: 0, alloc_pct: 0, act_thres: '100%', over_thres: '100%' }
+                    : { name: 'unbound', used: '0GB', alloc: '0GB', limit: '0GB', ratio: '0', disks: 0, used_pct: 0, alloc_pct: 0, act_thres: '100%', over_thres: '100%' },
+                file: fileEnabled
+                    ? { name: fileName, used: '0GB', alloc: '0GB', limit: '0GB', ratio: '0', sys: 0, used_pct: 0, alloc_pct: 0, act_thres: '100%', over_thres: '100%' }
+                    : { name: 'unbound', used: '0GB', alloc: '0GB', limit: '0GB', ratio: '0', sys: 0, used_pct: 0, alloc_pct: 0, act_thres: '100%', over_thres: '100%' }
+            };
+        }
+
+        function saveRegionDialog() {
+            const regionIdRaw = document.getElementById('regionIdInput').value.trim();
+            const regionId = regionIdRaw.toLowerCase();
+            syncRegionNameInputToHidden();
+            const nameEn = document.getElementById('regionNameEnInput').value.trim();
+            const nameCn = document.getElementById('regionNameCnInput').value.trim();
+            const adminTenant = document.getElementById('regionAdminTenantSelect').value;
+
+            if (!regionId) {
+                alert(getLangMessage('请填写地域 ID。', 'Please enter region ID.'));
+                return;
+            }
+            if (!/^[a-z0-9-]+$/.test(regionId)) {
+                alert(getLangMessage('地域 ID 仅支持小写字母、数字和中划线。', 'Region ID only supports lowercase letters, numbers and dashes.'));
+                return;
+            }
+            if (db.regions.some((item) => item.id === regionId)) {
+                alert(getLangMessage('地域 ID 已存在，请更换后重试。', 'Region ID already exists.'));
+                return;
+            }
+            if (!nameEn || !nameCn) {
+                alert(getLangMessage('请补全中英文显示名称。', 'Please complete both English and Chinese display names.'));
+                return;
+            }
+            if (regionDialogState.type === 'private' && !adminTenant) {
+                alert(getLangMessage('专属地域必须选择一个主责租户。', 'Private region requires an admin tenant.'));
+                return;
+            }
+
+            const now = new Date();
+            const nowStr = formatDateTime(now);
+            const components = buildRegionComponents();
+
+            db.regions.unshift({
+                id: regionId,
+                name: { cn: nameCn, en: nameEn },
+                status: 'normal',
+                reason: null,
+                meta: { updated: nowStr, created: nowStr },
+                policy: {
+                    visibility: regionDialogState.type,
+                    adminTenant: adminTenant || null
+                },
+                components,
+                azs: []
+            });
+
+            closeRegionDialog();
+            renderList();
+            selectRegion(regionId);
+        }
+
+        function syncAzNameInputToHidden() {
+            const inputEl = document.getElementById('azNameInput');
+            if (!inputEl) return;
+            if (azNameTab === 'en') {
+                document.getElementById('azNameEnInput').value = inputEl.value;
+            } else {
+                document.getElementById('azNameCnInput').value = inputEl.value;
+            }
+        }
+
+        function switchAzNameTab(tab) {
+            syncAzNameInputToHidden();
+            azNameTab = tab === 'cn' ? 'cn' : 'en';
+
+            const tabEn = document.getElementById('azNameTabEn');
+            const tabCn = document.getElementById('azNameTabCn');
+            const inputEl = document.getElementById('azNameInput');
+            if (!tabEn || !tabCn || !inputEl) return;
+
+            tabEn.classList.toggle('active', azNameTab === 'en');
+            tabCn.classList.toggle('active', azNameTab === 'cn');
+
+            if (azNameTab === 'en') {
+                inputEl.placeholder = '请输入在 English 环境下的显示名称';
+                inputEl.value = document.getElementById('azNameEnInput').value || '';
+            } else {
+                inputEl.placeholder = '请输入在 中文简体 环境下的显示名称';
+                inputEl.value = document.getElementById('azNameCnInput').value || '';
+            }
+        }
+
+        function renderList() {
+            const listEl = document.getElementById('regionList');
+            listEl.innerHTML = db.regions.map((region) => {
+                let stClass = 'st-normal';
+                let badge = { cn: '正常', en: 'Normal' };
+                if (region.status === 'failed') {
+                    stClass = 'st-failed';
+                    badge = { cn: '异常', en: 'Failed' };
+                }
+                return `
+                <div
+                    class="list-item ${stClass} ${region.id === selectedRegionId ? 'active' : ''}"
+                    data-region-id="${escapeHtml(region.id)}"
+                    onclick="selectRegion('${region.id}', this)"
+                >
+                    <div class="li-head">
+                        <div class="li-title"><span class="li-icon">📍</span> <span class="cn-only">${escapeHtml(region.name.cn)}</span><span class="en-only">${escapeHtml(region.name.en)}</span></div>
+                        <div class="list-badge"><span class="cn-only">${badge.cn}</span><span class="en-only">${badge.en}</span></div>
+                    </div>
+                    <div class="li-meta">
+                        <div class="li-time-row"><span><span class="cn-only">建:</span><span class="en-only">C:</span></span> <span>${escapeHtml(region.meta.created)}</span></div>
+                        <div class="li-time-row"><span><span class="cn-only">更:</span><span class="en-only">U:</span></span> <span>${escapeHtml(region.meta.updated)}</span></div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderClusterCards(az) {
+            if (!az.clusters || az.clusters.length === 0) {
+                return `
+                <div class="az-empty">
+                    <span class="cn-only">该可用区下暂无集群。</span>
+                    <span class="en-only">No clusters under this AZ.</span>
+                </div>`;
+            }
+
+            return `
+            <div class="cluster-grid">
+                ${az.clusters.map((cluster) => {
+                    const gpuTotal = Number(cluster.gpu.t) || 0;
+                    const gpuUsed = Math.max(gpuTotal - (Number(cluster.gpu.f) || 0), 0);
+                    const gpuPct = gpuTotal > 0 ? Math.round((gpuUsed / gpuTotal) * 100) : 0;
+
+                    const cpuTotal = Number(cluster.cpu.t) || 0;
+                    const cpuUsed = Math.max(cpuTotal - (Number(cluster.cpu.f) || 0), 0);
+                    const cpuPct = cpuTotal > 0 ? Math.round((cpuUsed / cpuTotal) * 100) : 0;
+
+                    const memTotal = Number(cluster.mem.t) || 0;
+                    const memUsed = Math.max(memTotal - (Number(cluster.mem.f) || 0), 0);
+                    const memPct = memTotal > 0 ? Math.round((memUsed / memTotal) * 100) : 0;
+
+                    const diskTotal = Number(cluster.disk.t) || 0;
+                    const diskUsedNum = Math.max(diskTotal - (Number(cluster.disk.f) || 0), 0);
+                    const diskPct = diskTotal > 0 ? Math.round((diskUsedNum / diskTotal) * 100) : 0;
+                    const diskUsed = Number.isInteger(diskUsedNum) ? diskUsedNum.toFixed(0) : diskUsedNum.toFixed(1);
+
+                    const gpuColor = gpuPct > 80 ? '#F56C6C' : 'var(--gpu-color)';
+
+                    return `
+                    <div class="cluster-card">
+                        <div class="cl-header">
+                            <div class="cl-title"><span class="cl-icon">💠</span> ${escapeHtml(cluster.name)}</div>
+                            <span class="badge success" style="font-size:10px;"><span class="cn-only">可用</span><span class="en-only">Ready</span></span>
+                        </div>
+                        <div class="cl-res-grid">
+                            <div class="cl-res-row">
+                                <div class="cl-res-lbl" style="color:var(--gpu-color);font-weight:700;">GPU</div>
+                                <div class="cl-res-track"><div class="cl-res-fill" style="width:${gpuPct}%; background:${gpuColor};"></div></div>
+                                <div class="cl-res-val">${gpuUsed}/${gpuTotal} <span class="cn-only">卡</span><span class="en-only">Cards</span></div>
+                            </div>
+                            <div class="cl-res-row">
+                                <div class="cl-res-lbl">CPU</div>
+                                <div class="cl-res-track"><div class="cl-res-fill" style="width:${cpuPct}%; background:var(--success);"></div></div>
+                                <div class="cl-res-val">${cpuUsed}/${cpuTotal} <span class="cn-only">核</span><span class="en-only">Cores</span></div>
+                            </div>
+                            <div class="cl-res-row">
+                                <div class="cl-res-lbl">MEM</div>
+                                <div class="cl-res-track"><div class="cl-res-fill" style="width:${memPct}%; background:var(--warning);"></div></div>
+                                <div class="cl-res-val">${Math.round(memUsed)}/${Math.round(memTotal)} <span>GB</span></div>
+                            </div>
+                            <div class="cl-res-row">
+                                <div class="cl-res-lbl">DISK</div>
+                                <div class="cl-res-track"><div class="cl-res-fill" style="width:${diskPct}%; background:#409EFF;"></div></div>
+                                <div class="cl-res-val">${diskUsed}/${diskTotal} <span>GB</span></div>
+                            </div>
+                        </div>
+                        <div class="cl-meta">
+                            <div class="cl-meta-item">
+                                <span class="cl-meta-lbl"><span class="cn-only">节点</span><span class="en-only">Nodes</span></span>
+                                <span class="cl-meta-val">${escapeHtml(cluster.nodes)}</span>
+                            </div>
+                            <div class="cl-meta-item">
+                                <span class="cl-meta-lbl"><span class="cn-only">作业</span><span class="en-only">Jobs</span></span>
+                                <span class="cl-meta-val" style="color:var(--primary);">${escapeHtml(cluster.jobs)}</span>
+                            </div>
+                            <div class="cl-footer">
+                                <span class="cn-only">创建:</span><span class="en-only">Created:</span> ${escapeHtml(cluster.created)}
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>`;
+        }
+
+        function renderDetails(id) {
+            const region = db.regions.find((item) => item.id === id);
+            const panel = document.getElementById('detailPanel');
+            if (!region) {
+                panel.innerHTML = '';
+                return;
+            }
+
+            selectedRegionId = id;
+            const components = region.components;
+
+            let badgeClass = 'success';
+            let badgeText = { cn: '正常', en: 'Normal' };
+            let errorHtml = '';
+            if (region.status === 'failed') {
+                badgeClass = 'danger';
+                badgeText = { cn: '异常', en: 'Failed' };
+                errorHtml = `
+                <div class="error-banner">
+                    <span style="font-size:16px;">⚠️</span>
+                    <div>
+                        <strong><span class="cn-only">异常原因:</span><span class="en-only">Error Reason:</span></strong>
+                        <span class="cn-only">${escapeHtml(region.reason.cn)}</span><span class="en-only">${escapeHtml(region.reason.en)}</span>
+                    </div>
+                </div>`;
+            }
+
+            const statusNormal = `<span class="dd-val" style="color:var(--success); font-size:12px;"><span class="cn-only">正常</span><span class="en-only">Normal</span></span>`;
+
+            const azHtml = region.azs.length
+                ? region.azs.map((az, index) => {
+                    const isDisabled = az.status === 'disabled';
+                    const azBadgeClass = az.status === 'failed'
+                        ? 'danger'
+                        : (isDisabled ? 'disabled' : 'success');
+                    const azBadgeText = az.status === 'failed'
+                        ? { cn: '异常', en: 'Failed' }
+                        : (isDisabled ? { cn: '已禁用', en: 'Disabled' } : { cn: '正常', en: 'Normal' });
+                    const descHtml = az.desc
+                        ? escapeHtml(az.desc)
+                        : `<span class="cn-only">未填写</span><span class="en-only">Not set</span>`;
+
+                    return `
+                    <div class="group-block ${isDisabled ? 'az-disabled-block' : ''}">
+                        <div class="group-title">
+                            <span style="font-size:14px;">🏢</span>
+                            <span style="font-weight:700;"><span class="cn-only">${escapeHtml(az.name.cn)}</span><span class="en-only">${escapeHtml(az.name.en)}</span></span>
+                            <span class="badge ${azBadgeClass}"><span class="dot"></span><span class="cn-only">${azBadgeText.cn}</span><span class="en-only">${azBadgeText.en}</span></span>
+                            <div class="az-head-actions">
+                                <span class="az-badge"><span class="cn-only">${az.clusters.length} 集群</span><span class="en-only">${az.clusters.length} Clusters</span></span>
+                                <button class="btn-subtle" type="button" onclick="openAzDialog('edit', '${region.id}', ${index})">
+                                    <span class="cn-only">编辑</span><span class="en-only">Edit</span>
+                                </button>
+                                <button
+                                    class="btn-subtle ${isDisabled ? '' : 'danger'}"
+                                    type="button"
+                                    onclick="toggleAzDisabled('${region.id}', ${index}, ${!isDisabled})"
+                                >
+                                    <span class="cn-only">${isDisabled ? '启用' : '禁用'}</span>
+                                    <span class="en-only">${isDisabled ? 'Enable' : 'Disable'}</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="az-meta">
+                            <div class="az-meta-item"><span class="cn-only">AZ ID:</span><span class="en-only">AZ ID:</span> <strong>${escapeHtml(az.azId || '--')}</strong></div>
+                            <div class="az-meta-item"><span class="cn-only">更新时间:</span><span class="en-only">Updated:</span> ${escapeHtml(az.updated || '--')}</div>
+                            <div class="az-meta-item"><span class="cn-only">描述:</span><span class="en-only">Desc:</span> ${descHtml}</div>
+                        </div>
+                        ${renderClusterCards(az)}
+                    </div>`;
+                }).join('')
+                : `
+                <div class="az-empty">
+                    <div><span class="cn-only">该地域暂无可用区。</span><span class="en-only">No availability zones in this region.</span></div>
+                    <button class="btn-subtle primary" type="button" onclick="openAzDialog('add', '${region.id}')">
+                        <span class="cn-only">+ 新增可用区</span><span class="en-only">+ Create AZ</span>
+                    </button>
+                </div>`;
+
+            panel.innerHTML = `
+                <div class="detail-header">
+                    <div class="dh-title-row">
+                        <div class="dh-title">
+                            <span class="cn-only">${escapeHtml(region.name.cn)}</span><span class="en-only">${escapeHtml(region.name.en)}</span>
+                            <span class="badge ${badgeClass}"><span class="dot"></span><span class="cn-only">${badgeText.cn}</span><span class="en-only">${badgeText.en}</span></span>
+                        </div>
+                    </div>
+                    ${errorHtml}
+                </div>
+
+                <div class="card">
+                    <div class="card-head"><span class="cn-only">关联组件</span><span class="en-only">Related Components</span></div>
+
+                    <div class="group-block">
+                        <div class="group-title">1. <span class="cn-only">镜像组件</span><span class="en-only">Image Components</span></div>
+                        <div class="grid-2">
+                            <div class="comp-box">
+                                <div class="comp-head"><span>${escapeHtml(components.image.name)}</span> ${statusNormal}</div>
+                                <div class="comp-body">
+                                    <div class="lv-grid">
+                                        <div class="lv-row"><span class="lv-lbl"><span class="cn-only">访问端点</span><span class="en-only">Endpoint</span>:</span><span class="lv-val">${escapeHtml(components.image.endpoint)}</span></div>
+                                        <div class="lv-row"><span class="lv-lbl">IP:</span><span class="lv-val">${escapeHtml(components.image.ip)}</span></div>
+                                        <div class="lv-row"><span class="lv-lbl"><span class="cn-only">描述</span><span class="en-only">Desc</span>:</span><span class="lv-val">${escapeHtml(components.image.desc)}</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="group-block">
+                        <div class="group-title">2. <span class="cn-only">存储组件</span><span class="en-only">Storage Components</span></div>
+                        <div class="grid-storage">
+                            <div class="comp-box">
+                                <div class="comp-head">
+                                    <div><span class="cn-only">对象存储</span><span class="en-only">Object Store</span></div>
+                                    ${statusNormal}
+                                </div>
+                                <div class="comp-body">
+                                    <div style="font-weight:700; margin-bottom:8px;">${escapeHtml(components.object.name)}</div>
+                                    <div class="dd-grid">
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">额度</span><span class="en-only">Quota</span></span><span class="dd-val">${escapeHtml(components.object.quota)} ${escapeHtml(components.object.unit)}</span></div>
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">桶数量</span><span class="en-only">Buckets</span></span><span class="dd-val">${escapeHtml(components.object.buckets)}</span></div>
+                                        <div class="dd-item"><span class="dd-label">IP</span><span class="dd-val">${escapeHtml(components.object.ip)}</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="comp-box">
+                                <div class="comp-head">
+                                    <div><span class="cn-only">块存储</span><span class="en-only">Block Store</span></div>
+                                    ${statusNormal}
+                                </div>
+                                <div class="comp-body">
+                                    <div style="font-weight:700; margin-bottom:8px;">${escapeHtml(components.block.name)}</div>
+                                    <div class="prog-row">
+                                        <span class="prog-lbl"><span class="cn-only">实际已用</span><span class="en-only">Used</span>:</span>
+                                        <div class="prog-track"><div class="prog-fill" style="width:${escapeHtml(components.block.used_pct)}%; background:var(--success);"></div></div>
+                                        <span class="prog-val">${escapeHtml(components.block.used)}</span>
+                                    </div>
+                                    <div class="dd-grid">
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">实际阈值</span><span class="en-only">Act. Thres</span></span><span class="dd-val">${escapeHtml(components.block.act_thres)}</span></div>
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">超分阈值</span><span class="en-only">Over Thres</span></span><span class="dd-val">${escapeHtml(components.block.over_thres)}</span></div>
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">租户限制</span><span class="en-only">Tenant Limit</span></span><span class="dd-val">${escapeHtml(components.block.limit)}</span></div>
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">运行盘符</span><span class="en-only">Disks</span></span><span class="dd-val">${escapeHtml(components.block.disks)}</span></div>
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">超分比例</span><span class="en-only">Ratio</span></span><span class="dd-val">${escapeHtml(components.block.ratio)}</span></div>
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">地域</span><span class="en-only">Region</span></span><span class="dd-val"><span class="cn-only">${escapeHtml(region.name.cn)}</span><span class="en-only">${escapeHtml(region.name.en)}</span></span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="comp-box">
+                                <div class="comp-head">
+                                    <div><span class="cn-only">文件存储</span><span class="en-only">File Store</span></div>
+                                    ${statusNormal}
+                                </div>
+                                <div class="comp-body">
+                                    <div style="font-weight:700; margin-bottom:8px;">${escapeHtml(components.file.name)}</div>
+                                    <div class="prog-row">
+                                        <span class="prog-lbl"><span class="cn-only">实际已用</span><span class="en-only">Used</span>:</span>
+                                        <div class="prog-track"><div class="prog-fill" style="width:${escapeHtml(components.file.used_pct)}%; background:var(--success);"></div></div>
+                                        <span class="prog-val">${escapeHtml(components.file.used)}</span>
+                                    </div>
+                                    <div class="dd-grid">
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">实际阈值</span><span class="en-only">Act. Thres</span></span><span class="dd-val">${escapeHtml(components.file.act_thres)}</span></div>
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">超分阈值</span><span class="en-only">Over Thres</span></span><span class="dd-val">${escapeHtml(components.file.over_thres)}</span></div>
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">租户限制</span><span class="en-only">Tenant Limit</span></span><span class="dd-val">${escapeHtml(components.file.limit)}</span></div>
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">文件系统</span><span class="en-only">Systems</span></span><span class="dd-val">${escapeHtml(components.file.sys)}</span></div>
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">超分比例</span><span class="en-only">Ratio</span></span><span class="dd-val">${escapeHtml(components.file.ratio)}</span></div>
+                                        <div class="dd-item"><span class="dd-label"><span class="cn-only">地域</span><span class="en-only">Region</span></span><span class="dd-val"><span class="cn-only">${escapeHtml(region.name.cn)}</span><span class="en-only">${escapeHtml(region.name.en)}</span></span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-head">
+                        <span class="cn-only">可用区</span><span class="en-only">Availability Zones</span>
+                        <div class="card-head-actions">
+                            <button class="btn-subtle primary" type="button" onclick="openAzDialog('add', '${region.id}')">
+                                <span class="cn-only">+ 新增可用区</span><span class="en-only">+ Create AZ</span>
+                            </button>
+                        </div>
+                    </div>
+                    ${azHtml}
+                </div>
+            `;
+        }
+
+        function selectRegion(id, el) {
+            selectedRegionId = id;
+            document.querySelectorAll('.list-item').forEach((item) => item.classList.remove('active'));
+            const activeEl = el || document.querySelector(`.list-item[data-region-id="${id}"]`);
+            if (activeEl) activeEl.classList.add('active');
+            renderDetails(id);
+        }
+
+        function openAzDialog(mode, regionId, azIndex = -1) {
+            const region = db.regions.find((item) => item.id === regionId);
+            if (!region) return;
+
+            azDialogState.mode = mode;
+            azDialogState.regionId = regionId;
+            azDialogState.azIndex = azIndex;
+
+            const isEdit = mode === 'edit';
+            const targetAz = isEdit ? region.azs[azIndex] : null;
+            if (isEdit && !targetAz) return;
+
+            document.getElementById('azModalTitleCn').textContent = isEdit ? '编辑可用区' : '新增可用区';
+            document.getElementById('azModalTitleEn').textContent = isEdit ? 'Edit Availability Zone' : 'Create Availability Zone';
+            document.getElementById('azModalSubmitCn').textContent = isEdit ? '保存修改' : '提交创建';
+            document.getElementById('azModalSubmitEn').textContent = isEdit ? 'Save' : 'Create';
+
+            const regionSelect = document.getElementById('azRegionSelect');
+            regionSelect.innerHTML = `<option>${escapeHtml(region.name.cn)} (${escapeHtml(region.name.en)})</option>`;
+            document.getElementById('azIdInput').value = targetAz ? targetAz.azId : '';
+            document.getElementById('azIdInput').disabled = isEdit;
+            document.getElementById('azNameEnInput').value = targetAz ? targetAz.name.en : '';
+            document.getElementById('azNameCnInput').value = targetAz ? targetAz.name.cn : '';
+            document.getElementById('azDescInput').value = targetAz && targetAz.desc ? targetAz.desc : '';
+            azNameTab = 'en';
+            switchAzNameTab('en');
+
+            document.getElementById('azModalMask').classList.add('show');
+        }
+
+        function closeAzDialog() {
+            document.getElementById('azModalMask').classList.remove('show');
+        }
+
+        function openAzDisableConfirm(regionId, azIndex) {
+            const region = db.regions.find((item) => item.id === regionId);
+            if (!region) return;
+            const az = region.azs[azIndex];
+            if (!az) return;
+
+            azDisableConfirmState.regionId = regionId;
+            azDisableConfirmState.azIndex = azIndex;
+            document.getElementById('azDisableTarget').textContent = `${az.name.cn} / ${az.name.en}`;
+            document.getElementById('azDisableMask').classList.add('show');
+        }
+
+        function closeAzDisableConfirm() {
+            document.getElementById('azDisableMask').classList.remove('show');
+            azDisableConfirmState.regionId = '';
+            azDisableConfirmState.azIndex = -1;
+        }
+
+        function applyAzStatusChange(regionId, azIndex, toDisabled) {
+            const region = db.regions.find((item) => item.id === regionId);
+            if (!region) return;
+            const az = region.azs[azIndex];
+            if (!az) return;
+
+            az.status = toDisabled ? 'disabled' : 'normal';
+            const now = new Date();
+            az.updated = formatDate(now);
+            region.meta.updated = formatDateTime(now);
+
+            renderList();
+            selectRegion(regionId);
+        }
+
+        function confirmAzDisableAction() {
+            const { regionId, azIndex } = azDisableConfirmState;
+            if (!regionId || azIndex < 0) {
+                closeAzDisableConfirm();
+                return;
+            }
+            applyAzStatusChange(regionId, azIndex, true);
+            closeAzDisableConfirm();
+        }
+
+        function toggleAzDisabled(regionId, azIndex, toDisabled) {
+            const region = db.regions.find((item) => item.id === regionId);
+            if (!region) return;
+            const az = region.azs[azIndex];
+            if (!az) return;
+
+            if (toDisabled) {
+                openAzDisableConfirm(regionId, azIndex);
+                return;
+            }
+
+            const confirmEnable = getLangMessage('确认启用该可用区？', 'Enable this AZ?');
+            if (!confirm(confirmEnable)) return;
+            applyAzStatusChange(regionId, azIndex, false);
+        }
+
+        function saveAzDialog() {
+            const region = db.regions.find((item) => item.id === azDialogState.regionId);
+            if (!region) return;
+
+            const azIdInput = document.getElementById('azIdInput');
+            const azId = azIdInput.value.trim().toLowerCase();
+            syncAzNameInputToHidden();
+            const nameEn = document.getElementById('azNameEnInput').value.trim();
+            const nameCn = document.getElementById('azNameCnInput').value.trim();
+            const desc = document.getElementById('azDescInput').value.trim();
+
+            if (!azId) {
+                alert(getLangMessage('请填写可用区 ID。', 'Please enter AZ ID.'));
+                return;
+            }
+            if (!/^[a-z0-9-]+$/.test(azId)) {
+                alert(getLangMessage('可用区 ID 仅支持小写字母、数字和中划线。', 'AZ ID only supports lowercase letters, numbers and dashes.'));
+                return;
+            }
+            if (!nameEn || !nameCn) {
+                alert(getLangMessage('请补全中英文显示名称。', 'Please complete both English and Chinese display names.'));
+                return;
+            }
+
+            const isEdit = azDialogState.mode === 'edit';
+            if (!isEdit && region.azs.some((item) => (item.azId || '').toLowerCase() === azId)) {
+                alert(getLangMessage('可用区 ID 已存在，请更换后重试。', 'AZ ID already exists.'));
+                return;
+            }
+
+            const now = new Date();
+            const dateStr = formatDate(now);
+
+            if (isEdit) {
+                const az = region.azs[azDialogState.azIndex];
+                if (!az) return;
+                az.name.en = nameEn;
+                az.name.cn = nameCn;
+                az.desc = desc;
+                az.updated = dateStr;
+            } else {
+                region.azs.unshift({
+                    azId,
+                    name: { en: nameEn, cn: nameCn },
+                    desc,
+                    status: 'normal',
+                    created: dateStr,
+                    updated: dateStr,
+                    clusters: []
+                });
+            }
+
+            region.meta.updated = formatDateTime(now);
+            closeAzDialog();
+            renderList();
+            selectRegion(region.id);
+        }
+
+        function toggleLang() {
+            const body = document.body;
+            body.className = body.classList.contains('lang-cn') ? 'lang-en' : 'lang-cn';
+        }
+
+        document.getElementById('azModalMask').addEventListener('click', (event) => {
+            if (event.target.id === 'azModalMask') closeAzDialog();
+        });
+
+        document.getElementById('azDisableMask').addEventListener('click', (event) => {
+            if (event.target.id === 'azDisableMask') closeAzDisableConfirm();
+        });
+
+        document.getElementById('regionModalMask').addEventListener('click', (event) => {
+            if (event.target.id === 'regionModalMask') closeRegionDialog();
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closeAzDialog();
+                closeAzDisableConfirm();
+                closeRegionDialog();
+            }
+        });
+
+        renderList();
+        selectRegion(selectedRegionId);
+    </script>
+</body>
+</html>

@@ -1,0 +1,3781 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>资源规格管理 - 算模方 UI Prototype</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    />
+    <style>
+      :root {
+        --smf-primary: #4c5df7;
+        --smf-page-bg: #f5f6f8;
+        --smf-border: #e5e7eb;
+        --smf-text: #303133;
+        --smf-muted: #667085;
+        --smf-title: #98a2b3;
+        --smf-head-bg: #fafbfc;
+        --smf-shadow-s1: 0 1px 2px rgba(0, 0, 0, 0.04);
+        --smf-shadow-s2: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Inter, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+          "Noto Sans SC", sans-serif;
+        background: var(--smf-page-bg);
+        color: var(--smf-text);
+      }
+
+      button:focus-visible,
+      [role="button"]:focus-visible,
+      a:focus-visible,
+      .el-input__wrapper:focus-within,
+      .el-select__wrapper:focus-within,
+      .el-textarea__inner:focus-visible,
+      .el-radio-button__inner:focus-visible {
+        outline: 2px solid var(--smf-primary);
+        outline-offset: 4px;
+      }
+
+      .smf-shell-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid var(--smf-border);
+        background: #fff;
+        z-index: 1000;
+      }
+
+      .smf-trigger {
+        width: 56px;
+        height: 56px;
+        border: 0;
+        background: var(--smf-primary);
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+
+      .smf-logo-block {
+        width: 164px;
+        height: 56px;
+        padding: 0 14px;
+        border-right: 1px solid var(--smf-border);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+
+      .smf-logo-mark {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        background: linear-gradient(145deg, #121826, #5a6475);
+      }
+
+      .smf-logo-text {
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        color: #111827;
+      }
+
+      .smf-top-nav {
+        height: 56px;
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        padding: 0 20px;
+      }
+
+      .smf-top-nav-btn {
+        border: 0;
+        background: transparent;
+        color: #344054;
+        font-size: 14px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 2px 0;
+      }
+
+      .smf-top-nav-btn.active {
+        color: var(--smf-primary);
+        font-weight: 600;
+      }
+
+      .smf-header-right {
+        margin-left: auto;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        padding-right: 16px;
+        gap: 12px;
+      }
+
+      .smf-head-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #1f2937;
+        font-size: 14px;
+        text-decoration: none;
+      }
+
+      .smf-divider {
+        width: 1px;
+        height: 14px;
+        background: var(--smf-border);
+      }
+
+      .smf-provider {
+        color: #1f2937;
+        font-size: 14px;
+      }
+
+      .smf-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        background: #dbeafe;
+        color: #2563eb;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .smf-version {
+        font-size: 11px;
+        color: #98a2b3;
+      }
+
+      .smf-shell-body {
+        display: flex;
+        min-height: 100vh;
+        padding-top: 56px;
+      }
+
+      .smf-shell-side {
+        width: 216px;
+        border-right: 1px solid var(--smf-border);
+        background: #fff;
+        padding: 14px 12px;
+      }
+
+      .smf-side-group {
+        margin-bottom: 14px;
+      }
+
+      .smf-side-title {
+        color: var(--smf-title);
+        font-size: 12px;
+        margin: 10px 10px 8px;
+      }
+
+      .smf-side-item {
+        height: 38px;
+        border-radius: 12px;
+        border: 0;
+        width: 100%;
+        background: transparent;
+        color: #344054;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 10px;
+        font-size: 14px;
+        cursor: pointer;
+        text-align: left;
+      }
+
+      .smf-side-item.active {
+        background: #eef0ff;
+        color: var(--smf-primary);
+      }
+
+      .smf-side-icon {
+        width: 16px;
+        height: 16px;
+      }
+
+      .smf-shell-main {
+        flex: 1;
+        min-width: 0;
+        padding: 24px 32px;
+      }
+
+      .smf-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: var(--smf-shadow-s1);
+      }
+
+      .smf-header-box {
+        padding: 16px 20px;
+      }
+
+      .smf-header-main {
+        min-width: 0;
+        flex: 1;
+      }
+
+      .smf-title-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+
+      .smf-page-desc {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .smf-view-tabs {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px;
+        border-radius: 8px;
+        background: #e5e7eb;
+      }
+
+      .smf-view-tab {
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: #475467;
+        padding: 6px 14px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+
+      .smf-view-tab.active {
+        background: #fff;
+        color: var(--smf-primary);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+      }
+
+      .smf-header-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: nowrap;
+        justify-content: flex-end;
+        white-space: nowrap;
+      }
+
+      .smf-header-actions .el-button {
+        white-space: nowrap;
+      }
+
+      /* ══════════════════════════════════════
+         FilterBox — 严格 32px 基线对齐
+         ══════════════════════════════════════ */
+
+      .smf-filter-box {
+        margin-top: 12px;
+        padding: 12px 16px 4px;
+        background: #fff;
+        border-radius: 8px;
+        border: 1px solid var(--smf-border);
+        box-shadow: var(--smf-shadow-s1);
+      }
+
+      /* 每行筛选项容器：align-items: center 保证所有子项垂直居中对齐 */
+      .smf-filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 10px;
+        margin-bottom: 10px;
+      }
+
+      /* ── 单个筛选项 ──
+         高度严格锁定 32px，overflow:hidden 确保圆角生效
+      */
+      .smf-filter-item {
+        display: inline-flex;
+        align-items: stretch;      /* label 和 control 都撑满 32px */
+        height: 32px;              /* ← 统一基线高度 */
+        border: 1px solid #E5E7EB;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
+        flex-shrink: 0;
+        transition: border-color 150ms ease, box-shadow 150ms ease;
+      }
+
+      .smf-filter-item:focus-within {
+        border-color: var(--smf-primary);
+        box-shadow: 0 0 0 2px rgba(76, 93, 247, 0.1);
+      }
+
+      /* ── label 前缀（灰底）──
+         高度随父级 stretch 撑满，无需额外设置
+      */
+      .smf-filter-prepend {
+        display: inline-flex;
+        align-items: center;
+        padding: 0 10px;
+        background: #F5F7FA;
+        border-right: 1px solid #E5E7EB;
+        color: #606266;
+        font-size: 13px;
+        line-height: 1;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: border-color 150ms ease;
+        user-select: none;
+      }
+
+      .smf-filter-item:focus-within .smf-filter-prepend {
+        border-right-color: var(--smf-primary);
+      }
+
+      /* ── 控件区（白底）── */
+      .smf-filter-control {
+        display: inline-flex;
+        align-items: center;
+        height: 100%;              /* 撑满父级 32px */
+        background: #fff;
+      }
+
+      /* 彻底消除 EP 组件自带的边框/阴影/圆角/内边距，融入容器 */
+      .smf-filter-control .el-input,
+      .smf-filter-control .el-select {
+        height: 100%;
+      }
+
+      .smf-filter-control .el-input__wrapper,
+      .smf-filter-control .el-select__wrapper {
+        box-shadow: none !important;
+        border: none !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+        height: 100% !important;   /* 继承 filter-control 高度 */
+        padding: 0 8px !important;
+        min-height: unset !important;
+      }
+
+      .smf-filter-control .el-input__wrapper:focus-within,
+      .smf-filter-control .el-select__wrapper.is-focused {
+        box-shadow: none !important;
+      }
+
+      .smf-filter-control .el-input__inner {
+        height: 100%;
+        font-size: 13px;
+        line-height: 1;
+      }
+
+      .smf-filter-control .el-select__wrapper {
+        display: flex;
+        align-items: center;
+      }
+
+      .smf-filter-control .el-select__placeholder,
+      .smf-filter-control .el-select__selected-item span {
+        font-size: 13px;
+        line-height: 1;
+      }
+
+      /* ── 规格类型 Segment（嵌入 smf-filter-item 右侧）──
+         撑满父级 32px，内部按钮等高
+      */
+      .smf-type-seg-wrap {
+        display: inline-flex;
+        align-items: center;
+        height: 100%;
+        padding: 3px 4px;
+        gap: 2px;
+      }
+
+      .smf-type-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: calc(100% - 0px); /* 撑满去掉 padding 后的空间 */
+        padding: 0 10px;
+        border: none;
+        border-radius: 5px;
+        background: transparent;
+        color: #606266;
+        font-size: 13px;
+        font-weight: 400;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 150ms ease;
+        line-height: 1;
+      }
+
+      .smf-type-btn:hover:not(.active) {
+        color: var(--smf-primary);
+        background: rgba(76, 93, 247, 0.06);
+      }
+
+      .smf-type-btn.active {
+        background: var(--smf-primary);
+        color: #fff;
+        font-weight: 500;
+      }
+
+      /* ── 操作按钮行 ── */
+      .smf-filter-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+
+      .smf-filter-actions .el-button {
+        height: 32px;
+        border-radius: 8px;
+        padding: 0 16px;
+        font-size: 13px;
+        font-weight: 500;
+      }
+
+      /* ── 高级条件区 ── */
+      .smf-adv-section {
+        border-top: 1px solid #F3F4F6;
+        padding: 10px 0 6px;
+        margin-top: 2px;
+      }
+
+      .smf-adv-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .smf-adv-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #606266;
+        white-space: nowrap;
+      }
+
+      .smf-adv-tip {
+        font-size: 12px;
+        color: #C0C4CC;
+      }
+
+      /* 条件列表：竖向堆叠 */
+      .smf-cond-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .smf-cond-row-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .smf-cond-index-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 32px;
+        padding: 0 10px;
+        border-radius: 8px;
+        border: 1px solid #DCE6FF;
+        background: #EDF3FF;
+        color: #3F63F4;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .smf-cond-index-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0.85;
+      }
+
+      /* 单条规则行 */
+      .smf-cond-row {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: transparent;
+      }
+
+      /* 行内每个筛选片段 */
+      .smf-cond-seg {
+        display: inline-flex;
+        align-items: center;
+        height: 32px;
+        border: 1px solid #DCDFE6;
+        border-radius: 6px;
+        background: #fff;
+        flex-shrink: 0;
+        transition: border-color 150ms, box-shadow 150ms;
+      }
+
+      .smf-cond-row:focus-within .smf-cond-seg {
+        border-color: rgba(76, 93, 247, 0.5);
+      }
+
+      .smf-cond-seg-value {
+        width: 88px;
+      }
+
+      /* 原生 input：无边框，继承高度 */
+      .smf-cond-native-input {
+        width: 88px;
+        height: 30px;
+        border: none;
+        outline: none;
+        background: transparent;
+        font-size: 13px;
+        color: #303133;
+        padding: 0 8px;
+        box-sizing: border-box;
+      }
+
+      .smf-cond-native-input::placeholder {
+        color: #C0C4CC;
+      }
+
+      .smf-cond-seg-unit {
+        width: 90px;
+        padding: 0;
+      }
+
+      /* 删除图标（置于整行输入框外侧） */
+      .smf-cond-del-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        padding: 0;
+        border: none;
+        border-radius: 4px;
+        background: transparent;
+        color: #F56C6C;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: color 150ms, background 150ms;
+      }
+
+      .smf-cond-del-btn:hover {
+        color: #F56C6C;
+        background: #FEF2F2;
+      }
+
+      /* 消除片段内 EP 组件自带样式 */
+      .smf-cond-seg .el-select__wrapper,
+      .smf-cond-seg .el-input__wrapper {
+        box-shadow: none !important;
+        border: none !important;
+        background: transparent !important;
+        border-radius: 0 !important;
+        height: 30px !important;
+        padding: 0 8px !important;
+        min-height: unset !important;
+      }
+
+      .smf-cond-seg .el-select__wrapper:hover,
+      .smf-cond-seg .el-input__wrapper:hover {
+        box-shadow: none !important;
+      }
+
+      .smf-cond-seg .el-select__selected-item span,
+      .smf-cond-seg .el-select__placeholder,
+      .smf-cond-seg .el-input__inner {
+        font-size: 13px;
+        line-height: 1;
+      }
+
+      /* 新增条件按钮 */
+      .smf-cond-add {
+        align-self: flex-start;
+        border-style: dashed !important;
+        border-radius: 8px !important;
+        color: var(--smf-primary) !important;
+        font-size: 13px;
+        height: 32px;
+        margin-top: 8px;
+      }
+
+      /* list layout 竖向，无左侧栏 */
+      .smf-list-layout {
+        margin-top: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .smf-list-main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .smf-list-toolbar {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 8px;
+      }
+
+      .smf-table-wrap {
+        overflow: hidden;
+        min-height: 460px;
+      }
+
+      .smf-table .el-table__header th {
+        background: var(--smf-head-bg) !important;
+        font-size: 12px;
+        font-weight: 600;
+        border-bottom: 1px solid var(--smf-border) !important;
+      }
+
+      .smf-table .el-table__body td {
+        border-bottom: 1px dashed #f0f0f0 !important;
+      }
+
+      .smf-table .el-table__body tr:hover > td {
+        background: rgba(76, 93, 247, 0.04) !important;
+      }
+
+      .smf-table .el-table__body tr:hover > td:first-child {
+        box-shadow: inset 3px 0 0 var(--smf-primary);
+      }
+
+      .smf-id {
+        font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        color: var(--smf-primary);
+        font-weight: 600;
+      }
+
+      .smf-metric {
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .smf-metric-unit {
+        margin-left: 4px;
+        color: #98a2b3;
+        font-size: 12px;
+      }
+
+      .smf-extra-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .smf-extra-tag {
+        display: inline-flex;
+        align-items: center;
+        max-width: 100%;
+        white-space: normal;
+        word-break: break-word;
+        padding: 2px 8px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        font-size: 12px;
+        line-height: 18px;
+      }
+
+      .smf-extra-tag-acc {
+        background: #ecfdf3;
+        border-color: #abefc6;
+        color: #067647;
+      }
+
+      .smf-extra-tag-disk {
+        background: #f2f4f7;
+        border-color: #e4e7ec;
+        color: #344054;
+      }
+
+      .smf-extra-tag-special {
+        background: #fff7ed;
+        border-color: #fed7aa;
+        color: #c2410c;
+      }
+
+      .smf-empty-extra {
+        color: #c0c4cc;
+      }
+
+      .smf-price {
+        font-weight: 600;
+      }
+
+      .smf-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+      }
+
+      .smf-status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+      }
+
+      .smf-status-running {
+        color: #67c23a;
+      }
+
+      .smf-status-running .smf-status-dot {
+        background: #67c23a;
+      }
+
+      .smf-status-failed {
+        color: #f56c6c;
+      }
+
+      .smf-status-failed .smf-status-dot {
+        background: #f56c6c;
+      }
+
+      .smf-status-reason {
+        color: #98a2b3;
+        display: inline-flex;
+        align-items: center;
+      }
+
+      .smf-action-links {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        white-space: nowrap;
+      }
+
+      .smf-card-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(240px, 1fr));
+        gap: 16px;
+        padding: 16px;
+      }
+
+      .smf-resource-card {
+        border: 1px solid #ebeef5;
+        border-radius: 8px;
+        padding: 16px;
+        transition: box-shadow 0.2s ease, transform 0.2s ease;
+        box-shadow: var(--smf-shadow-s1);
+        display: flex;
+        flex-direction: column;
+        min-height: 224px;
+      }
+
+      .smf-resource-card:hover {
+        box-shadow: var(--smf-shadow-s2);
+        transform: translateY(-2px);
+      }
+
+      .smf-card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .smf-card-field {
+        margin: 8px 0 0;
+        font-size: 13px;
+        color: #667085;
+      }
+
+      .smf-card-footer {
+        margin-top: auto;
+        padding-top: 10px;
+        border-top: 1px solid #f2f4f7;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 2px;
+      }
+
+      .smf-state-wrap {
+        padding: 24px;
+      }
+
+      .smf-empty-wrap {
+        padding: 36px;
+      }
+
+      .smf-pager {
+        margin-top: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .smf-pager-total {
+        color: #606266;
+        font-size: 14px;
+        line-height: 32px;
+        white-space: nowrap;
+      }
+
+      .smf-pager-main {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .smf-pager .el-pagination {
+        --el-pagination-button-height: 32px;
+        --el-pagination-button-width: 32px;
+      }
+
+      .smf-pager .el-pagination.is-background .btn-prev,
+      .smf-pager .el-pagination.is-background .btn-next,
+      .smf-pager .el-pagination.is-background .el-pager li {
+        min-width: 32px;
+        height: 32px;
+        margin: 0;
+        border-radius: 4px;
+        background: #f2f3f5;
+        color: #606266;
+      }
+
+      .smf-pager .el-pagination.is-background .el-pager {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .smf-pager .el-pagination.is-background .btn-prev {
+        margin-right: 8px;
+      }
+
+      .smf-pager .el-pagination.is-background .btn-next {
+        margin-left: 8px;
+      }
+
+      .smf-pager .el-pagination.is-background .el-pager li.is-active {
+        background: var(--smf-primary);
+        color: #fff;
+      }
+
+      .smf-pager .el-pagination.is-background .btn-prev:disabled,
+      .smf-pager .el-pagination.is-background .btn-next:disabled {
+        color: #c0c4cc;
+        background: #f2f3f5;
+      }
+
+      .smf-pager-jump {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #606266;
+        font-size: 14px;
+      }
+
+      .smf-pager-jump-input {
+        width: 56px;
+      }
+
+      .smf-pager-jump-input .el-input__wrapper {
+        box-shadow: none !important;
+        border-radius: 8px;
+        border: 1px solid #d0d5dd;
+        height: 32px;
+        background: #fff;
+      }
+
+      .smf-pager-jump-input .el-input__wrapper:focus-within {
+        outline: none !important;
+        border-color: var(--smf-primary);
+      }
+
+      .smf-pager-jump-input .el-input__inner {
+        text-align: center;
+        font-size: 14px;
+      }
+
+      .smf-pager-unit {
+        white-space: nowrap;
+      }
+
+      /* ════════════════════════════════
+         Drawer 表单 V1.10
+         ════════════════════════════════ */
+
+      .smf-spec-drawer .el-drawer__body {
+        padding: 0;
+        overflow: hidden;
+      }
+
+      .smf-spec-drawer.el-drawer {
+        border-radius: 12px 0 0 12px !important;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.16) !important;
+      }
+
+      .smf-drawer-shell {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+      }
+
+      /* ── Header ── */
+      .smf-drawer-header {
+        flex-shrink: 0;
+        height: 52px;
+        padding: 0 20px 0 24px;
+        border-bottom: 1px solid var(--smf-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .smf-drawer-title {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #303133;
+      }
+
+      .smf-drawer-close-btn {
+        width: 28px;
+        height: 28px;
+        border: none;
+        border-radius: 6px;
+        background: transparent;
+        color: #909399;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        line-height: 1;
+        transition: background 150ms, color 150ms;
+      }
+
+      .smf-drawer-close-btn:hover {
+        background: #F3F4F6;
+        color: #303133;
+      }
+
+      /* ── Body ── */
+      .smf-drawer-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px 24px 24px;
+        background: #F7F8FA;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      /* ── 通用区块卡片 ── */
+      .smf-form-card {
+        background: #fff;
+        border: 1px solid #E5E7EB;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .smf-form-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 16px;
+        background: #FAFAFA;
+        border-bottom: 1px solid #F0F0F0;
+      }
+
+      .smf-form-card-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+      }
+
+      .smf-form-card-badge {
+        font-size: 11px;
+        color: #9CA3AF;
+        font-weight: 400;
+      }
+
+      .smf-form-card-body {
+        padding: 16px;
+      }
+
+      /* ── 规格 ID + 定价 区块 ── */
+      .smf-base-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+
+      .smf-field-wrap { }
+
+      .smf-field-label {
+        font-size: 13px;
+        color: #606266;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .smf-field-required {
+        color: #F56C6C;
+        font-size: 13px;
+      }
+
+      .smf-field-wrap .el-input,
+      .smf-field-wrap .el-input-number {
+        width: 100%;
+      }
+
+      /* 规格 ID 编辑只读 */
+      .smf-specid-readonly .el-input__wrapper {
+        background: #F5F7FA !important;
+      }
+      .smf-specid-readonly .el-input__inner {
+        color: #909399 !important;
+        cursor: not-allowed;
+      }
+
+      /* ── 指标区 ── */
+      .smf-metrics-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+
+      /* 单行指标：左侧指标名 | 右侧输入+单位 */
+      .smf-metric-item {
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #F3F4F6;
+        min-height: 44px;
+      }
+
+      .smf-metric-item:last-child {
+        border-bottom: none;
+      }
+
+      /* 指标名称区（左侧，灰底） */
+      .smf-metric-name {
+        width: 130px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 0 12px;
+        height: 44px;
+        background: #FAFAFA;
+        border-right: 1px solid #F0F0F0;
+        font-size: 13px;
+        color: #374151;
+        font-weight: 500;
+      }
+
+      .smf-metric-name-icon {
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 12px;
+      }
+
+      .smf-metric-name-icon.is-cpu {
+        background: #EEF2FF;
+        color: #4F6EF7;
+      }
+
+      .smf-metric-name-icon.is-mem {
+        background: #F0FDF4;
+        color: #22C55E;
+      }
+
+      .smf-metric-name-icon.is-gpu {
+        background: #FFF7ED;
+        color: #F97316;
+      }
+
+      .smf-metric-name-icon.is-other {
+        background: #F5F5F5;
+        color: #9CA3AF;
+      }
+
+      /* 固定标记 */
+      .smf-metric-fixed-badge {
+        margin-left: auto;
+        font-size: 10px;
+        color: #D1D5DB;
+        font-weight: 400;
+        white-space: nowrap;
+      }
+
+      /* 输入控件区（右侧，flex） */
+      .smf-metric-control {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        padding: 6px 12px 6px 10px;
+        gap: 8px;
+      }
+
+      .smf-metric-control .el-input {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* 扩展行：下拉固定宽，数值 flex */
+      .smf-metric-select {
+        width: 110px !important;
+        flex-shrink: 0;
+      }
+
+      .smf-metric-value-input {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* 单位 tag */
+      .smf-metric-unit {
+        height: 28px;
+        padding: 0 10px;
+        background: #F3F4F6;
+        border: 1px solid #E5E7EB;
+        border-radius: 6px;
+        font-size: 12px;
+        color: #6B7280;
+        display: inline-flex;
+        align-items: center;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      /* 扩展指标删除按钮 */
+      .smf-metric-del {
+        width: 26px;
+        height: 26px;
+        border: none;
+        border-radius: 6px;
+        background: transparent;
+        color: #D1D5DB;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 150ms, color 150ms;
+        flex-shrink: 0;
+      }
+
+      .smf-metric-del:hover {
+        background: #FEF2F2;
+        color: #F56C6C;
+      }
+
+      /* 扩展指标空态 */
+      .smf-metrics-empty {
+        padding: 20px 16px;
+        font-size: 13px;
+        color: #C0C4CC;
+        text-align: center;
+      }
+
+      /* 扩展指标新增按钮行 */
+      .smf-metrics-add-row {
+        padding: 8px 16px;
+        border-top: 1px dashed #E5E7EB;
+      }
+
+      .smf-metrics-add-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 13px;
+        color: var(--smf-primary);
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        font-weight: 400;
+        transition: opacity 150ms;
+      }
+
+      .smf-metrics-add-btn:hover { opacity: 0.7; }
+
+      /* ── Footer ── */
+      .smf-drawer-footer {
+        flex-shrink: 0;
+        padding: 14px 24px;
+        border-top: 1px solid var(--smf-border);
+        background: #fff;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+      }
+
+      .smf-drawer-footer .el-button {
+        height: 36px;
+        border-radius: 6px;
+        padding: 0 20px;
+        font-size: 14px;
+        font-weight: 500;
+      }
+
+            @media (max-width: 1320px) {
+        .smf-card-grid {
+          grid-template-columns: repeat(2, minmax(240px, 1fr));
+        }
+      }
+
+      @media (max-width: 1180px) {
+        .smf-filter-row { gap: 8px 10px; }
+      }
+
+      @media (max-width: 1024px) {
+        .smf-shell-side {
+          display: none;
+        }
+
+        .smf-shell-main {
+          padding: 16px;
+        }
+
+        .smf-card-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .smf-pager-main {
+          width: 100%;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+
+        .smf-form-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .smf-fixed-metrics-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .smf-metric-row {
+          grid-template-columns: 1fr 80px 28px;
+        }
+
+        .smf-metric-row > *:nth-child(3) {
+          display: none;
+        }
+
+        .smf-condition-row-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .smf-condition-head {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .smf-list-toolbar {
+          justify-content: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+
+    <script>
+      (() => {
+        if (!window.Vue || !window.ElementPlus || !window.ElementPlusIconsVue) {
+          console.error("CDN dependencies failed to load.");
+          return;
+        }
+
+        const { createApp, ref, reactive, computed, onMounted, watch } = Vue;
+        const { Fold, Document, Globe, CaretBottom, CaretTop, WarningFilled, Plus, Delete, QuestionFilled, Close, Setting, Cpu, Box, Menu } =
+          ElementPlusIconsVue;
+        const { ElMessage, ElMessageBox } = ElementPlus;
+
+        const cloneValue = (value) => {
+          if (Array.isArray(value)) return [...value];
+          if (value && typeof value === "object") return JSON.parse(JSON.stringify(value));
+          return value;
+        };
+
+        const today = () => new Date().toISOString().slice(0, 10);
+
+        const FilterBox = {
+          name: "FilterBox",
+          components: {
+            CaretBottom,
+            CaretTop
+          },
+          props: {
+            schema: {
+              type: Array,
+              default: () => []
+            },
+            model: {
+              type: Object,
+              required: true
+            },
+            texts: {
+              type: Object,
+              default: () => ({})
+            },
+            labelMap: {
+              type: Object,
+              default: () => ({})
+            },
+            columnMap: {
+              type: Object,
+              default: () => ({})
+            },
+            showExpand: {
+              type: Boolean,
+              default: true
+            },
+            defaultVisibleCount: {
+              type: Number,
+              default: 3
+            },
+            hideOperation: {
+              type: Boolean,
+              default: false
+            },
+            autoSearchNonInput: {
+              type: Boolean,
+              default: true
+            }
+          },
+          emits: ["search", "reset"],
+          setup(props, { emit }) {
+            const expanded = ref(false);
+            const asyncOptionsMap = reactive({});
+            const asyncLoadingMap = reactive({});
+
+            const mergedTexts = computed(() => ({
+              search: "搜索",
+              reset: "重置",
+              expand: "展开筛选",
+              collapse: "收起筛选",
+              ...props.texts
+            }));
+
+            const resolveType = (field) => field.type || "input";
+
+            const isHidden = (field) => {
+              if (typeof field.hidden === "function") {
+                return !!field.hidden(props.model);
+              }
+              return !!field.hidden;
+            };
+
+            const allVisibleFields = computed(() => props.schema.filter((field) => !isHidden(field)));
+
+            const showExpandToggle = computed(
+              () => props.showExpand && allVisibleFields.value.length > props.defaultVisibleCount
+            );
+
+            const primaryFields = computed(() => {
+              if (!showExpandToggle.value) return allVisibleFields.value;
+              return allVisibleFields.value.slice(0, props.defaultVisibleCount);
+            });
+
+            const extraFields = computed(() => {
+              if (!showExpandToggle.value) return [];
+              return allVisibleFields.value.slice(props.defaultVisibleCount);
+            });
+
+            const resolveLabel = (field) =>
+              field.label || props.labelMap[field.prop] || props.columnMap[field.prop] || field.prop;
+
+            const controlStyle = (field) => {
+              const width = field.width || undefined;
+              if (!width) return undefined;
+              const normalized = typeof width === "number" ? `${width}px` : width;
+              return { width: normalized, minWidth: "120px" };
+            };
+
+            const getOptions = (field) => {
+              if (Array.isArray(field.options)) return field.options;
+              if (resolveType(field) === "async-select") {
+                return asyncOptionsMap[field.prop] || [];
+              }
+              return [];
+            };
+
+            const isAsyncLoading = (field) => !!asyncLoadingMap[field.prop];
+
+            const loadAsyncOptions = async (field) => {
+              if (resolveType(field) !== "async-select") return;
+              if (typeof field.asyncOptions !== "function") return;
+              asyncLoadingMap[field.prop] = true;
+              try {
+                const options = await field.asyncOptions(props.model);
+                asyncOptionsMap[field.prop] = Array.isArray(options) ? options : [];
+              } catch (error) {
+                asyncOptionsMap[field.prop] = [];
+              } finally {
+                asyncLoadingMap[field.prop] = false;
+              }
+            };
+
+            const loadAllAsyncOptions = () => {
+              props.schema.forEach((field) => {
+                loadAsyncOptions(field);
+              });
+            };
+
+            const triggerSearch = (reason = "manual") => {
+              emit("search", { reason, query: { ...props.model } });
+            };
+
+            const callFieldChange = (field, value) => {
+              if (typeof field.change === "function") {
+                field.change(value, props.model);
+              }
+            };
+
+            const onInputChange = (field, value) => {
+              props.model[field.prop] = value;
+              callFieldChange(field, value);
+            };
+
+            const onNonInputChange = (field, value) => {
+              props.model[field.prop] = value;
+              callFieldChange(field, value);
+              if (props.autoSearchNonInput) {
+                triggerSearch("auto");
+              }
+            };
+
+            const defaultValueByType = (field) => {
+              if (Object.prototype.hasOwnProperty.call(field, "value")) {
+                return cloneValue(field.value);
+              }
+              const type = resolveType(field);
+              if (type === "date-picker" || type === "cascader") return [];
+              return "";
+            };
+
+            const onReset = () => {
+              props.schema.forEach((field) => {
+                if (!field.prop) return;
+                props.model[field.prop] = defaultValueByType(field);
+                if (resolveType(field) === "async-select") {
+                  loadAsyncOptions(field);
+                }
+              });
+              emit("reset", { query: { ...props.model } });
+              triggerSearch("reset");
+            };
+
+            onMounted(() => {
+              loadAllAsyncOptions();
+            });
+
+            watch(
+              () => props.schema,
+              () => {
+                loadAllAsyncOptions();
+              },
+              { deep: true }
+            );
+
+            return {
+              expanded,
+              mergedTexts,
+              showExpandToggle,
+              primaryFields,
+              extraFields,
+              resolveType,
+              resolveLabel,
+              controlStyle,
+              getOptions,
+              isAsyncLoading,
+              triggerSearch,
+              onReset,
+              onInputChange,
+              onNonInputChange
+            };
+          },
+          template: `
+            <section class="smf-filter-box">
+              <div class="smf-filter-row smf-filter-main-row">
+                <div v-for="field in primaryFields" :key="field.prop" class="smf-filter-item">
+                  <span class="smf-filter-label">{{ resolveLabel(field) }}</span>
+                  <div class="smf-filter-control" :style="controlStyle(field)">
+                    <el-input
+                      v-if="resolveType(field) === 'input'"
+                      :model-value="model[field.prop]"
+                      :clearable="field.clearable !== false"
+                      :placeholder="field.placeholder || ''"
+                      @update:model-value="(val) => onInputChange(field, val)"
+                      @change="(val) => onInputChange(field, val)"
+                      @keyup.enter="triggerSearch('enter')"
+                    />
+
+                    <el-select
+                      v-else-if="resolveType(field) === 'select' || resolveType(field) === 'async-select'"
+                      :model-value="model[field.prop]"
+                      :clearable="field.clearable !== false"
+                      :placeholder="field.placeholder || ''"
+                      :loading="isAsyncLoading(field)"
+                      @update:model-value="(val) => onNonInputChange(field, val)"
+                    >
+                      <el-option
+                        v-for="opt in getOptions(field)"
+                        :key="opt.value"
+                        :label="opt.label"
+                        :value="opt.value"
+                      />
+                    </el-select>
+
+                    <el-date-picker
+                      v-else-if="resolveType(field) === 'date-picker'"
+                      :model-value="model[field.prop]"
+                      :type="field.dateType || 'daterange'"
+                      :clearable="field.clearable !== false"
+                      :format="field.format || 'YYYY-MM-DD'"
+                      :value-format="field.valueFormat || 'YYYY-MM-DD'"
+                      :placeholder="field.placeholder || ''"
+                      :start-placeholder="field.startPlaceholder || 'Start'"
+                      :end-placeholder="field.endPlaceholder || 'End'"
+                      @update:model-value="(val) => onNonInputChange(field, val)"
+                    />
+
+                    <el-radio-group
+                      v-else-if="resolveType(field) === 'radio-button'"
+                      :model-value="model[field.prop]"
+                      @update:model-value="(val) => onNonInputChange(field, val)"
+                    >
+                      <el-radio-button
+                        v-for="opt in getOptions(field)"
+                        :key="opt.value"
+                        :label="opt.value"
+                      >
+                        {{ opt.label }}
+                      </el-radio-button>
+                    </el-radio-group>
+
+                    <el-cascader
+                      v-else-if="resolveType(field) === 'cascader'"
+                      :model-value="model[field.prop]"
+                      :options="getOptions(field)"
+                      :props="field.cascaderProps || {}"
+                      :clearable="field.clearable !== false"
+                      :placeholder="field.placeholder || ''"
+                      @update:model-value="(val) => onNonInputChange(field, val)"
+                    />
+
+                    <component
+                      v-else-if="resolveType(field) === 'custom' && field.component"
+                      :is="field.component"
+                      :model-value="model[field.prop]"
+                      v-bind="field.componentProps || {}"
+                      @update:model-value="(val) => onNonInputChange(field, val)"
+                    />
+
+                    <el-input
+                      v-else
+                      :model-value="model[field.prop]"
+                      :clearable="field.clearable !== false"
+                      :placeholder="field.placeholder || ''"
+                      @update:model-value="(val) => onInputChange(field, val)"
+                      @change="(val) => onInputChange(field, val)"
+                      @keyup.enter="triggerSearch('enter')"
+                    />
+                  </div>
+                </div>
+
+                <div v-if="!hideOperation || showExpandToggle" class="smf-filter-actions">
+                  <template v-if="!hideOperation">
+                    <el-button type="primary" @click="triggerSearch('manual')">{{ mergedTexts.search }}</el-button>
+                    <el-button @click="onReset">{{ mergedTexts.reset }}</el-button>
+                  </template>
+                  <el-button
+                    v-if="showExpandToggle"
+                    link
+                    type="primary"
+                    class="smf-filter-toggle-btn"
+                    @click="expanded = !expanded"
+                  >
+                    <el-icon v-if="expanded"><CaretTop /></el-icon>
+                    <el-icon v-else><CaretBottom /></el-icon>
+                    {{ expanded ? mergedTexts.collapse : mergedTexts.expand }}
+                  </el-button>
+                  <slot name="tools"></slot>
+                </div>
+              </div>
+
+              <transition name="smf-expand">
+                <div v-if="showExpandToggle && expanded" class="smf-filter-row">
+                  <div v-for="field in extraFields" :key="field.prop" class="smf-filter-item">
+                    <span class="smf-filter-label">{{ resolveLabel(field) }}</span>
+                    <div class="smf-filter-control" :style="controlStyle(field)">
+                      <el-input
+                        v-if="resolveType(field) === 'input'"
+                        :model-value="model[field.prop]"
+                        :clearable="field.clearable !== false"
+                        :placeholder="field.placeholder || ''"
+                        @update:model-value="(val) => onInputChange(field, val)"
+                        @change="(val) => onInputChange(field, val)"
+                        @keyup.enter="triggerSearch('enter')"
+                      />
+
+                      <el-select
+                        v-else-if="resolveType(field) === 'select' || resolveType(field) === 'async-select'"
+                        :model-value="model[field.prop]"
+                        :clearable="field.clearable !== false"
+                        :placeholder="field.placeholder || ''"
+                        :loading="isAsyncLoading(field)"
+                        @update:model-value="(val) => onNonInputChange(field, val)"
+                      >
+                        <el-option
+                          v-for="opt in getOptions(field)"
+                          :key="opt.value"
+                          :label="opt.label"
+                          :value="opt.value"
+                        />
+                      </el-select>
+
+                      <el-date-picker
+                        v-else-if="resolveType(field) === 'date-picker'"
+                        :model-value="model[field.prop]"
+                        :type="field.dateType || 'daterange'"
+                        :clearable="field.clearable !== false"
+                        :format="field.format || 'YYYY-MM-DD'"
+                        :value-format="field.valueFormat || 'YYYY-MM-DD'"
+                        :placeholder="field.placeholder || ''"
+                        :start-placeholder="field.startPlaceholder || 'Start'"
+                        :end-placeholder="field.endPlaceholder || 'End'"
+                        @update:model-value="(val) => onNonInputChange(field, val)"
+                      />
+
+                      <el-radio-group
+                        v-else-if="resolveType(field) === 'radio-button'"
+                        :model-value="model[field.prop]"
+                        @update:model-value="(val) => onNonInputChange(field, val)"
+                      >
+                        <el-radio-button
+                          v-for="opt in getOptions(field)"
+                          :key="opt.value"
+                          :label="opt.value"
+                        >
+                          {{ opt.label }}
+                        </el-radio-button>
+                      </el-radio-group>
+
+                      <el-cascader
+                        v-else-if="resolveType(field) === 'cascader'"
+                        :model-value="model[field.prop]"
+                        :options="getOptions(field)"
+                        :props="field.cascaderProps || {}"
+                        :clearable="field.clearable !== false"
+                        :placeholder="field.placeholder || ''"
+                        @update:model-value="(val) => onNonInputChange(field, val)"
+                      />
+
+                      <component
+                        v-else-if="resolveType(field) === 'custom' && field.component"
+                        :is="field.component"
+                        :model-value="model[field.prop]"
+                        v-bind="field.componentProps || {}"
+                        @update:model-value="(val) => onNonInputChange(field, val)"
+                      />
+
+                      <el-input
+                        v-else
+                        :model-value="model[field.prop]"
+                        :clearable="field.clearable !== false"
+                        :placeholder="field.placeholder || ''"
+                        @update:model-value="(val) => onInputChange(field, val)"
+                        @change="(val) => onInputChange(field, val)"
+                        @keyup.enter="triggerSearch('enter')"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </transition>
+
+            </section>
+          `
+        };
+
+        const seedSpecs = [
+          {
+            id: "c6.large",
+            cpu: 2,
+            mem: 4,
+            extras: [],
+            price: 0.4,
+            status: "active",
+            disableReason: "",
+            updatedAt: "2026-02-10"
+          },
+          {
+            id: "c6.xlarge",
+            cpu: 4,
+            mem: 8,
+            extras: [],
+            price: 0.8,
+            status: "active",
+            disableReason: "",
+            updatedAt: "2026-02-11"
+          },
+          {
+            id: "c6.2xlarge",
+            cpu: 8,
+            mem: 16,
+            extras: [],
+            price: 1.5,
+            status: "active",
+            disableReason: "",
+            updatedAt: "2026-02-12"
+          },
+          {
+            id: "c7.large",
+            cpu: 2,
+            mem: 8,
+            extras: [{ key: "feature", value: "AVX512", unit: "", type: "special" }],
+            price: 0.9,
+            status: "active",
+            disableReason: "",
+            updatedAt: "2026-02-13"
+          },
+          {
+            id: "c7.xlarge",
+            cpu: 4,
+            mem: 16,
+            extras: [{ key: "feature", value: "AVX512", unit: "", type: "special" }],
+            price: 1.8,
+            status: "active",
+            disableReason: "",
+            updatedAt: "2026-02-13"
+          },
+          {
+            id: "mem.opt.8",
+            cpu: 8,
+            mem: 64,
+            extras: [{ key: "feature", value: "HighMem", unit: "", type: "special" }],
+            price: 4.2,
+            status: "active",
+            disableReason: "",
+            updatedAt: "2026-02-14"
+          },
+          {
+            id: "mem.opt.16",
+            cpu: 16,
+            mem: 128,
+            extras: [{ key: "feature", value: "HighMem", unit: "", type: "special" }],
+            price: 7.6,
+            status: "active",
+            disableReason: "",
+            updatedAt: "2026-02-14"
+          },
+          {
+            id: "gpu.v100.1",
+            cpu: 8,
+            mem: 32,
+            extras: [{ key: "gpu", value: "1", unit: "Card", type: "acc" }],
+            price: 25,
+            status: "active",
+            disableReason: "",
+            updatedAt: "2026-02-15"
+          },
+          {
+            id: "gpu.v100.2",
+            cpu: 16,
+            mem: 64,
+            extras: [{ key: "gpu", value: "2", unit: "Card", type: "acc" }],
+            price: 45,
+            status: "disabled",
+            disableReason: "库存下线，等待替代规格上线",
+            updatedAt: "2026-02-08"
+          },
+          {
+            id: "gpu.a100.1",
+            cpu: 16,
+            mem: 80,
+            extras: [
+              { key: "gpu", value: "1", unit: "Card", type: "acc" },
+              { key: "disk", value: "400", unit: "GB", type: "disk" }
+            ],
+            price: 65,
+            status: "active",
+            disableReason: "",
+            updatedAt: "2026-02-17"
+          },
+          {
+            id: "gpu.a100.4",
+            cpu: 64,
+            mem: 256,
+            extras: [{ key: "gpu", value: "4", unit: "Card", type: "acc" }],
+            price: 220,
+            status: "disabled",
+            disableReason: "限量机型，仅白名单开放",
+            updatedAt: "2026-02-07"
+          },
+          {
+            id: "gpu.mi300.1",
+            cpu: 32,
+            mem: 192,
+            extras: [{ key: "gpu", value: "1", unit: "Card", type: "acc" }],
+            price: 88,
+            status: "active",
+            disableReason: "",
+            updatedAt: "2026-02-20"
+          },
+          {
+            id: "npu.910b.1",
+            cpu: 16,
+            mem: 64,
+            extras: [
+              { key: "npu", value: "1", unit: "Card", type: "acc" },
+              { key: "disk", value: "200", unit: "GB", type: "disk" }
+            ],
+            price: 39,
+            status: "active",
+            disableReason: "",
+            updatedAt: "2026-02-18"
+          },
+          {
+            id: "npu.910b.2",
+            cpu: 32,
+            mem: 128,
+            extras: [{ key: "npu", value: "2", unit: "Card", type: "acc" }],
+            price: 72,
+            status: "active",
+            disableReason: "",
+            updatedAt: "2026-02-18"
+          },
+          {
+            id: "io.local.8",
+            cpu: 8,
+            mem: 32,
+            extras: [{ key: "disk", value: "1000", unit: "GB", type: "disk" }],
+            price: 11.8,
+            status: "active",
+            disableReason: "",
+            updatedAt: "2026-02-16"
+          },
+          {
+            id: "io.local.16",
+            cpu: 16,
+            mem: 64,
+            extras: [{ key: "disk", value: "2000", unit: "GB", type: "disk" }],
+            price: 21.5,
+            status: "disabled",
+            disableReason: "机型迁移中，暂时不可售",
+            updatedAt: "2026-02-09"
+          },
+          {
+            id: "general.burst.2",
+            cpu: 2,
+            mem: 2,
+            extras: [],
+            price: 0.28,
+            status: "active",
+            disableReason: "",
+            updatedAt: "2026-02-19"
+          }
+        ];
+
+        const metricCatalog = [
+          { key: "cpu",     labelKey: "metricCpu",     unit: "Core",  type: "base" },
+          { key: "mem",     labelKey: "metricMem",     unit: "GB",    type: "base" },
+          { key: "gpu",     labelKey: "metricGpu",     unit: "Card",  type: "acc"  },
+          { key: "npu",     labelKey: "metricNpu",     unit: "Card",  type: "acc"  },
+          { key: "disk",    labelKey: "metricDisk",    unit: "GB",    type: "disk" },
+          { key: "feature", labelKey: "metricFeature", unit: "",      type: "special" }
+        ];
+
+        const App = {
+          components: {
+            FilterBox,
+            Fold,
+            Document,
+            Globe,
+            WarningFilled,
+            Plus,
+            Delete,
+            QuestionFilled,
+            Close,
+            Setting,
+            Cpu,
+            Box,
+            Menu
+          },
+          setup() {
+            const lang = ref("zh");
+            const version = ref("V1.10");
+            const topActive = ref("model");
+            const sideActive = ref("resourceSpec");
+            const activeTab = ref("active");
+            const loading = ref(false);
+            const errorMessage = ref("");
+            const specs = ref(cloneValue(seedSpecs));
+            const drawerVisible = ref(false);
+            const drawerMode = ref("create");
+            const submitting = ref(false);
+            const editingOriginalId = ref("");
+            const jumpPageInput = ref("1");
+            let loadingTimer = 0;
+            let metricUid = 0;
+            let conditionUid = 0;
+
+            const query = reactive({
+              pageIndex: 1,
+              pageSize: 8,
+              specId: "",
+              type: "all",
+              sortOrder: "default",
+              gpuVendor: "",
+              gpuSeries: "",
+              gpuModel: ""
+            });
+
+            const listQuery = reactive({ ...query });
+            const conditionRows = ref([]);
+            const appliedConditions = ref([]);
+
+            const form = reactive({
+              specId: "",
+              cpu: 4,
+              mem: 8,
+              price: 1,
+              extras: []
+            });
+
+            const dict = reactive({
+              zh: {
+                docsCenter: "文档中心",
+                provider: "provider_onepro",
+                language: "中文简体",
+                topModel: "模型及AI服务",
+                topBilling: "账务",
+                topWorkspace: "用户空间",
+                groupResource: "资源管理",
+                groupOps: "运维中心",
+                menuResourceSpec: "资源规格",
+                menuCluster: "集群管理",
+                menuStorage: "存储管理",
+                menuImage: "镜像管理",
+                menuMonitor: "监控告警",
+                menuAudit: "审计日志",
+                pageTitle: "资源规格",
+                pageDesc: "管理作业调度使用的标准算力模板。",
+                createSpec: "新建规格",
+                tableView: "表格",
+                cardView: "卡片",
+                search: "搜索",
+                reset: "重置",
+                expand: "展开筛选",
+                collapse: "收起筛选",
+                tabActive: "正常可用",
+                tabDisabled: "已禁用",
+                leftFilterTitle: "筛选条件",
+                leftFilterHint: "支持规格ID模糊匹配和GPU多维过滤",
+                filterGroupBasic: "基础筛选",
+                filterGroupGpu: "GPU筛选",
+                filterGroupAdvanced: "高级条件",
+                conditionRulePrefix: "条件",
+                filterSpecId: "规格 ID",
+                filterType: "规格类型",
+                filterSort: "排序",
+                filterGpuVendor: "GPU厂商",
+                filterGpuSeries: "GPU系列",
+                filterGpuModel: "GPU型号",
+                filterCondition: "规格条件",
+                filterTypeAll: "全部",
+                filterTypeAcc: "有卡 (GPU/NPU)",
+                filterTypeGen: "无卡 (通用)",
+                allOption: "全部",
+                sortDefault: "默认排序",
+                sortCpuAsc: "CPU: 低 -> 高",
+                sortCpuDesc: "CPU: 高 -> 低",
+                sortMemAsc: "内存: 小 -> 大",
+                sortMemDesc: "内存: 大 -> 小",
+                sortAccFirst: "有卡优先",
+                sortPriceAsc: "价格: 低 -> 高",
+                sortPriceDesc: "价格: 高 -> 低",
+                conditionAndTip: "多行条件按 AND 关系筛选",
+                conditionScopePlaceholder: "规格类",
+                conditionMetricPlaceholder: "请选择",
+                conditionOperatorPlaceholder: "请选择",
+                conditionValuePlaceholder: "数量",
+                conditionUnitPlaceholder: "单位",
+                conditionDelete: "删除",
+                conditionAddRow: "新增一行条件",
+                scopeSpec: "规格类",
+                scopeExtra: "扩展类",
+                metricCpu: "CPU",
+                metricMem: "内存",
+                metricPrice: "价格",
+                operatorEq: "等于",
+                operatorNe: "不等于",
+                operatorGt: "大于",
+                operatorGte: "大于等于",
+                operatorLt: "小于",
+                operatorLte: "小于等于",
+                operatorContains: "包含",
+                unitVcpu: "vCPU",
+                unitGb: "GB",
+                unitCard: "Card",
+                unitCnyHour: "元/小时",
+                colSpecId: "规格 ID",
+                colCpu: "CPU",
+                colMem: "内存",
+                colExtra: "扩展配置 (动态)",
+                colPrice: "定价 (元/小时)",
+                colStatus: "状态",
+                colAction: "操作",
+                total: "共",
+                items: "条",
+                goto: "前往",
+                pageUnit: "页",
+                statusActive: "正常",
+                statusDisabled: "禁用",
+                statusReason: "禁用原因",
+                emptyDesc: "当前筛选条件下暂无规格",
+                errorTitle: "数据加载失败",
+                errorRetry: "重试",
+                mockError: "模拟异常：请点击重试恢复列表。",
+                actionEdit: "编辑",
+                actionDisable: "禁用",
+                actionEnable: "启用",
+                confirmDisableTitle: "确认禁用该规格？",
+                confirmDisableText: "禁用后该规格将不再可被新任务选择。",
+                confirmEnableTitle: "确认启用该规格？",
+                confirmEnableText: "启用后该规格将恢复可选。",
+                confirmOk: "确认",
+                confirmCancel: "取消",
+                drawerCreateTitle: "新建资源规格",
+                drawerEditTitle: "编辑资源规格",
+                formSpecId: "规格 ID",
+                formCpu: "CPU (Core)",
+                formMem: "内存 (GB)",
+                formPrice: "定价 (元/小时)",
+                formMetrics: "扩展指标",
+                metricType: "指标类型",
+                metricValue: "指标值",
+                metricUnit: "单位",
+                metricGpu: "GPU",
+                metricNpu: "NPU",
+                metricDisk: "本地盘",
+                metricFeature: "特殊特性",
+                addMetric: "添加指标",
+                removeMetric: "删除",
+                noMetric: "未添加扩展指标",
+                placeholderSpecId: "例如: gpu.a100.1x",
+                placeholderSpecIdFuzzy: "支持模糊匹配，例如 a100 或 c6",
+                placeholderPriceMax: "输入价格上限",
+                placeholderMetricValue: "输入值",
+                save: "保存",
+                createNow: "立即创建",
+                cancel: "取消",
+                msgCreated: "规格创建成功",
+                msgUpdated: "规格更新成功",
+                msgStatusUpdated: "状态已更新",
+                msgRetrySuccess: "已恢复列表",
+                defaultDisableReason: "人工下线，等待后续发布",
+                validationSpecIdRequired: "请填写规格 ID",
+                validationSpecIdInvalid: "规格 ID 仅支持字母、数字、点、下划线和中划线",
+                validationSpecIdDuplicate: "规格 ID 已存在",
+                validationCpu: "CPU 必须大于 0",
+                validationMem: "内存必须大于 0",
+                validationPrice: "价格不能小于 0",
+                formSectionBasic: "基础配置",
+                formSectionExtra: "扩展指标",
+                formSpecIdHint: "仅允许小写字母、数字、点（.）和连字符（-），以字母或数字开头结尾",
+                formSpecIdReadonlyTip: "规格 ID 创建后不可修改",
+                extrasColType: "指标类型",
+                extrasColValue: "数量",
+                extrasColUnit: "单位",
+                extrasColAction: "操作",
+                formHintRequired: "带 * 为必填项"
+              },
+              en: {
+                docsCenter: "Docs Center",
+                provider: "provider_onepro",
+                language: "English",
+                topModel: "Models & AI Services",
+                topBilling: "Billing",
+                topWorkspace: "Workspace",
+                groupResource: "Resource",
+                groupOps: "Operations",
+                menuResourceSpec: "Resource Specs",
+                menuCluster: "Clusters",
+                menuStorage: "Storage",
+                menuImage: "Images",
+                menuMonitor: "Monitoring",
+                menuAudit: "Audit Logs",
+                pageTitle: "Resource Specifications",
+                pageDesc: "Manage scheduling-ready compute templates for job orchestration.",
+                createSpec: "Create Spec",
+                tableView: "Table",
+                cardView: "Cards",
+                search: "Search",
+                reset: "Reset",
+                expand: "Expand Filters",
+                collapse: "Collapse Filters",
+                tabActive: "Active",
+                tabDisabled: "Disabled",
+                leftFilterTitle: "Filters",
+                leftFilterHint: "Fuzzy ID matching with GPU multi-dimension filters",
+                filterGroupBasic: "Basic Filters",
+                filterGroupGpu: "GPU Filters",
+                filterGroupAdvanced: "Advanced Conditions",
+                conditionRulePrefix: "Rule",
+                filterSpecId: "Spec ID",
+                filterType: "Type",
+                filterSort: "Sort",
+                filterGpuVendor: "GPU Vendor",
+                filterGpuSeries: "GPU Series",
+                filterGpuModel: "GPU Model",
+                filterCondition: "Spec Conditions",
+                filterTypeAll: "All",
+                filterTypeAcc: "Accelerated",
+                filterTypeGen: "General",
+                allOption: "All",
+                sortDefault: "Default",
+                sortCpuAsc: "CPU: Low -> High",
+                sortCpuDesc: "CPU: High -> Low",
+                sortMemAsc: "Memory: Low -> High",
+                sortMemDesc: "Memory: High -> Low",
+                sortAccFirst: "Accelerated First",
+                sortPriceAsc: "Price: Low -> High",
+                sortPriceDesc: "Price: High -> Low",
+                conditionAndTip: "Rows are combined with AND logic",
+                conditionScopePlaceholder: "Scope",
+                conditionMetricPlaceholder: "Metric",
+                conditionOperatorPlaceholder: "Operator",
+                conditionValuePlaceholder: "Value",
+                conditionUnitPlaceholder: "Unit",
+                conditionDelete: "Delete",
+                conditionAddRow: "Add Condition Row",
+                scopeSpec: "Spec",
+                scopeExtra: "Extra",
+                metricCpu: "CPU",
+                metricMem: "Memory",
+                metricPrice: "Price",
+                operatorEq: "Equals",
+                operatorNe: "Not Equals",
+                operatorGt: "Greater Than",
+                operatorGte: "Greater or Equal",
+                operatorLt: "Less Than",
+                operatorLte: "Less or Equal",
+                operatorContains: "Contains",
+                unitVcpu: "vCPU",
+                unitGb: "GB",
+                unitCard: "Card",
+                unitCnyHour: "CNY/h",
+                colSpecId: "Spec ID",
+                colCpu: "CPU",
+                colMem: "Memory",
+                colExtra: "Extra Config",
+                colPrice: "Price (CNY/h)",
+                colStatus: "Status",
+                colAction: "Actions",
+                total: "Total",
+                items: "items",
+                goto: "Go to",
+                pageUnit: "page",
+                statusActive: "Active",
+                statusDisabled: "Disabled",
+                statusReason: "Reason",
+                emptyDesc: "No specs under current filters",
+                errorTitle: "Failed to load data",
+                errorRetry: "Retry",
+                mockError: "Mock error: click Retry to restore data.",
+                actionEdit: "Edit",
+                actionDisable: "Disable",
+                actionEnable: "Enable",
+                confirmDisableTitle: "Disable this spec?",
+                confirmDisableText: "New jobs will no longer be able to select this spec.",
+                confirmEnableTitle: "Enable this spec?",
+                confirmEnableText: "This spec will become selectable again.",
+                confirmOk: "Confirm",
+                confirmCancel: "Cancel",
+                drawerCreateTitle: "Create Resource Spec",
+                drawerEditTitle: "Edit Resource Spec",
+                formSpecId: "Spec ID",
+                formCpu: "CPU (Core)",
+                formMem: "Memory (GB)",
+                formPrice: "Price (CNY/h)",
+                formMetrics: "Extra Metrics",
+                metricType: "Metric Type",
+                metricValue: "Value",
+                metricUnit: "Unit",
+                metricGpu: "GPU",
+                metricNpu: "NPU",
+                metricDisk: "Local Disk",
+                metricFeature: "Feature",
+                addMetric: "Add Metric",
+                removeMetric: "Delete",
+                noMetric: "No extra metrics",
+                placeholderSpecId: "e.g. gpu.a100.1x",
+                placeholderSpecIdFuzzy: "Fuzzy match, e.g. a100 or c6",
+                placeholderPriceMax: "Input max price",
+                placeholderMetricValue: "Input value",
+                save: "Save",
+                createNow: "Create",
+                cancel: "Cancel",
+                msgCreated: "Spec created",
+                msgUpdated: "Spec updated",
+                msgStatusUpdated: "Status updated",
+                msgRetrySuccess: "List restored",
+                defaultDisableReason: "Manually disabled, pending replacement",
+                validationSpecIdRequired: "Spec ID is required",
+                validationSpecIdInvalid: "Spec ID allows only letters, numbers, dot, underscore and hyphen",
+                validationSpecIdDuplicate: "Spec ID already exists",
+                validationCpu: "CPU must be greater than 0",
+                validationMem: "Memory must be greater than 0",
+                validationPrice: "Price cannot be negative",
+                formSectionBasic: "Basic Configuration",
+                formSectionExtra: "Extra Metrics",
+                formSpecIdHint: "Lowercase letters, digits, dot (.) and hyphen (-) only; must start and end with a letter or digit",
+                formSpecIdReadonlyTip: "Spec ID cannot be changed after creation",
+                extrasColType: "Metric Type",
+                extrasColValue: "Value",
+                extrasColUnit: "Unit",
+                extrasColAction: "Action",
+                formHintRequired: "Fields marked * are required"
+              }
+            });
+
+            const t = computed(() => dict[lang.value]);
+
+            const topMenus = computed(() => [
+              { key: "model", label: t.value.topModel },
+              { key: "billing", label: t.value.topBilling },
+              { key: "workspace", label: t.value.topWorkspace }
+            ]);
+
+            const sideGroups = computed(() => [
+              {
+                title: t.value.groupResource,
+                items: [
+                  { key: "resourceSpec", label: t.value.menuResourceSpec, icon: "Cpu" },
+                  { key: "cluster", label: t.value.menuCluster, icon: "Grid" },
+                  { key: "storage", label: t.value.menuStorage, icon: "Box" },
+                  { key: "image", label: t.value.menuImage, icon: "Picture" }
+                ]
+              },
+              {
+                title: t.value.groupOps,
+                items: [
+                  { key: "monitor", label: t.value.menuMonitor, icon: "Monitor" },
+                  { key: "audit", label: t.value.menuAudit, icon: "DocumentCopy" }
+                ]
+              }
+            ]);
+
+            const hasAccelerator = (row) =>
+              Array.isArray(row.extras) && row.extras.some((item) => item.type === "acc");
+
+            const gpuMetaCatalog = [
+              { keyword: "v100", vendor: "NVIDIA", series: "Volta", model: "V100" },
+              { keyword: "a100", vendor: "NVIDIA", series: "Ampere", model: "A100" },
+              { keyword: "h100", vendor: "NVIDIA", series: "Hopper", model: "H100" },
+              { keyword: "mi300", vendor: "AMD", series: "CDNA", model: "MI300X" }
+            ];
+
+            const acceleratorMetaCatalog = [
+              { key: "gpu", keyword: "v100", vendor: "NVIDIA", series: "Volta", model: "V100" },
+              { key: "gpu", keyword: "a100", vendor: "NVIDIA", series: "Ampere", model: "A100" },
+              { key: "gpu", keyword: "h100", vendor: "NVIDIA", series: "Hopper", model: "H100" },
+              { key: "gpu", keyword: "mi300", vendor: "AMD", series: "CDNA", model: "MI300X" },
+              { key: "npu", keyword: "910b", vendor: "Huawei", series: "Ascend", model: "910B" }
+            ];
+
+            const getGpuMeta = (row) => {
+              const id = String(row.id || "").toLowerCase();
+              for (const item of gpuMetaCatalog) {
+                if (id.includes(item.keyword)) {
+                  return item;
+                }
+              }
+              return null;
+            };
+
+            const metricOptions = computed(() =>
+              metricCatalog
+                .filter((item) => item.type !== "base")
+                .map((item) => ({
+                  ...item,
+                  label: t.value[item.labelKey]
+                }))
+            );
+
+            const metricMetaByKey = (key) => metricCatalog.find((item) => item.key === key) || metricCatalog[0];
+
+            const metricLabel = (key) => {
+              const meta = metricMetaByKey(key);
+              return t.value[meta.labelKey] || key;
+            };
+
+            const metricFilterDefs = computed(() => [
+              { value: "cpu", label: t.value.metricCpu, scope: "spec", defaultUnit: "vCPU", numeric: true },
+              { value: "mem", label: t.value.metricMem, scope: "spec", defaultUnit: "GB", numeric: true },
+              { value: "price", label: t.value.metricPrice, scope: "spec", defaultUnit: "CNY/h", numeric: true },
+              { value: "gpu", label: t.value.metricGpu, scope: "extra", defaultUnit: "Card", numeric: true },
+              { value: "npu", label: t.value.metricNpu, scope: "extra", defaultUnit: "Card", numeric: true },
+              { value: "disk", label: t.value.metricDisk, scope: "extra", defaultUnit: "GB", numeric: true },
+              { value: "feature", label: t.value.metricFeature, scope: "extra", defaultUnit: "", numeric: false }
+            ]);
+
+            const conditionScopeOptions = computed(() => [
+              { value: "spec", label: t.value.scopeSpec },
+              { value: "extra", label: t.value.scopeExtra }
+            ]);
+
+            const operatorOptions = computed(() => [
+              { value: "eq", label: t.value.operatorEq },
+              { value: "ne", label: t.value.operatorNe },
+              { value: "gt", label: t.value.operatorGt },
+              { value: "gte", label: t.value.operatorGte },
+              { value: "lt", label: t.value.operatorLt },
+              { value: "lte", label: t.value.operatorLte },
+              { value: "contains", label: t.value.operatorContains }
+            ]);
+
+            const unitLabelMap = computed(() => ({
+              "": "",
+              vCPU: t.value.unitVcpu,
+              GB: t.value.unitGb,
+              Card: t.value.unitCard,
+              "CNY/h": t.value.unitCnyHour
+            }));
+
+            const unitOptionsMap = computed(() => ({
+              cpu: ["vCPU"],
+              mem: ["GB"],
+              price: ["CNY/h"],
+              gpu: ["Card"],
+              npu: ["Card"],
+              disk: ["GB"],
+              feature: [""]
+            }));
+
+            const getMetricDef = (metric) =>
+              metricFilterDefs.value.find((item) => item.value === metric) || null;
+
+            const getMetricOptionsByScope = (scope) => {
+              if (!scope) return metricFilterDefs.value;
+              return metricFilterDefs.value.filter((item) => item.scope === scope);
+            };
+
+            const getDefaultUnit = (metric) => {
+              const units = unitOptionsMap.value[metric] || [];
+              return units[0] || "";
+            };
+
+            const getUnitOptions = (metric) => {
+              const units = unitOptionsMap.value[metric] || [];
+              return units.map((value) => ({
+                value,
+                label: unitLabelMap.value[value] || value || "-"
+              }));
+            };
+
+            const makeConditionRow = (payload = {}) => {
+              conditionUid += 1;
+              const metric = payload.metric || "";
+              const operator = Object.prototype.hasOwnProperty.call(payload, "operator")
+                ? payload.operator
+                : metric
+                  ? "eq"
+                  : "";
+              const unit = Object.prototype.hasOwnProperty.call(payload, "unit")
+                ? payload.unit
+                : getDefaultUnit(metric);
+              return {
+                uid: conditionUid,
+                scope: payload.scope || "spec",
+                metric,
+                operator,
+                value: Object.prototype.hasOwnProperty.call(payload, "value") ? payload.value : "",
+                unit
+              };
+            };
+
+            const resetConditionRows = () => {
+              conditionRows.value = [
+                makeConditionRow({ scope: "spec", metric: "cpu", operator: "eq", value: "", unit: "vCPU" }),
+                makeConditionRow({ scope: "spec", metric: "", operator: "", value: "", unit: "" })
+              ];
+            };
+
+            const addConditionRow = () => {
+              conditionRows.value.push(makeConditionRow({ scope: "spec" }));
+            };
+
+            const removeConditionRow = (index) => {
+              if (conditionRows.value.length <= 1) {
+                resetSimpleCondRows();
+                return;
+              }
+              conditionRows.value.splice(index, 1);
+            };
+
+            const onConditionScopeChange = (row) => {
+              const metrics = getMetricOptionsByScope(row.scope).map((item) => item.value);
+              if (!metrics.includes(row.metric)) {
+                row.metric = "";
+                row.operator = "";
+                row.value = "";
+                row.unit = "";
+              }
+            };
+
+            const onConditionMetricChange = (row) => {
+              const def = getMetricDef(row.metric);
+              row.operator = row.operator || "eq";
+              row.unit = getDefaultUnit(row.metric);
+              if (def && !def.numeric && ["gt", "gte", "lt", "lte"].includes(row.operator)) {
+                row.operator = "contains";
+              }
+            };
+
+            const formatExtraValue = (item) => {
+              const val = String(item.value || "").trim();
+              const unit = String(item.unit || "").trim();
+              if (!val) return "-";
+              if (!unit || val.endsWith(unit)) return val;
+              return `${val} ${unit}`.trim();
+            };
+
+            const getAcceleratorMeta = (row, key) => {
+              const id = String(row.id || "").toLowerCase();
+              for (const item of acceleratorMetaCatalog) {
+                if (item.key === key && id.includes(item.keyword)) {
+                  return {
+                    vendor: item.vendor,
+                    series: item.series,
+                    model: item.model
+                  };
+                }
+              }
+              const idParts = id.split(/[._-]/).filter(Boolean);
+              const keyIndex = idParts.indexOf(String(key || "").toLowerCase());
+              const model = keyIndex >= 0 && idParts[keyIndex + 1]
+                ? String(idParts[keyIndex + 1]).toUpperCase()
+                : "-";
+              return {
+                vendor: "-",
+                series: "-",
+                model
+              };
+            };
+
+            const formatExtraTagText = (row, item) => {
+              if (item.type !== "acc") {
+                return `${metricLabel(item.key)}: ${formatExtraValue(item)}`;
+              }
+              const accMeta = getAcceleratorMeta(row, item.key);
+              const quantity = formatExtraValue(item);
+              if (lang.value === "zh") {
+                return `${metricLabel(item.key)}: 厂商 ${accMeta.vendor} / 系列 ${accMeta.series} / 型号 ${accMeta.model} / 数量 ${quantity}`;
+              }
+              return `${metricLabel(item.key)}: Vendor ${accMeta.vendor} / Series ${accMeta.series} / Model ${accMeta.model} / Qty ${quantity}`;
+            };
+
+            const extraTagClass = (type) => {
+              if (type === "acc") return "smf-extra-tag-acc";
+              if (type === "special") return "smf-extra-tag-special";
+              return "smf-extra-tag-disk";
+            };
+
+            const statusLabel = (status) =>
+              status === "active" ? t.value.statusActive : t.value.statusDisabled;
+
+            const statusClass = (status) =>
+              status === "active" ? "smf-status-running" : "smf-status-failed";
+
+            const statusReasonText = (row) =>
+              String(row.disableReason || "").trim() || t.value.defaultDisableReason;
+
+            const formatPrice = (price) => `¥${Number(price).toFixed(2)}`;
+
+            const gpuVendorOptions = computed(() => {
+              const values = new Set();
+              specs.value.forEach((row) => {
+                const meta = getGpuMeta(row);
+                if (meta) values.add(meta.vendor);
+              });
+              return [...values].sort().map((value) => ({ value, label: value }));
+            });
+
+            const gpuSeriesOptions = computed(() => {
+              const values = new Set();
+              specs.value.forEach((row) => {
+                const meta = getGpuMeta(row);
+                if (!meta) return;
+                if (query.gpuVendor && meta.vendor !== query.gpuVendor) return;
+                values.add(meta.series);
+              });
+              return [...values].sort().map((value) => ({ value, label: value }));
+            });
+
+            const gpuModelOptions = computed(() => {
+              const values = new Set();
+              specs.value.forEach((row) => {
+                const meta = getGpuMeta(row);
+                if (!meta) return;
+                if (query.gpuVendor && meta.vendor !== query.gpuVendor) return;
+                if (query.gpuSeries && meta.series !== query.gpuSeries) return;
+                values.add(meta.model);
+              });
+              return [...values].sort().map((value) => ({ value, label: value }));
+            });
+
+            const sortOptions = computed(() => [
+              { label: t.value.sortDefault, value: "default" },
+              { label: t.value.sortCpuAsc, value: "cpu-asc" },
+              { label: t.value.sortCpuDesc, value: "cpu-desc" },
+              { label: t.value.sortMemAsc, value: "mem-asc" },
+              { label: t.value.sortMemDesc, value: "mem-desc" },
+              { label: t.value.sortAccFirst, value: "acc-first" },
+              { label: t.value.sortPriceAsc, value: "price-asc" },
+              { label: t.value.sortPriceDesc, value: "price-desc" }
+            ]);
+
+            const syncListQuery = () => {
+              Object.assign(listQuery, query);
+            };
+
+            const startLoading = (duration = 180) => {
+              loading.value = true;
+              if (loadingTimer) {
+                window.clearTimeout(loadingTimer);
+              }
+              loadingTimer = window.setTimeout(() => {
+                loading.value = false;
+              }, duration);
+            };
+
+            const buildAppliedConditions = () =>
+              conditionRows.value
+                .map((row) => ({
+                  scope: row.scope,
+                  metric: row.metric,
+                  operator: row.operator,
+                  value: String(row.value || "").trim(),
+                  unit: row.unit
+                }))
+                .filter((row) => row.metric && row.operator && row.value !== "");
+
+            const handleFilterSearch = () => {
+              query.pageIndex = 1;
+              syncListQuery();
+              if (String(query.specId || "").trim().toLowerCase() === "__error__") {
+                loading.value = false;
+                errorMessage.value = t.value.mockError;
+                return;
+              }
+              appliedConditions.value = buildAppliedConditions();
+              errorMessage.value = "";
+              startLoading();
+            };
+
+            const handleFilterReset = () => {
+              query.specId = "";
+              query.type = "all";
+              query.sortOrder = "default";
+              query.gpuVendor = "";
+              query.gpuSeries = "";
+              query.gpuModel = "";
+              resetSimpleCondRows();
+              appliedConditions.value = [];
+              handleFilterSearch();
+            };
+
+            const handleSidebarSearch = () => { handleFilterSearch(); };
+
+            // 规格类型选项
+            const typeOptions = computed(() => [
+              { value: 'all',  label: t.value.filterTypeAll },
+              { value: 'acc',  label: lang.value === 'zh' ? '有卡' : 'Accel' },
+              { value: 'gen',  label: lang.value === 'zh' ? '无卡' : 'General' },
+            ]);
+
+            // 无卡时隐藏 GPU 筛选项
+            const showGpuFilters = computed(() => query.type !== 'gen');
+
+            // 指标选项（单位支持按指标联动）
+            const condMetricOptions = computed(() => [
+              { value: "cpu", label: t.value.metricCpu, units: ["vCPU", "Core"] },
+              { value: "mem", label: t.value.metricMem, units: ["GB", "MB", "TB"] },
+              { value: "price", label: t.value.metricPrice, units: ["CNY/h", "CNY/day"] },
+              { value: "gpu", label: t.value.metricGpu, units: ["Card"] },
+              { value: "npu", label: t.value.metricNpu, units: ["Card"] },
+              { value: "disk", label: t.value.metricDisk, units: ["GB", "TB"] }
+            ]);
+
+            const simpleUnitLabelMap = computed(() => ({
+              vCPU: t.value.unitVcpu,
+              Core: lang.value === "zh" ? "核" : "Core",
+              MB: "MB",
+              GB: t.value.unitGb,
+              TB: "TB",
+              Card: t.value.unitCard,
+              "CNY/h": t.value.unitCnyHour,
+              "CNY/day": lang.value === "zh" ? "元/天" : "CNY/day"
+            }));
+
+            const getSimpleUnitOptions = (metric) => {
+              const metaDef = condMetricOptions.value.find((m) => m.value === metric);
+              const units = metaDef ? metaDef.units : [];
+              return units.map((value) => ({
+                value,
+                label: simpleUnitLabelMap.value[value] || value
+              }));
+            };
+
+            const getSimpleDefaultUnit = (metric) => {
+              const unitOptions = getSimpleUnitOptions(metric);
+              return unitOptions.length ? unitOptions[0].value : "";
+            };
+
+            // 每行条件的简化版（只有 metric / operator / value / unit）
+            const makeSimpleCondRow = (payload = {}) => {
+              conditionUid += 1;
+              const metric = payload.metric || "";
+              const defaultUnit = getSimpleDefaultUnit(metric);
+              const availableUnits = getSimpleUnitOptions(metric).map((item) => item.value);
+              const rowUnit = Object.prototype.hasOwnProperty.call(payload, "unit")
+                ? payload.unit
+                : defaultUnit;
+              return {
+                uid: conditionUid,
+                metric,
+                operator: payload.operator || (metric ? "eq" : ""),
+                value: payload.value || "",
+                unit: availableUnits.includes(rowUnit) ? rowUnit : defaultUnit
+              };
+            };
+
+            const resetSimpleCondRows = () => {
+              conditionRows.value = [makeSimpleCondRow({ metric: "cpu", operator: "eq" })];
+            };
+
+            const addSimpleCondRow = () => {
+              conditionRows.value.push(makeSimpleCondRow());
+            };
+
+            const onSimpleMetricChange = (row) => {
+              const availableUnits = getSimpleUnitOptions(row.metric).map((item) => item.value);
+              if (!availableUnits.includes(row.unit)) {
+                row.unit = availableUnits[0] || "";
+              }
+              row.operator = row.operator || "eq";
+            };
+
+            const getConditionLabel = (index) =>
+              lang.value === "zh"
+                ? `${t.value.conditionRulePrefix}${index + 1}`
+                : `${t.value.conditionRulePrefix} ${index + 1}`;
+
+            const handleGpuVendorChange = () => {
+              if (!gpuSeriesOptions.value.some((item) => item.value === query.gpuSeries)) {
+                query.gpuSeries = "";
+              }
+              if (!gpuModelOptions.value.some((item) => item.value === query.gpuModel)) {
+                query.gpuModel = "";
+              }
+            };
+
+            const handleGpuSeriesChange = () => {
+              if (!gpuModelOptions.value.some((item) => item.value === query.gpuModel)) {
+                query.gpuModel = "";
+              }
+            };
+
+            const handlePageChange = (page) => {
+              query.pageIndex = page;
+              syncListQuery();
+            };
+
+            const parseComparableNumber = (value) => {
+              if (typeof value === "number") {
+                return Number.isFinite(value) ? value : null;
+              }
+              const matched = String(value || "")
+                .replace(/,/g, "")
+                .match(/-?\d+(\.\d+)?/);
+              if (!matched) return null;
+              const n = Number(matched[0]);
+              return Number.isFinite(n) ? n : null;
+            };
+
+            const viewRows = computed(() =>
+              specs.value.filter((row) => row.status === activeTab.value)
+            );
+
+            const resolveMetricValue = (row, metric) => {
+              if (metric === "cpu") return { value: row.cpu, unit: "vCPU" };
+              if (metric === "mem") return { value: row.mem, unit: "GB" };
+              if (metric === "price") return { value: row.price, unit: "CNY/h" };
+              const found = (row.extras || []).find((item) => item.key === metric);
+              if (!found) return { value: null, unit: getDefaultUnit(metric) };
+              return { value: found.value, unit: found.unit || getDefaultUnit(metric) };
+            };
+
+            const metricUnitFactorMap = {
+              cpu: { vCPU: 1, Core: 1 },
+              mem: { MB: 1 / 1024, GB: 1, TB: 1024 },
+              disk: { MB: 1 / 1024, GB: 1, TB: 1024 },
+              price: { "CNY/h": 1, "CNY/day": 1 / 24 },
+              gpu: { Card: 1 },
+              npu: { Card: 1 }
+            };
+
+            const convertMetricValueUnit = (metric, value, fromUnit, toUnit) => {
+              if (!toUnit || !fromUnit || fromUnit === toUnit) return value;
+              const factorMap = metricUnitFactorMap[metric];
+              if (!factorMap) return null;
+              const fromFactor = factorMap[fromUnit];
+              const toFactor = factorMap[toUnit];
+              if (fromFactor === undefined || toFactor === undefined) return null;
+              const numericValue = parseComparableNumber(value);
+              if (numericValue === null) return null;
+              const baseValue = numericValue * fromFactor;
+              return baseValue / toFactor;
+            };
+
+            const matchCondition = (row, condition) => {
+              const resolved = resolveMetricValue(row, condition.metric);
+              if (resolved.value === null || resolved.value === undefined || resolved.value === "") return false;
+
+              let comparableValue = resolved.value;
+              if (condition.unit && resolved.unit) {
+                const converted = convertMetricValueUnit(
+                  condition.metric,
+                  resolved.value,
+                  resolved.unit,
+                  condition.unit
+                );
+                if (converted === null) return false;
+                comparableValue = converted;
+              }
+
+              const leftStr = String(comparableValue).toLowerCase();
+              const rightStr = String(condition.value || "").toLowerCase();
+
+              if (condition.operator === "contains") {
+                return leftStr.includes(rightStr);
+              }
+
+              const leftNum = parseComparableNumber(comparableValue);
+              const rightNum = parseComparableNumber(condition.value);
+
+              if (leftNum !== null && rightNum !== null) {
+                switch (condition.operator) {
+                  case "eq":
+                    return leftNum === rightNum;
+                  case "ne":
+                    return leftNum !== rightNum;
+                  case "gt":
+                    return leftNum > rightNum;
+                  case "gte":
+                    return leftNum >= rightNum;
+                  case "lt":
+                    return leftNum < rightNum;
+                  case "lte":
+                    return leftNum <= rightNum;
+                  default:
+                    return false;
+                }
+              }
+
+              if (condition.operator === "eq") return leftStr === rightStr;
+              if (condition.operator === "ne") return leftStr !== rightStr;
+              return false;
+            };
+
+            const filteredRows = computed(() => {
+              let list = viewRows.value.filter((row) => {
+                const keyword = String(listQuery.specId || "").trim().toLowerCase();
+                if (keyword && !String(row.id).toLowerCase().includes(keyword)) return false;
+
+                if (listQuery.type === "acc" && !hasAccelerator(row)) return false;
+                if (listQuery.type === "gen" && hasAccelerator(row)) return false;
+
+                const gpuMeta = getGpuMeta(row);
+                if (listQuery.gpuVendor && (!gpuMeta || gpuMeta.vendor !== listQuery.gpuVendor)) return false;
+                if (listQuery.gpuSeries && (!gpuMeta || gpuMeta.series !== listQuery.gpuSeries)) return false;
+                if (listQuery.gpuModel && (!gpuMeta || gpuMeta.model !== listQuery.gpuModel)) return false;
+
+                for (const condition of appliedConditions.value) {
+                  if (!matchCondition(row, condition)) {
+                    return false;
+                  }
+                }
+
+                return true;
+              });
+
+              const hasAccWeight = (item) => (hasAccelerator(item) ? 1 : 0);
+              const sortOrder = listQuery.sortOrder || "default";
+
+              list = [...list].sort((a, b) => {
+                switch (sortOrder) {
+                  case "cpu-asc":
+                    return a.cpu - b.cpu;
+                  case "cpu-desc":
+                    return b.cpu - a.cpu;
+                  case "mem-asc":
+                    return a.mem - b.mem;
+                  case "mem-desc":
+                    return b.mem - a.mem;
+                  case "acc-first":
+                    return hasAccWeight(b) - hasAccWeight(a);
+                  case "price-asc":
+                    return a.price - b.price;
+                  case "price-desc":
+                    return b.price - a.price;
+                  default:
+                    return String(b.updatedAt).localeCompare(String(a.updatedAt));
+                }
+              });
+
+              return list;
+            });
+
+            const pagedRows = computed(() => {
+              const start = (query.pageIndex - 1) * query.pageSize;
+              return filteredRows.value.slice(start, start + query.pageSize);
+            });
+
+            const pageCount = computed(() => Math.max(1, Math.ceil(filteredRows.value.length / query.pageSize)));
+
+            const handleJumpPage = () => {
+              const raw = String(jumpPageInput.value || "").trim();
+              const parsed = Number.parseInt(raw, 10);
+              if (Number.isNaN(parsed)) {
+                jumpPageInput.value = String(query.pageIndex);
+                return;
+              }
+              const target = Math.min(pageCount.value, Math.max(1, parsed));
+              if (target !== query.pageIndex) {
+                handlePageChange(target);
+              }
+              jumpPageInput.value = String(target);
+            };
+
+            const retryList = () => {
+              errorMessage.value = "";
+              handleFilterSearch();
+              ElMessage.success(t.value.msgRetrySuccess);
+            };
+
+            const makeMetricRow = (payload = {}) => {
+              metricUid += 1;
+              const defaultKey = metricOptions.value[0] ? metricOptions.value[0].key : "gpu";
+              const key = payload.key || defaultKey;
+              const meta = metricMetaByKey(key);
+              return {
+                uid: metricUid,
+                key,
+                value: payload.value || "",
+                unit: payload.unit !== undefined ? payload.unit : meta.unit,
+                type: payload.type || meta.type
+              };
+            };
+
+            const resetForm = () => {
+              form.specId = "";
+              form.cpu = 4;
+              form.mem = 8;
+              form.price = 0;
+              form.extras = [];
+            };
+
+            const openCreateDrawer = () => {
+              drawerMode.value = "create";
+              editingOriginalId.value = "";
+              resetForm();
+              drawerVisible.value = true;
+            };
+
+            const openEditDrawer = (row) => {
+              drawerMode.value = "edit";
+              editingOriginalId.value = row.id;
+              form.specId = row.id;
+              form.cpu = row.cpu;
+              form.mem = row.mem;
+              form.price = row.price;
+              const extras = (row.extras || [])
+                .filter((item) => item.key !== "cpu" && item.key !== "mem")
+                .map((item) => makeMetricRow(item));
+              form.extras = extras;
+              drawerVisible.value = true;
+            };
+
+            const addMetricRow = () => {
+              form.extras.push(makeMetricRow());
+            };
+
+            const removeMetricRow = (index) => {
+              form.extras.splice(index, 1);
+            };
+
+            const onMetricKeyChange = (row) => {
+              const meta = metricMetaByKey(row.key);
+              row.type = meta.type;
+              row.unit = meta.unit;
+            };
+
+            const validateForm = () => {
+              const specId = String(form.specId || "").trim();
+              if (!specId) return t.value.validationSpecIdRequired;
+              if (!/^[A-Za-z0-9._-]+$/.test(specId)) return t.value.validationSpecIdInvalid;
+
+              const lower = specId.toLowerCase();
+              const duplicated = specs.value.some((item) => {
+                if (drawerMode.value === "edit" && item.id === editingOriginalId.value) return false;
+                return String(item.id).toLowerCase() === lower;
+              });
+              if (duplicated) return t.value.validationSpecIdDuplicate;
+
+              const cpu = Number(form.cpu);
+              if (!Number.isFinite(cpu) || cpu <= 0) return t.value.validationCpu;
+
+              const mem = Number(form.mem);
+              if (!Number.isFinite(mem) || mem <= 0) return t.value.validationMem;
+
+              const price = Number(form.price);
+              if (!Number.isFinite(price) || price < 0) return t.value.validationPrice;
+
+              return null;
+            };
+
+            const buildExtras = () =>
+              form.extras
+                .map((item) => {
+                  const meta = metricMetaByKey(item.key);
+                  return {
+                    key: item.key,
+                    value: String(item.value || "").trim(),
+                    unit: String(item.unit || "").trim(),
+                    type: meta.type
+                  };
+                })
+                .filter((item) => item.value && item.type !== "base");
+
+            const submitDrawer = async () => {
+              const validationError = validateForm();
+              if (validationError) {
+                ElMessage.error(validationError);
+                return;
+              }
+
+              submitting.value = true;
+              try {
+                const payload = {
+                  id: String(form.specId).trim(),
+                  cpu: Number(form.cpu),
+                  mem: Number(form.mem),
+                  price: Number(form.price),
+                  extras: buildExtras(),
+                  updatedAt: today()
+                };
+
+                if (drawerMode.value === "create") {
+                  specs.value.unshift({
+                    ...payload,
+                    status: "active",
+                    disableReason: ""
+                  });
+                  ElMessage.success(t.value.msgCreated);
+                } else {
+                  const idx = specs.value.findIndex((item) => item.id === editingOriginalId.value);
+                  if (idx >= 0) {
+                    specs.value[idx] = {
+                      ...specs.value[idx],
+                      ...payload
+                    };
+                  }
+                  ElMessage.success(t.value.msgUpdated);
+                }
+
+                drawerVisible.value = false;
+                handleFilterSearch();
+              } finally {
+                submitting.value = false;
+              }
+            };
+
+            const toggleStatus = async (row) => {
+              const disabling = row.status === "active";
+              const title = disabling ? t.value.confirmDisableTitle : t.value.confirmEnableTitle;
+              const text = disabling ? t.value.confirmDisableText : t.value.confirmEnableText;
+
+              try {
+                await ElMessageBox.confirm(text, title, {
+                  confirmButtonText: t.value.confirmOk,
+                  cancelButtonText: t.value.confirmCancel,
+                  type: disabling ? "warning" : "info"
+                });
+
+                row.status = disabling ? "disabled" : "active";
+                row.disableReason = disabling ? t.value.defaultDisableReason : "";
+                row.updatedAt = today();
+                ElMessage.success(t.value.msgStatusUpdated);
+              } catch (error) {
+                return;
+              }
+            };
+
+            watch(pageCount, (maxPage) => {
+              if (query.pageIndex > maxPage) {
+                query.pageIndex = maxPage;
+                syncListQuery();
+              }
+              if (!String(jumpPageInput.value || "").trim()) {
+                jumpPageInput.value = String(query.pageIndex);
+              }
+            });
+
+            watch(
+              () => query.pageIndex,
+              (page) => {
+                jumpPageInput.value = String(page);
+              },
+              { immediate: true }
+            );
+
+            watch(activeTab, () => {
+              handleFilterSearch();
+            });
+
+            watch(drawerVisible, (visible) => {
+              if (!visible) {
+                submitting.value = false;
+              }
+            });
+
+            onMounted(() => {
+              resetSimpleCondRows();
+              appliedConditions.value = [];
+              syncListQuery();
+              startLoading(220);
+            });
+
+            return {
+              lang,
+              version,
+              topActive,
+              sideActive,
+              activeTab,
+              loading,
+              errorMessage,
+              query,
+              t,
+              topMenus,
+              sideGroups,
+              gpuVendorOptions,
+              gpuSeriesOptions,
+              gpuModelOptions,
+              sortOptions,
+              conditionRows,
+              conditionScopeOptions,
+              operatorOptions,
+              getMetricOptionsByScope,
+              getUnitOptions,
+              addConditionRow,
+              removeConditionRow,
+              onConditionScopeChange,
+              onConditionMetricChange,
+              filteredRows,
+              pagedRows,
+              handleFilterSearch,
+              handleSidebarSearch,
+              handleFilterReset,
+              handleGpuVendorChange,
+              handleGpuSeriesChange,
+              handlePageChange,
+              handleJumpPage,
+              jumpPageInput,
+              formatPrice,
+              statusLabel,
+              statusClass,
+              statusReasonText,
+              extraTagClass,
+              metricLabel,
+              formatExtraValue,
+              formatExtraTagText,
+              retryList,
+              drawerVisible,
+              drawerMode,
+              form,
+              metricOptions,
+              addMetricRow,
+              removeMetricRow,
+              onMetricKeyChange,
+              openCreateDrawer,
+              openEditDrawer,
+              submitDrawer,
+              toggleStatus,
+              // 新筛选
+              typeOptions,
+              showGpuFilters,
+              condMetricOptions,
+              addSimpleCondRow,
+              removeConditionRow,
+              onSimpleMetricChange,
+              getSimpleUnitOptions,
+              getConditionLabel,
+              operatorOptions
+            };
+          },
+          template: `
+            <div>
+              <header class="smf-shell-header">
+                <button class="smf-trigger" type="button" aria-label="menu">
+                  <el-icon><Fold /></el-icon>
+                </button>
+
+                <div class="smf-logo-block">
+                  <span class="smf-logo-mark"></span>
+                  <span class="smf-logo-text">SUANMOFANG</span>
+                </div>
+
+                <nav class="smf-top-nav" aria-label="top-menu">
+                  <button
+                    v-for="item in topMenus"
+                    :key="item.key"
+                    type="button"
+                    class="smf-top-nav-btn"
+                    :class="{ active: topActive === item.key }"
+                    @click="topActive = item.key"
+                  >
+                    {{ item.label }}
+                  </button>
+                </nav>
+
+                <div class="smf-header-right">
+                  <a href="javascript:void(0)" class="smf-head-link">
+                    <el-icon><Document /></el-icon>
+                    {{ t.docsCenter }}
+                  </a>
+                  <span class="smf-divider"></span>
+
+                  <el-dropdown trigger="click" @command="lang = $event">
+                    <span class="smf-head-link" role="button">
+                      <el-icon><Globe /></el-icon>
+                      {{ t.language }}
+                    </span>
+                    <template #dropdown>
+                      <el-dropdown-menu>
+                        <el-dropdown-item command="zh">中文简体</el-dropdown-item>
+                        <el-dropdown-item command="en">English</el-dropdown-item>
+                      </el-dropdown-menu>
+                    </template>
+                  </el-dropdown>
+
+                  <span class="smf-divider"></span>
+                  <span class="smf-provider">{{ t.provider }}</span>
+                  <span class="smf-avatar">A</span>
+                  <span class="smf-version">{{ version }}</span>
+                </div>
+              </header>
+
+              <div class="smf-shell-body">
+                <aside class="smf-shell-side" aria-label="side-menu">
+                  <section v-for="group in sideGroups" :key="group.title" class="smf-side-group">
+                    <div class="smf-side-title">{{ group.title }}</div>
+                    <button
+                      v-for="item in group.items"
+                      :key="item.key"
+                      type="button"
+                      class="smf-side-item"
+                      :class="{ active: sideActive === item.key }"
+                      @click="sideActive = item.key"
+                    >
+                      <el-icon class="smf-side-icon"><component :is="item.icon" /></el-icon>
+                      <span>{{ item.label }}</span>
+                    </button>
+                  </section>
+                </aside>
+
+                <main class="smf-shell-main">
+                  <section class="smf-card smf-header-box">
+                    <div class="flex items-start justify-between gap-4">
+                      <div class="smf-header-main">
+                        <div class="smf-title-row">
+                          <h1 class="m-0 text-[22px] font-semibold">{{ t.pageTitle }}</h1>
+                          <div class="smf-view-tabs">
+                            <button
+                              type="button"
+                              class="smf-view-tab"
+                              :class="{ active: activeTab === 'active' }"
+                              @click="activeTab = 'active'"
+                            >
+                              {{ t.tabActive }}
+                            </button>
+                            <button
+                              type="button"
+                              class="smf-view-tab"
+                              :class="{ active: activeTab === 'disabled' }"
+                              @click="activeTab = 'disabled'"
+                            >
+                              {{ t.tabDisabled }}
+                            </button>
+                          </div>
+                        </div>
+                        <p class="m-0 mt-2 text-sm text-[#667085] smf-page-desc">{{ t.pageDesc }}</p>
+                      </div>
+                      <div class="smf-header-actions">
+                        <el-button type="primary" @click="openCreateDrawer">
+                          <el-icon><Plus /></el-icon>
+                          {{ t.createSpec }}
+                        </el-button>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section class="smf-list-layout">
+
+                    <!-- ══ 筛选区 — 严格遵循 UI 规范 prepend slot 样式 ══ -->
+                    <div class="smf-filter-box">
+
+                      <!-- 第一行：规格ID + 规格类型 + GPU 级联（有卡时显示）-->
+                      <div class="smf-filter-row">
+
+                        <!-- 规格 ID 模糊匹配 -->
+                        <div class="smf-filter-item">
+                          <span class="smf-filter-prepend">{{ t.filterSpecId }}</span>
+                          <div class="smf-filter-control">
+                            <el-input
+                              v-model="query.specId"
+                              :placeholder="t.placeholderSpecIdFuzzy"
+                              clearable
+                              style="width: 180px;"
+                              @keyup.enter="handleFilterSearch"
+                            />
+                          </div>
+                        </div>
+
+                        <!-- 规格类型 Segment -->
+                        <div class="smf-filter-item">
+                          <span class="smf-filter-prepend">{{ t.filterType }}</span>
+                          <div class="smf-type-seg-wrap">
+                            <button
+                              v-for="opt in typeOptions"
+                              :key="opt.value"
+                              type="button"
+                              class="smf-type-btn"
+                              :class="{ active: query.type === opt.value }"
+                              @click="query.type = opt.value"
+                            >{{ opt.label }}</button>
+                          </div>
+                        </div>
+
+                        <!-- GPU 厂商 → 系列 → 型号（无卡时隐藏） -->
+                        <template v-if="showGpuFilters">
+                          <div class="smf-filter-item">
+                            <span class="smf-filter-prepend">{{ t.filterGpuVendor }}</span>
+                            <div class="smf-filter-control">
+                              <el-select
+                                v-model="query.gpuVendor"
+                                clearable
+                                :placeholder="t.allOption"
+                                style="width: 110px;"
+                                @change="handleGpuVendorChange"
+                              >
+                                <el-option v-for="item in gpuVendorOptions" :key="item.value" :label="item.label" :value="item.value" />
+                              </el-select>
+                            </div>
+                          </div>
+
+                          <div class="smf-filter-item">
+                            <span class="smf-filter-prepend">{{ t.filterGpuSeries }}</span>
+                            <div class="smf-filter-control">
+                              <el-select
+                                v-model="query.gpuSeries"
+                                clearable
+                                :placeholder="t.allOption"
+                                style="width: 110px;"
+                                :disabled="!query.gpuVendor"
+                                @change="handleGpuSeriesChange"
+                              >
+                                <el-option v-for="item in gpuSeriesOptions" :key="item.value" :label="item.label" :value="item.value" />
+                              </el-select>
+                            </div>
+                          </div>
+
+                          <div class="smf-filter-item">
+                            <span class="smf-filter-prepend">{{ t.filterGpuModel }}</span>
+                            <div class="smf-filter-control">
+                              <el-select
+                                v-model="query.gpuModel"
+                                clearable
+                                :placeholder="t.allOption"
+                                style="width: 110px;"
+                                :disabled="!query.gpuSeries"
+                              >
+                                <el-option v-for="item in gpuModelOptions" :key="item.value" :label="item.label" :value="item.value" />
+                              </el-select>
+                            </div>
+                          </div>
+                        </template>
+
+                        <!-- 排序 -->
+                        <div class="smf-filter-item">
+                          <span class="smf-filter-prepend">{{ t.filterSort }}</span>
+                          <div class="smf-filter-control">
+                            <el-select v-model="query.sortOrder" style="width: 148px;">
+                              <el-option v-for="item in sortOptions" :key="item.value" :label="item.label" :value="item.value" />
+                            </el-select>
+                          </div>
+                        </div>
+
+                      </div>
+
+                      <!-- 高级条件区 — 自然语言句式 -->
+                      <div class="smf-adv-section">
+                        <div class="smf-adv-head">
+                          <span class="smf-adv-title">{{ t.filterGroupAdvanced }}</span>
+                          <span class="smf-adv-tip">{{ lang === 'zh' ? '多条件之间取「且」关系' : 'Conditions are combined with AND' }}</span>
+                        </div>
+
+                        <div class="smf-cond-list">
+                          <template v-for="(row, index) in conditionRows" :key="row.uid">
+                            <div class="smf-cond-row-wrap">
+                              <span class="smf-cond-index-badge">
+                                <span class="smf-cond-index-dot"></span>
+                                {{ getConditionLabel(index) }}
+                              </span>
+
+                              <!-- 单条规则：[指标▾][运算符▾][数值][单位] -->
+                              <div class="smf-cond-row">
+                              <!-- 指标片段 -->
+                              <div class="smf-cond-seg smf-cond-seg-metric">
+                                <el-select
+                                  v-model="row.metric"
+                                  :placeholder="t.conditionMetricPlaceholder"
+                                  style="width: 100px;"
+                                  @change="() => onSimpleMetricChange(row)"
+                                >
+                                  <el-option v-for="m in condMetricOptions" :key="m.value" :label="m.label" :value="m.value" />
+                                </el-select>
+                              </div>
+
+                              <!-- 运算符片段 -->
+                              <div class="smf-cond-seg smf-cond-seg-op">
+                                <el-select
+                                  v-model="row.operator"
+                                  :placeholder="t.conditionOperatorPlaceholder"
+                                  style="width: 90px;"
+                                >
+                                  <el-option v-for="op in operatorOptions" :key="op.value" :label="op.label" :value="op.value" />
+                                </el-select>
+                              </div>
+
+                              <!-- 数值片段 -->
+                              <div class="smf-cond-seg smf-cond-seg-value">
+                                <input
+                                  v-model="row.value"
+                                  class="smf-cond-native-input"
+                                  :placeholder="t.conditionValuePlaceholder"
+                                  type="text"
+                                />
+                              </div>
+
+                              <!-- 单位片段（下拉） -->
+                              <div class="smf-cond-seg smf-cond-seg-unit">
+                                <el-select
+                                  v-model="row.unit"
+                                  :placeholder="t.conditionUnitPlaceholder"
+                                  style="width: 90px;"
+                                  :disabled="!getSimpleUnitOptions(row.metric).length"
+                                >
+                                  <el-option v-for="u in getSimpleUnitOptions(row.metric)" :key="u.value" :label="u.label" :value="u.value" />
+                                </el-select>
+                              </div>
+
+                              </div>
+
+                              <!-- 删除图标（整行输入框外侧） -->
+                              <button
+                                type="button"
+                                class="smf-cond-del-btn"
+                                :title="t.conditionDelete"
+                                @click="removeConditionRow(index)"
+                              >
+                                <el-icon :size="13"><Delete /></el-icon>
+                              </button>
+                            </div>
+                          </template>
+                        </div>
+
+                        <el-button class="smf-cond-add" @click="addSimpleCondRow">
+                          <el-icon><Plus /></el-icon> {{ t.conditionAddRow }}
+                        </el-button>
+                      </div>
+
+                      <!-- 按钮操作行 -->
+                      <div class="smf-filter-actions">
+                        <el-button type="primary" @click="handleFilterSearch">{{ t.search }}</el-button>
+                        <el-button @click="handleFilterReset">{{ t.reset }}</el-button>
+                      </div>
+
+                    </div>
+                    <!-- ══ 筛选区结束 ══ -->
+
+                    <section class="smf-list-main">
+                      <section class="smf-card smf-table-wrap">
+                        <div v-if="errorMessage" class="smf-state-wrap">
+                          <el-alert :title="t.errorTitle" type="error" :description="errorMessage" show-icon />
+                          <div class="mt-3">
+                            <el-button type="primary" @click="retryList">{{ t.errorRetry }}</el-button>
+                          </div>
+                        </div>
+
+                        <div v-else-if="loading" class="smf-state-wrap">
+                          <el-skeleton :rows="8" animated />
+                        </div>
+
+                        <div v-else-if="filteredRows.length === 0" class="smf-empty-wrap">
+                          <el-empty :description="t.emptyDesc" />
+                        </div>
+
+                        <el-table
+                          v-else
+                          :data="pagedRows"
+                          class="smf-table"
+                          height="460"
+                          row-key="id"
+                        >
+                          <el-table-column prop="id" :label="t.colSpecId" min-width="220" show-overflow-tooltip>
+                            <template #default="{ row }">
+                              <span class="smf-id">{{ row.id }}</span>
+                            </template>
+                          </el-table-column>
+
+                          <el-table-column prop="cpu" :label="t.colCpu" min-width="110" align="left">
+                            <template #default="{ row }">
+                              <span class="smf-metric">{{ row.cpu }}</span><span class="smf-metric-unit">vCPU</span>
+                            </template>
+                          </el-table-column>
+
+                          <el-table-column prop="mem" :label="t.colMem" min-width="120">
+                            <template #default="{ row }">
+                              <span class="smf-metric">{{ row.mem }}</span><span class="smf-metric-unit">GB</span>
+                            </template>
+                          </el-table-column>
+
+                          <el-table-column :label="t.colExtra" min-width="280">
+                            <template #default="{ row }">
+                              <div v-if="!row.extras || row.extras.length === 0" class="smf-empty-extra">-</div>
+                              <div v-else class="smf-extra-tags">
+                                <el-tooltip
+                                  v-for="item in row.extras"
+                                  :key="row.id + '-' + item.key + '-' + item.value"
+                                  :content="formatExtraTagText(row, item)"
+                                  placement="top"
+                                >
+                                  <span class="smf-extra-tag" :class="extraTagClass(item.type)">
+                                    {{ formatExtraTagText(row, item) }}
+                                  </span>
+                                </el-tooltip>
+                              </div>
+                            </template>
+                          </el-table-column>
+
+                          <el-table-column prop="price" :label="t.colPrice" min-width="130">
+                            <template #default="{ row }">
+                              <span class="smf-price">{{ formatPrice(row.price) }}</span>
+                            </template>
+                          </el-table-column>
+
+                          <el-table-column :label="t.colStatus" min-width="140">
+                            <template #default="{ row }">
+                              <span class="smf-status" :class="statusClass(row.status)">
+                                <i class="smf-status-dot"></i>
+                                {{ statusLabel(row.status) }}
+                              </span>
+                              <el-tooltip
+                                v-if="row.status === 'disabled'"
+                                :content="t.statusReason + ': ' + statusReasonText(row)"
+                                placement="top"
+                              >
+                                <span class="smf-status-reason ml-1"><el-icon><WarningFilled /></el-icon></span>
+                              </el-tooltip>
+                            </template>
+                          </el-table-column>
+
+                          <el-table-column :label="t.colAction" width="150" fixed="right" align="right">
+                            <template #default="{ row }">
+                              <div class="smf-action-links">
+                                <el-button link type="primary" @click="openEditDrawer(row)">{{ t.actionEdit }}</el-button>
+                                <el-button
+                                  link
+                                  :type="row.status === 'active' ? 'danger' : 'primary'"
+                                  @click="toggleStatus(row)"
+                                >
+                                  {{ row.status === 'active' ? t.actionDisable : t.actionEnable }}
+                                </el-button>
+                              </div>
+                            </template>
+                          </el-table-column>
+                        </el-table>
+                      </section>
+
+                      <div class="smf-pager">
+                        <div class="smf-pager-main">
+                          <span class="smf-pager-total">{{ t.total }} {{ filteredRows.length }} {{ t.items }}</span>
+                          <el-pagination
+                            :current-page="query.pageIndex"
+                            :page-size="query.pageSize"
+                            :total="filteredRows.length"
+                            layout="prev, pager, next"
+                            background
+                            @current-change="handlePageChange"
+                          />
+                          <div class="smf-pager-jump">
+                            <span>{{ t.goto }}</span>
+                            <el-input
+                              v-model="jumpPageInput"
+                              class="smf-pager-jump-input"
+                              maxlength="5"
+                              @keyup.enter="handleJumpPage"
+                              @blur="handleJumpPage"
+                            />
+                            <span class="smf-pager-unit">{{ t.pageUnit }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </section>
+                  </section>
+                </main>
+              </div>
+
+              <el-drawer
+                v-model="drawerVisible"
+                :size="720"
+                direction="rtl"
+                :with-header="false"
+                :close-on-click-modal="false"
+                destroy-on-close
+                class="smf-spec-drawer"
+              >
+                <div class="smf-drawer-shell">
+
+                  <!-- Header -->
+                  <div class="smf-drawer-header">
+                    <h2 class="smf-drawer-title">
+                      {{ drawerMode === 'create' ? t.drawerCreateTitle : t.drawerEditTitle }}
+                    </h2>
+                    <button type="button" class="smf-drawer-close-btn" @click="drawerVisible = false">✕</button>
+                  </div>
+
+                  <!-- Body -->
+                  <div class="smf-drawer-body">
+
+                    <!-- 区块1：基本信息 -->
+                    <div class="smf-form-card">
+                      <div class="smf-form-card-header">
+                        <span class="smf-form-card-title">{{ lang === 'zh' ? '基本信息' : 'Basic Info' }}</span>
+                      </div>
+                      <div class="smf-form-card-body">
+                        <div class="smf-base-grid">
+                          <!-- 规格 ID -->
+                          <div class="smf-field-wrap">
+                            <div class="smf-field-label">
+                              {{ t.formSpecId }}<span class="smf-field-required">*</span>
+                            </div>
+                            <el-popover
+                              v-if="drawerMode === 'create'"
+                              placement="right"
+                              trigger="hover"
+                              :width="280"
+                              :content="t.formSpecIdHint"
+                            >
+                              <template #reference>
+                                <el-input v-model="form.specId" :placeholder="t.placeholderSpecId" />
+                              </template>
+                            </el-popover>
+                            <el-input v-else v-model="form.specId" disabled class="smf-specid-readonly" />
+                          </div>
+
+                          <!-- 定价 -->
+                          <div class="smf-field-wrap">
+                            <div class="smf-field-label">
+                              {{ t.formPrice }}<span class="smf-field-required">*</span>
+                            </div>
+                            <el-input
+                              v-model.number="form.price"
+                              placeholder="0.00"
+                              type="number"
+                              :min="0"
+                              step="0.01"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 区块2：配置指标（固定 CPU / 内存 + 可扩展指标） -->
+                    <div class="smf-form-card">
+                      <div class="smf-form-card-header">
+                        <span class="smf-form-card-title">{{ lang === 'zh' ? '配置指标' : 'Metrics' }}</span>
+                        <span class="smf-form-card-badge">{{ lang === 'zh' ? 'CPU 和内存为必填固定项' : 'CPU & Memory are required' }}</span>
+                      </div>
+
+                      <div class="smf-metrics-body">
+
+                        <!-- 固定行：CPU -->
+                        <div class="smf-metric-item">
+                          <div class="smf-metric-name">
+                            <span class="smf-metric-name-icon is-cpu">
+                              <el-icon :size="12"><Cpu /></el-icon>
+                            </span>
+                            <span>{{ t.metricCpu }}</span>
+                            <span class="smf-metric-fixed-badge">{{ lang === 'zh' ? '固定' : 'Fixed' }}</span>
+                          </div>
+                          <div class="smf-metric-control">
+                            <el-input
+                              v-model.number="form.cpu"
+                              type="number"
+                              :min="1"
+                              step="1"
+                              :placeholder="t.placeholderMetricValue"
+                            />
+                            <span class="smf-metric-unit">{{ t.unitVcpu }}</span>
+                          </div>
+                        </div>
+
+                        <!-- 固定行：内存 -->
+                        <div class="smf-metric-item">
+                          <div class="smf-metric-name">
+                            <span class="smf-metric-name-icon is-mem">
+                              <el-icon :size="12"><Box /></el-icon>
+                            </span>
+                            <span>{{ t.metricMem }}</span>
+                            <span class="smf-metric-fixed-badge">{{ lang === 'zh' ? '固定' : 'Fixed' }}</span>
+                          </div>
+                          <div class="smf-metric-control">
+                            <el-input
+                              v-model.number="form.mem"
+                              type="number"
+                              :min="1"
+                              step="1"
+                              :placeholder="t.placeholderMetricValue"
+                            />
+                            <span class="smf-metric-unit">{{ t.unitGb }}</span>
+                          </div>
+                        </div>
+
+                        <!-- 扩展指标行 -->
+                        <div
+                          v-for="(item, index) in form.extras"
+                          :key="item.uid"
+                          class="smf-metric-item"
+                        >
+                          <!-- 左侧：图标 + "自定义" 标签，与固定行对齐 -->
+                          <div class="smf-metric-name">
+                            <span class="smf-metric-name-icon is-other">
+                              <el-icon :size="12"><Menu /></el-icon>
+                            </span>
+                            <span style="color:#9CA3AF;font-size:12px;">{{ lang === 'zh' ? '自定义' : 'Custom' }}</span>
+                          </div>
+                          <!-- 右侧：类型下拉 + 数值 + 单位 + 删除，与固定行右侧对齐 -->
+                          <div class="smf-metric-control">
+                            <el-select
+                              v-model="item.key"
+                              class="smf-metric-select"
+                              @change="() => onMetricKeyChange(item)"
+                            >
+                              <el-option
+                                v-for="opt in metricOptions"
+                                :key="opt.key"
+                                :label="opt.label"
+                                :value="opt.key"
+                              />
+                            </el-select>
+                            <el-input
+                              v-model="item.value"
+                              class="smf-metric-value-input"
+                              :placeholder="t.placeholderMetricValue"
+                            />
+                            <span class="smf-metric-unit">{{ item.unit || '—' }}</span>
+                            <button type="button" class="smf-metric-del" @click="removeMetricRow(index)">
+                              <el-icon :size="12"><Delete /></el-icon>
+                            </button>
+                          </div>
+                        </div>
+
+                      </div>
+
+                      <!-- 新增扩展指标 -->
+                      <div class="smf-metrics-add-row">
+                        <button type="button" class="smf-metrics-add-btn" @click="addMetricRow">
+                          <el-icon :size="13"><Plus /></el-icon>
+                          {{ t.addMetric }}
+                        </button>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <!-- Footer -->
+                  <div class="smf-drawer-footer">
+                    <el-button @click="drawerVisible = false">{{ t.cancel }}</el-button>
+                    <el-button type="primary" :loading="submitting" @click="submitDrawer">
+                      {{ drawerMode === 'create' ? t.createNow : t.save }}
+                    </el-button>
+                  </div>
+
+                </div>
+              </el-drawer>
+            </div>
+          `
+        };
+
+        const app = createApp(App);
+        Object.entries(ElementPlusIconsVue).forEach(([name, component]) => {
+          app.component(name, component);
+        });
+        app.use(ElementPlus).mount("#app");
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wanmore Console - Spec Metrics V3.2</title>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --el-color-primary: #4C5DF7;
+            --el-color-primary-light-9: #EEF0FF;
+            --app-bg: #F5F7FA;
+            --sidebar-w: 220px;
+            --smf-border: #E5E7EB;
+            --smf-head-bg: #FAFBFC;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+            margin: 0;
+            background-color: var(--app-bg);
+            color: #1F2329;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 1. 布局框架 */
+        .app-container { display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: var(--sidebar-w); background: #fff; border-right: 1px solid #E4E7ED; display: flex; flex-direction: column; z-index: 10; }
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .top-nav { height: 52px; background: #fff; border-bottom: 1px solid #E4E7ED; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 9; }
+        .page-body { flex: 1; padding: 24px; overflow-y: auto; }
+
+        /* 2. FilterBox */
+        .filter-section {
+            background: #fff;
+            border-radius: 8px;
+            padding: 18px 20px 8px;
+            border: 1px solid var(--smf-border);
+        }
+
+        .smf-filter-box { margin: 0; }
+        .smf-filter-row { display: flex; flex-wrap: wrap; align-items: center; }
+        .smf-filter-main-row { flex-wrap: nowrap; }
+
+        .smf-filter-item {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .smf-filter-item-segmented {
+            margin-right: 14px;
+        }
+
+        .smf-segmented {
+            display: inline-flex;
+            align-items: center;
+            height: 32px;
+        }
+
+        .smf-segmented-label {
+            font-size: 13px;
+            color: #606266;
+            font-weight: 600;
+            margin-right: 8px;
+            white-space: nowrap;
+        }
+
+        .smf-segmented-group {
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid #D1D5DB;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #F5F7FA;
+        }
+
+        .smf-segmented-btn {
+            height: 32px;
+            line-height: 30px;
+            padding: 0 18px;
+            border: 0;
+            border-right: 1px solid #D1D5DB;
+            background: #F5F7FA;
+            color: #606266;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+
+        .smf-segmented-btn:last-child {
+            border-right: 0;
+        }
+
+        .smf-segmented-btn:hover {
+            background: #EEF2FF;
+            color: #4C5DF7;
+        }
+
+        .smf-segmented-btn.active {
+            background: var(--el-color-primary);
+            color: #fff;
+        }
+
+        .smf-segmented-btn:focus-visible {
+            outline: 2px solid var(--el-color-primary);
+            outline-offset: -2px;
+        }
+
+        .smf-filter-label {
+            height: 32px;
+            padding: 0 12px;
+            border: 1px solid #DCDfe6;
+            border-right: 0;
+            border-radius: 8px 0 0 8px;
+            background: #F5F7FA;
+            color: #606266;
+            font-size: 13px;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            transition: border-color 0.2s ease;
+        }
+
+        .smf-filter-control {
+            min-width: 120px;
+            height: 32px;
+            border: 1px solid #DCDfe6;
+            border-left: 0;
+            border-radius: 0 8px 8px 0;
+            background: #fff;
+            padding: 0 10px;
+            display: inline-flex;
+            align-items: center;
+            transition: border-color 0.2s ease;
+        }
+
+        .smf-filter-control .el-input,
+        .smf-filter-control .el-select {
+            width: 168px;
+            min-width: 120px;
+        }
+
+        .smf-filter-control .el-input__wrapper,
+        .smf-filter-control .el-select__wrapper {
+            box-shadow: none !important;
+            border: 0 !important;
+            background: transparent !important;
+        }
+
+        .smf-filter-item:focus-within .smf-filter-label,
+        .smf-filter-item:focus-within .smf-filter-control {
+            border-color: var(--el-color-primary);
+        }
+
+        .smf-filter-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            margin-left: auto;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .smf-filter-actions .el-button {
+            height: 32px;
+            border-radius: 8px;
+            padding: 0 16px;
+        }
+
+        .smf-filter-actions .smf-filter-toggle-btn {
+            height: 32px;
+            padding: 0 4px;
+            border-radius: 0;
+        }
+
+        .smf-filter-actions .smf-filter-toggle-btn .el-icon {
+            margin-right: 4px;
+            font-size: 12px;
+        }
+
+        .smf-expand-enter-active,
+        .smf-expand-leave-active {
+            transition: all 0.3s ease;
+        }
+
+        .smf-expand-enter-from,
+        .smf-expand-leave-to {
+            opacity: 0;
+            transform: translateY(-4px);
+        }
+
+        /* 3. 列表表格 */
+        .smf-table-wrap {
+            margin-top: 14px;
+            overflow: hidden;
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid var(--smf-border);
+        }
+
+        .smf-table .el-table__header-wrapper {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        .smf-table .el-table__header th {
+            background: var(--smf-head-bg) !important;
+            font-size: 12px;
+            font-weight: 600;
+            color: #4B5563;
+            border-bottom: 1px solid var(--smf-border) !important;
+            letter-spacing: 0.4px;
+        }
+
+        .smf-table .el-table__body td {
+            border-bottom: 1px dashed #F0F0F0 !important;
+            position: relative;
+        }
+
+        .smf-table .el-table__body tr:hover > td {
+            background: rgba(76, 93, 247, 0.04) !important;
+            transition: all 100ms;
+        }
+
+        .smf-table .el-table__body tr:hover > td:first-child::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--el-color-primary);
+        }
+
+        .smf-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #67C23A;
+            font-weight: 600;
+        }
+
+        .smf-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: #67C23A;
+        }
+
+        .smf-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+        }
+
+        .pagination-box {
+            margin-top: 14px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .pagination-box .el-pagination {
+            --el-pagination-button-height: 32px;
+            --el-pagination-button-width: 32px;
+        }
+
+        .pagination-box .el-pagination .el-select {
+            min-width: 120px;
+        }
+
+        /* 4. 抽屉样式（保留） */
+        .wanmore-drawer .el-drawer__header {
+            border-bottom: 1px solid #F2F6FC;
+            padding: 20px 24px;
+            color: #1F2329;
+            font-weight: 700;
+            margin-bottom: 0;
+        }
+
+        .wanmore-drawer .el-drawer__body {
+            padding: 40px 60px;
+            background: #fff;
+            overflow-y: auto;
+        }
+
+        .vertical-form .el-form-item {
+            margin-bottom: 32px;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .vertical-form .el-form-item__label {
+            font-weight: 600;
+            color: #1F2329;
+            margin-bottom: 8px;
+            line-height: 1.2;
+            padding: 0 !important;
+        }
+
+        .ai-profile-container {
+            background: #F9FAFF;
+            border: 1px solid #EDEFFE;
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 12px;
+            display: flex;
+            gap: 32px;
+            align-items: flex-start;
+        }
+
+        .ai-fields-area {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .ai-icon-area {
+            width: 140px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-left: 1px dashed #DCDFE6;
+            padding-left: 32px;
+        }
+
+        .icon-uploader {
+            width: 80px;
+            height: 80px;
+            border: 1px dashed #DCDFE6;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: #fff;
+            transition: all 0.2s;
+            color: #909399;
+        }
+
+        .icon-uploader:hover {
+            border-color: var(--el-color-primary);
+            color: var(--el-color-primary);
+            background: #F5F7FF;
+        }
+
+        .monitor-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .monitor-card {
+            border: 2px solid #F2F3F5;
+            border-radius: 12px;
+            padding: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fff;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .monitor-card.active {
+            border-color: var(--el-color-primary);
+            background: #F5F7FF;
+            box-shadow: 0 4px 12px rgba(76, 93, 247, 0.08);
+        }
+
+        .m-icon {
+            width: 40px;
+            height: 40px;
+            background: #fff;
+            border: 1px solid #E4E7ED;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .monitor-card.active .m-icon {
+            background: var(--el-color-primary);
+            color: #fff;
+            border-color: var(--el-color-primary);
+        }
+
+        .m-info h4 { margin: 0 0 4px 0; font-size: 14px; font-weight: 700; }
+        .m-info p { margin: 0; font-size: 12px; color: #8F959E; line-height: 1.4; }
+
+        .compact-radio .el-radio-button__inner {
+            padding: 10px 28px;
+            border-radius: 6px !important;
+            margin-right: 12px;
+            border: 1px solid #DCDFE6 !important;
+            box-shadow: none !important;
+            font-weight: 500;
+        }
+
+        .compact-radio .el-radio-button__original-radio:checked + .el-radio-button__inner {
+            background: #EEF2FF;
+            color: var(--el-color-primary);
+            border-color: var(--el-color-primary) !important;
+        }
+
+        @media (max-width: 1360px) {
+            .smf-filter-main-row { flex-wrap: wrap; }
+            .smf-filter-actions { margin-left: 0; }
+        }
+
+        @media (max-width: 1024px) {
+            .page-body { padding: 16px; }
+            .monitor-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="h-[52px] flex items-center px-6 border-b border-gray-100">
+                <span class="text-[#4C5DF7] font-bold text-xl tracking-tight">Wanmore</span>
+                <span class="ml-2 px-1.5 py-0.5 bg-indigo-50 text-[#4C5DF7] text-[10px] rounded">V3.2</span>
+            </div>
+            <div class="flex-1 py-4 px-2">
+                <el-menu default-active="metrics" class="border-none">
+                    <el-sub-menu index="1">
+                        <template #title><el-icon><cpu /></el-icon><span>{{ t('menu.pool') }}</span></template>
+                        <el-menu-item index="metrics">{{ t('menu.metrics') }}</el-menu-item>
+                    </el-sub-menu>
+                </el-menu>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-nav">
+                <el-breadcrumb separator="/">
+                    <el-breadcrumb-item>{{ t('menu.pool') }}</el-breadcrumb-item>
+                    <el-breadcrumb-item>{{ t('menu.metrics') }}</el-breadcrumb-item>
+                </el-breadcrumb>
+                <div class="flex items-center gap-6">
+                    <el-dropdown @command="(c) => lang = c">
+                        <span class="cursor-pointer text-xs font-semibold text-gray-500 flex items-center gap-1.5 hover:text-primary transition-colors">
+                            <el-icon><collection /></el-icon> {{ lang === 'zh' ? '简体中文' : 'English' }}
+                        </span>
+                        <template #dropdown>
+                            <el-dropdown-menu>
+                                <el-dropdown-item command="zh">简体中文</el-dropdown-item>
+                                <el-dropdown-item command="en">English</el-dropdown-item>
+                            </el-dropdown-menu>
+                        </template>
+                    </el-dropdown>
+                    <div class="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-[#4C5DF7] font-bold text-xs border border-indigo-100">M</div>
+                </div>
+            </header>
+
+            <div class="page-body">
+                <div class="flex justify-between items-end mb-8">
+                    <div>
+                        <h1 class="text-2xl font-bold text-[#1F2329] m-0">{{ t('page.title') }}</h1>
+                        <p class="text-[#8F959E] text-sm mt-2">{{ t('page.subtitle') }}</p>
+                    </div>
+                    <el-button type="primary" size="large" @click="openDrawer" style="border-radius: 10px; height: 44px; padding: 0 28px;">
+                        <el-icon class="mr-2"><plus /></el-icon> {{ t('action.create') }}
+                    </el-button>
+                </div>
+
+                <div class="filter-section">
+                    <filter-box
+                        :schema="filterSchema"
+                        :model="query"
+                        :texts="{ search: t('filter.search'), reset: t('filter.reset'), expand: t('filter.expand'), collapse: t('filter.collapse') }"
+                        :show-expand="true"
+                        :default-visible-count="3"
+                        :hide-operation="false"
+                        :auto-search-non-input="true"
+                        storage-key="spec-metrics-filter-expanded-v3-2"
+                        @search="handleFilterSearch"
+                        @reset="handleFilterSearch"
+                    />
+                </div>
+
+                <section class="smf-table-wrap" v-loading="loading">
+                    <el-table
+                        :data="pagedData"
+                        class="smf-table"
+                        row-key="id"
+                        height="480"
+                    >
+                        <el-table-column prop="name" :label="t('col.name')" min-width="180" show-overflow-tooltip></el-table-column>
+                        <el-table-column :label="t('col.type')" min-width="140">
+                            <template #default="{ row }">
+                                {{ typeLabel(row.type) }}
+                            </template>
+                        </el-table-column>
+                        <el-table-column :label="t('col.status')" width="110">
+                            <template #default>
+                                <span class="smf-status">
+                                    <i class="smf-status-dot"></i>
+                                    {{ t('common.normal') }}
+                                </span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="monitorKey" :label="t('col.monitor')" min-width="130" show-overflow-tooltip></el-table-column>
+                        <el-table-column prop="selectorKey" :label="t('col.selectorKey')" min-width="180" show-overflow-tooltip></el-table-column>
+                        <el-table-column prop="k8sKey" :label="t('col.k8sKey')" min-width="180" show-overflow-tooltip></el-table-column>
+                        <el-table-column prop="unit" :label="t('col.unit')" min-width="100"></el-table-column>
+                        <el-table-column :label="t('col.isAI')" min-width="120">
+                            <template #default="{ row }">
+                                {{ row.type === 'ai' ? t('common.yes') : t('common.no') }}
+                            </template>
+                        </el-table-column>
+                        <el-table-column :label="t('col.actions')" min-width="140" fixed="right">
+                            <template #default="{ row }">
+                                <div class="smf-actions">
+                                    <el-button link type="primary" @click="handleEdit(row)">{{ t('action.edit') }}</el-button>
+                                    <el-button
+                                        v-if="row.type !== 'general'"
+                                        link
+                                        type="danger"
+                                        @click="handleDelete(row)"
+                                    >
+                                        {{ t('action.delete') }}
+                                    </el-button>
+                                </div>
+                            </template>
+                        </el-table-column>
+
+                        <template #empty>
+                            <el-empty :description="emptyText" :image-size="56"></el-empty>
+                        </template>
+                    </el-table>
+                </section>
+
+                <div class="pagination-box">
+                    <el-pagination
+                        :current-page="query.pageIndex"
+                        :page-size="query.pageSize"
+                        :page-sizes="[10, 20, 30, 50, 100]"
+                        :total="filteredData.length"
+                        layout="total, sizes, prev, pager, next, jumper"
+                        @size-change="handlePageSizeChange"
+                        @current-change="handlePageChange"
+                    >
+                        <template #total>
+                            {{ t('pagination.total') }} {{ filteredData.length }} {{ t('pagination.items') }}
+                        </template>
+                    </el-pagination>
+                </div>
+            </div>
+        </main>
+
+        <el-drawer
+            v-model="drawerVisible"
+            :title="t('form.createTitle')"
+            size="1000px"
+            class="wanmore-drawer"
+            destroy-on-close
+        >
+            <div class="max-w-[860px] mx-auto">
+                <el-form :model="form" label-position="top" class="vertical-form">
+                    <el-form-item :label="t('col.type')" required>
+                        <el-radio-group v-model="form.type" @change="handleTypeChange" class="compact-radio">
+                            <el-radio-button label="ai">{{ t('types.ai') }}</el-radio-button>
+                            <el-radio-button label="other">{{ t('types.other') }}</el-radio-button>
+                        </el-radio-group>
+                        <div class="text-[12px] text-gray-400 mt-2 flex items-center gap-1.5">
+                            <el-icon><info-filled /></el-icon> {{ t('form.generalTip') }}
+                        </div>
+                    </el-form-item>
+
+                    <el-form-item :required="form.type === 'ai'">
+                        <template #label>
+                            <span>{{ t('col.monitor') }}</span>
+                            <span v-if="form.type === 'other'" class="text-xs font-normal text-gray-400 ml-2">({{ t('common.optional') }})</span>
+                        </template>
+
+                        <div v-if="form.type === 'ai'" class="monitor-grid">
+                            <div class="monitor-card active">
+                                <div class="m-icon"><el-icon><video-play /></el-icon></div>
+                                <div class="m-info">
+                                    <h4>XPU</h4>
+                                    <p>{{ t('monitor.xpuDesc') }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <el-input v-else v-model="form.monitorKey" :placeholder="t('form.phMonitor')"></el-input>
+                    </el-form-item>
+
+                    <div class="grid grid-cols-2 gap-x-12">
+                        <el-form-item :label="t('col.name')" required>
+                            <el-input v-model="form.name" :placeholder="namePh"></el-input>
+                        </el-form-item>
+                        <el-form-item :label="t('col.unit')" required>
+                            <el-select v-model="form.unit" class="w-full" :placeholder="t('common.select')">
+                                <el-option v-for="u in unitList" :key="u" :label="u" :value="u"></el-option>
+                            </el-select>
+                        </el-form-item>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-x-12">
+                        <el-form-item>
+                            <template #label>
+                                <span>k8s-key</span>
+                                <span class="text-xs font-normal text-gray-400 ml-2">({{ t('common.optional') }})</span>
+                            </template>
+                            <el-select v-model="form.k8sKey" filterable allow-create :placeholder="t('form.phK8s')" class="w-full">
+                                <el-option v-for="o in k8sPre" :key="o" :label="o" :value="o"></el-option>
+                            </el-select>
+                        </el-form-item>
+
+                        <el-form-item>
+                            <template #label>
+                                <span>selector-key</span>
+                                <span class="text-xs font-normal text-gray-400 ml-2">({{ t('common.optional') }})</span>
+                            </template>
+                            <el-select v-model="form.selectorKey" filterable allow-create :placeholder="t('form.phSelector')" class="w-full">
+                                <el-option v-for="o in selectorPre" :key="o" :label="o" :value="o"></el-option>
+                            </el-select>
+                            <div v-if="form.type === 'ai'" class="text-[11px] text-amber-600 mt-2 flex items-center gap-1.5 font-medium">
+                                <el-icon><warning /></el-icon> {{ t('form.selectorTip') }}
+                            </div>
+                        </el-form-item>
+                    </div>
+
+                    <div v-if="form.type === 'ai'" class="ai-profile-container animate-in fade-in zoom-in duration-300">
+                        <div class="ai-fields-area">
+                            <div class="col-span-2 text-xs font-bold text-indigo-500 uppercase tracking-widest mb-1">{{ t('form.hwProfile') }}</div>
+                            <el-form-item :label="t('form.vendor')" class="!mb-0">
+                                <el-input v-model="form.vendor" placeholder="e.g. NVIDIA"></el-input>
+                            </el-form-item>
+                            <el-form-item :label="t('form.model')" class="!mb-0">
+                                <el-input v-model="form.model" placeholder="e.g. A100-80G"></el-input>
+                            </el-form-item>
+                            <el-form-item :label="t('form.series')" class="!mb-0 col-span-2">
+                                <el-input v-model="form.series" placeholder="e.g. Ampere"></el-input>
+                            </el-form-item>
+                        </div>
+
+                        <div class="ai-icon-area">
+                            <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">{{ t('form.iconLabel') }}</div>
+                            <div class="icon-uploader">
+                                <el-icon size="24"><plus /></el-icon>
+                            </div>
+                            <div class="text-[10px] text-gray-400 text-center mt-3 leading-tight">{{ t('form.iconTip') }}</div>
+                        </div>
+                    </div>
+                </el-form>
+            </div>
+            <template #footer>
+                <div class="flex justify-end gap-3 px-12 pb-6">
+                    <el-button @click="drawerVisible = false" size="large" style="border-radius: 8px;">{{ t('common.cancel') }}</el-button>
+                    <el-button type="primary" @click="submit" :loading="loading" size="large" style="border-radius: 8px; padding: 0 40px;">{{ t('common.confirm') }}</el-button>
+                </div>
+            </template>
+        </el-drawer>
+    </div>
+</div>
+
+<script>
+const { createApp, ref, reactive, computed, watch, onMounted } = Vue;
+
+const cloneValue = (value) => {
+    if (Array.isArray(value)) return [...value];
+    if (value && typeof value === 'object') return JSON.parse(JSON.stringify(value));
+    return value;
+};
+
+const FilterBox = {
+    name: 'FilterBox',
+    props: {
+        schema: { type: Array, default: () => [] },
+        model: { type: Object, required: true },
+        texts: { type: Object, default: () => ({}) },
+        showExpand: { type: Boolean, default: true },
+        defaultVisibleCount: { type: Number, default: 3 },
+        hideOperation: { type: Boolean, default: false },
+        autoSearchNonInput: { type: Boolean, default: true },
+        storageKey: { type: String, default: 'smf-filter-expanded' }
+    },
+    emits: ['search', 'reset'],
+    setup(props, { emit }) {
+        const expanded = ref(true);
+
+        const mergedTexts = computed(() => ({
+            search: '搜索',
+            reset: '重置',
+            expand: '展开筛选',
+            collapse: '收起筛选',
+            ...props.texts
+        }));
+
+        const resolveType = (field) => field.type || 'input';
+
+        const isHidden = (field) => {
+            if (typeof field.hidden === 'function') {
+                return !!field.hidden(props.model);
+            }
+            return !!field.hidden;
+        };
+
+        const visibleFields = computed(() => props.schema.filter((field) => !isHidden(field)));
+
+        const showExpandToggle = computed(() =>
+            props.showExpand && visibleFields.value.length > props.defaultVisibleCount
+        );
+
+        const primaryFields = computed(() => {
+            if (!showExpandToggle.value) return visibleFields.value;
+            return visibleFields.value.slice(0, props.defaultVisibleCount);
+        });
+
+        const extraFields = computed(() => {
+            if (!showExpandToggle.value) return [];
+            return visibleFields.value.slice(props.defaultVisibleCount);
+        });
+
+        const loadExpandedState = () => {
+            if (!showExpandToggle.value) {
+                expanded.value = false;
+                return;
+            }
+            try {
+                const stored = window.localStorage.getItem(props.storageKey);
+                expanded.value = stored === null ? true : stored === '1';
+            } catch (error) {
+                expanded.value = true;
+            }
+        };
+
+        const getOptions = (field) => (Array.isArray(field.options) ? field.options : []);
+
+        const callFieldChange = (field, value) => {
+            if (typeof field.change === 'function') {
+                field.change(value, props.model);
+            }
+        };
+
+        const triggerSearch = (reason = 'manual') => {
+            emit('search', { reason, query: { ...props.model } });
+        };
+
+        const onInputChange = (field, value) => {
+            props.model[field.prop] = value;
+            callFieldChange(field, value);
+        };
+
+        const onNonInputChange = (field, value) => {
+            props.model[field.prop] = value;
+            callFieldChange(field, value);
+            if (props.autoSearchNonInput) {
+                triggerSearch('auto');
+            }
+        };
+
+        const onSegmentChange = (field, value) => {
+            if (props.model[field.prop] === value) return;
+            onNonInputChange(field, value);
+        };
+
+        const defaultValueByType = (field) => {
+            if (Object.prototype.hasOwnProperty.call(field, 'value')) {
+                return cloneValue(field.value);
+            }
+            return '';
+        };
+
+        const onReset = () => {
+            props.schema.forEach((field) => {
+                if (!field.prop) return;
+                props.model[field.prop] = defaultValueByType(field);
+            });
+            emit('reset', { query: { ...props.model } });
+            triggerSearch('reset');
+        };
+
+        watch(showExpandToggle, loadExpandedState, { immediate: true });
+
+        watch(expanded, (value) => {
+            if (!showExpandToggle.value) return;
+            try {
+                window.localStorage.setItem(props.storageKey, value ? '1' : '0');
+            } catch (error) {
+                // ignore storage error
+            }
+        });
+
+        return {
+            mergedTexts,
+            expanded,
+            resolveType,
+            primaryFields,
+            extraFields,
+            showExpandToggle,
+            getOptions,
+            triggerSearch,
+            onReset,
+            onInputChange,
+            onNonInputChange,
+            onSegmentChange
+        };
+    },
+    template: `
+        <section class="smf-filter-box">
+            <div class="smf-filter-row smf-filter-main-row">
+                <div
+                    v-for="field in primaryFields"
+                    :key="field.prop"
+                    class="smf-filter-item"
+                    :class="{ 'smf-filter-item-segmented': resolveType(field) === 'segmented' }"
+                >
+                    <template v-if="resolveType(field) === 'segmented'">
+                        <div class="smf-segmented">
+                            <span class="smf-segmented-label">{{ field.label }}:</span>
+                            <div class="smf-segmented-group" role="radiogroup" :aria-label="field.label">
+                                <button
+                                    v-for="opt in getOptions(field)"
+                                    :key="opt.value"
+                                    type="button"
+                                    class="smf-segmented-btn"
+                                    :class="{ active: model[field.prop] === opt.value }"
+                                    @click="onSegmentChange(field, opt.value)"
+                                >
+                                    {{ opt.label }}
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                    <template v-else>
+                        <span class="smf-filter-label">{{ field.label }}</span>
+                        <div class="smf-filter-control">
+                            <el-input
+                                v-if="resolveType(field) === 'input'"
+                                :model-value="model[field.prop]"
+                                :clearable="field.clearable !== false"
+                                :placeholder="field.placeholder || ''"
+                                @update:model-value="(val) => onInputChange(field, val)"
+                                @change="(val) => onInputChange(field, val)"
+                                @keyup.enter="triggerSearch('enter')"
+                            ></el-input>
+                            <el-select
+                                v-else
+                                :model-value="model[field.prop]"
+                                :clearable="field.clearable !== false"
+                                :placeholder="field.placeholder || ''"
+                                @update:model-value="(val) => onNonInputChange(field, val)"
+                            >
+                                <el-option
+                                    v-for="opt in getOptions(field)"
+                                    :key="opt.value"
+                                    :label="opt.label"
+                                    :value="opt.value"
+                                ></el-option>
+                            </el-select>
+                        </div>
+                    </template>
+                </div>
+
+                <div v-if="!hideOperation || showExpandToggle" class="smf-filter-actions">
+                    <template v-if="!hideOperation">
+                        <el-button type="primary" @click="triggerSearch('manual')">{{ mergedTexts.search }}</el-button>
+                        <el-button @click="onReset">{{ mergedTexts.reset }}</el-button>
+                    </template>
+                    <el-button
+                        v-if="showExpandToggle"
+                        link
+                        type="primary"
+                        class="smf-filter-toggle-btn"
+                        @click="expanded = !expanded"
+                    >
+                        <el-icon v-if="expanded"><CaretTop /></el-icon>
+                        <el-icon v-else><CaretBottom /></el-icon>
+                        {{ expanded ? mergedTexts.collapse : mergedTexts.expand }}
+                    </el-button>
+                </div>
+            </div>
+
+            <transition name="smf-expand">
+                <div v-if="showExpandToggle && expanded" class="smf-filter-row">
+                    <div
+                        v-for="field in extraFields"
+                        :key="field.prop"
+                        class="smf-filter-item"
+                        :class="{ 'smf-filter-item-segmented': resolveType(field) === 'segmented' }"
+                    >
+                        <template v-if="resolveType(field) === 'segmented'">
+                            <div class="smf-segmented">
+                                <span class="smf-segmented-label">{{ field.label }}:</span>
+                                <div class="smf-segmented-group" role="radiogroup" :aria-label="field.label">
+                                    <button
+                                        v-for="opt in getOptions(field)"
+                                        :key="opt.value"
+                                        type="button"
+                                        class="smf-segmented-btn"
+                                        :class="{ active: model[field.prop] === opt.value }"
+                                        @click="onSegmentChange(field, opt.value)"
+                                    >
+                                        {{ opt.label }}
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                        <template v-else>
+                            <span class="smf-filter-label">{{ field.label }}</span>
+                            <div class="smf-filter-control">
+                                <el-input
+                                    v-if="resolveType(field) === 'input'"
+                                    :model-value="model[field.prop]"
+                                    :clearable="field.clearable !== false"
+                                    :placeholder="field.placeholder || ''"
+                                    @update:model-value="(val) => onInputChange(field, val)"
+                                    @change="(val) => onInputChange(field, val)"
+                                    @keyup.enter="triggerSearch('enter')"
+                                ></el-input>
+                                <el-select
+                                    v-else
+                                    :model-value="model[field.prop]"
+                                    :clearable="field.clearable !== false"
+                                    :placeholder="field.placeholder || ''"
+                                    @update:model-value="(val) => onNonInputChange(field, val)"
+                                >
+                                    <el-option
+                                        v-for="opt in getOptions(field)"
+                                        :key="opt.value"
+                                        :label="opt.label"
+                                        :value="opt.value"
+                                    ></el-option>
+                                </el-select>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </transition>
+        </section>
+    `
+};
+
+const i18n = {
+    zh: {
+        menu: { pool: '算力资源池', metrics: '规格指标' },
+        page: { title: '规格指标管理', subtitle: '定义作业使用的最小原子化计量单位及其底层调度映射关系。' },
+        action: { create: '新增规格指标', edit: '编辑', delete: '删除' },
+        filter: {
+            keyword: '关键字',
+            keywordPh: '搜索名称、K8s 键值或监控指标...',
+            type: '指标类型',
+            vendor: '厂商',
+            model: '型号',
+            series: '系列',
+            search: '搜索',
+            reset: '重置',
+            expand: '展开筛选',
+            collapse: '收起筛选'
+        },
+        common: {
+            all: '全部',
+            normal: '正常',
+            yes: '是',
+            no: '否',
+            optional: '可选',
+            select: '请选择',
+            confirm: '确认录入',
+            cancel: '取消'
+        },
+        types: { general: '通算指标', ai: 'AI 加速卡指标', other: '其他指标' },
+        col: {
+            type: '指标类型',
+            status: '状态',
+            monitor: '监控指标',
+            name: '指标名称',
+            unit: '单位',
+            isAI: 'AI 加速卡类别',
+            selectorKey: 'selector-key',
+            k8sKey: 'k8s-key',
+            actions: '操作'
+        },
+        pagination: { total: '共', items: '条' },
+        empty: { noData: '暂无规格指标', noResult: '未找到符合条件的规格指标' },
+        dialog: {
+            deleteTitle: '删除确认',
+            deleteMsg: '确认删除该规格指标吗？删除后不可恢复。',
+            deleteSuccess: '删除成功',
+            editTip: '原型阶段：可在抽屉中继续扩展编辑流程。'
+        },
+        monitor: { xpuDesc: 'AI 加速卡硬件利用率监控。开启此项将触发资源感知调度，强制匹配 AI 集群节点。' },
+        form: {
+            createTitle: '录入规格指标',
+            generalTip: '通算指标（CPU/内存）为系统内置，暂不支持手动新增。',
+            phMonitor: '输入监控指标标识，如 gpu_vram_limit',
+            phK8s: '输入或搜索 K8s 键值',
+            phSelector: '匹配节点的类型标签',
+            selectorTip: '单个规格配置中仅允许存在一个 selector-key 指标。',
+            hwProfile: '硬件参数配置',
+            vendor: '厂商 Vendor',
+            model: '型号 Model',
+            series: '系列 Series',
+            iconLabel: '标识图标',
+            iconTip: '请上传硬件或指标的标识图标'
+        }
+    },
+    en: {
+        menu: { pool: 'Resource Pool', metrics: 'Spec Metrics' },
+        page: { title: 'Spec Metrics Management', subtitle: 'Define atomic resource units and underlying scheduling mappings.' },
+        action: { create: 'Add Metric', edit: 'Edit', delete: 'Delete' },
+        filter: {
+            keyword: 'Keyword',
+            keywordPh: 'Search by name, K8s key, or monitor key...',
+            type: 'Type',
+            vendor: 'Vendor',
+            model: 'Model',
+            series: 'Series',
+            search: 'Search',
+            reset: 'Reset',
+            expand: 'Expand Filters',
+            collapse: 'Collapse Filters'
+        },
+        common: {
+            all: 'All',
+            normal: 'Normal',
+            yes: 'Yes',
+            no: 'No',
+            optional: 'Optional',
+            select: 'Select',
+            confirm: 'Confirm',
+            cancel: 'Cancel'
+        },
+        types: { general: 'General', ai: 'AI Accelerator', other: 'Other Metrics' },
+        col: {
+            type: 'Type',
+            status: 'Status',
+            monitor: 'Monitor Key',
+            name: 'Metric Name',
+            unit: 'Unit',
+            isAI: 'AI Category',
+            selectorKey: 'selector-key',
+            k8sKey: 'k8s-key',
+            actions: 'Actions'
+        },
+        pagination: { total: 'Total', items: 'items' },
+        empty: { noData: 'No metrics yet', noResult: 'No matching metrics found' },
+        dialog: {
+            deleteTitle: 'Delete Confirmation',
+            deleteMsg: 'Are you sure you want to delete this metric? This action cannot be undone.',
+            deleteSuccess: 'Deleted successfully',
+            editTip: 'Prototype stage: extend the edit flow in the drawer as needed.'
+        },
+        monitor: { xpuDesc: 'Hardware utilization monitoring. Enables resource-aware scheduling for AI nodes.' },
+        form: {
+            createTitle: 'Register Spec Metric',
+            generalTip: 'General metrics (CPU/Memory) are built-in and cannot be added manually.',
+            phMonitor: 'Enter monitor key, e.g. gpu_vram_limit',
+            phK8s: 'Enter or search K8s Key',
+            phSelector: 'Match node labels',
+            selectorTip: 'Only one selector-key allowed per spec config.',
+            hwProfile: 'Hardware Profile',
+            vendor: 'Vendor',
+            model: 'Model',
+            series: 'Series',
+            iconLabel: 'Icon',
+            iconTip: 'Upload hardware/metric identity icon'
+        }
+    }
+};
+
+const app = createApp({
+    components: { FilterBox },
+    setup() {
+        const lang = ref('zh');
+        const loading = ref(false);
+        const drawerVisible = ref(false);
+
+        const query = reactive({
+            pageIndex: 1,
+            pageSize: 10,
+            keyword: '',
+            type: 'all',
+            vendor: '',
+            model: '',
+            series: ''
+        });
+
+        const listQuery = reactive({ ...query });
+
+        const tableData = ref([
+            { id: 1, type: 'general', name: 'cpu', k8sKey: 'cpu', monitorKey: 'cpu', unit: 'vCPU', selectorKey: '' },
+            { id: 2, type: 'general', name: 'memory', k8sKey: 'memory', monitorKey: 'mem', unit: 'GiB', selectorKey: '' },
+            { id: 3, type: 'ai', name: 'Nvidia_A100', k8sKey: 'nvidia.com/gpu', monitorKey: 'xpu', unit: 'XPU(s)', selectorKey: 'nvidia-a100-80g', vendor: 'NVIDIA', model: 'A100', series: 'Ampere' },
+            { id: 4, type: 'other', name: '英伟达GPU显存', k8sKey: 'nvidia.com/gpumem', monitorKey: 'gpu_vram_usage', unit: 'MiB', selectorKey: '' }
+        ]);
+
+        const form = ref({ type: 'ai', monitorKey: 'xpu', name: '', unit: 'XPU(s)', k8sKey: '', selectorKey: '', vendor: '', model: '', series: '' });
+        const k8sPre = ['nvidia.com/gpu', 'huawei.com/npu', 'nvidia.com/gpumem', 'cpu', 'memory'];
+        const selectorPre = ['nvidia-a100-80g', 'huawei-910b', 'nvidia-v100-32g'];
+
+        const t = (path) => {
+            const keys = path.split('.');
+            let val = i18n[lang.value];
+            keys.forEach((key) => {
+                val = val?.[key];
+            });
+            return val || path;
+        };
+
+        const syncListQuery = () => {
+            Object.assign(listQuery, query);
+        };
+
+        const filterSchema = computed(() => [
+            {
+                prop: 'keyword',
+                label: t('filter.keyword'),
+                type: 'input',
+                clearable: true,
+                value: '',
+                placeholder: t('filter.keywordPh')
+            },
+            {
+                prop: 'type',
+                label: t('filter.type'),
+                type: 'segmented',
+                value: 'all',
+                options: [
+                    { label: t('common.all'), value: 'all' },
+                    { label: t('types.general'), value: 'general' },
+                    { label: t('types.ai'), value: 'ai' },
+                    { label: t('types.other'), value: 'other' }
+                ],
+                change: (val, model) => {
+                    if (val !== 'ai') {
+                        model.vendor = '';
+                        model.model = '';
+                        model.series = '';
+                    }
+                }
+            },
+            {
+                prop: 'vendor',
+                label: t('filter.vendor'),
+                type: 'select',
+                clearable: true,
+                value: '',
+                hidden: (model) => model.type !== 'ai',
+                options: [
+                    { label: 'NVIDIA', value: 'NVIDIA' },
+                    { label: 'Huawei', value: 'Huawei' }
+                ]
+            },
+            {
+                prop: 'model',
+                label: t('filter.model'),
+                type: 'select',
+                clearable: true,
+                value: '',
+                hidden: (model) => model.type !== 'ai',
+                options: [
+                    { label: 'A100', value: 'A100' },
+                    { label: '910B', value: '910B' }
+                ]
+            },
+            {
+                prop: 'series',
+                label: t('filter.series'),
+                type: 'select',
+                clearable: true,
+                value: '',
+                hidden: (model) => model.type !== 'ai',
+                options: [
+                    { label: 'Ampere', value: 'Ampere' },
+                    { label: 'Ascend', value: 'Ascend' }
+                ]
+            }
+        ]);
+
+        const handleFilterSearch = () => {
+            query.pageIndex = 1;
+            syncListQuery();
+        };
+
+        const handlePageChange = (page) => {
+            query.pageIndex = page;
+            syncListQuery();
+            window.scrollTo(0, 0);
+        };
+
+        const handlePageSizeChange = (size) => {
+            query.pageSize = size;
+            query.pageIndex = 1;
+            syncListQuery();
+            window.scrollTo(0, 0);
+        };
+
+        const filteredData = computed(() => {
+            const keyword = String(listQuery.keyword || '').trim().toLowerCase();
+            return tableData.value.filter((item) => {
+                const matchType = listQuery.type === 'all' || item.type === listQuery.type;
+                const matchKeyword = !keyword ||
+                    String(item.name || '').toLowerCase().includes(keyword) ||
+                    String(item.k8sKey || '').toLowerCase().includes(keyword) ||
+                    String(item.monitorKey || '').toLowerCase().includes(keyword) ||
+                    String(item.selectorKey || '').toLowerCase().includes(keyword);
+
+                if (listQuery.type === 'ai') {
+                    const matchVendor = !listQuery.vendor || item.vendor === listQuery.vendor;
+                    const matchModel = !listQuery.model || item.model === listQuery.model;
+                    const matchSeries = !listQuery.series || item.series === listQuery.series;
+                    return matchType && matchKeyword && matchVendor && matchModel && matchSeries;
+                }
+
+                return matchType && matchKeyword;
+            });
+        });
+
+        const pagedData = computed(() => {
+            const start = (listQuery.pageIndex - 1) * listQuery.pageSize;
+            return filteredData.value.slice(start, start + listQuery.pageSize);
+        });
+
+        const pageCount = computed(() => {
+            return Math.max(1, Math.ceil(filteredData.value.length / listQuery.pageSize));
+        });
+
+        watch(pageCount, (maxPage) => {
+            if (query.pageIndex > maxPage) {
+                query.pageIndex = maxPage;
+                syncListQuery();
+            }
+        });
+
+        const emptyText = computed(() => {
+            if (tableData.value.length === 0) {
+                return t('empty.noData');
+            }
+            const hasFilter = listQuery.keyword || listQuery.type !== 'all' || listQuery.vendor || listQuery.model || listQuery.series;
+            return hasFilter ? t('empty.noResult') : t('empty.noData');
+        });
+
+        const typeLabel = (type) => {
+            if (type === 'general') return t('types.general');
+            if (type === 'ai') return t('types.ai');
+            return t('types.other');
+        };
+
+        const handleTypeChange = (val) => {
+            form.value.unit = unitList.value[0];
+            form.value.monitorKey = (val === 'ai') ? 'xpu' : '';
+            form.value.selectorKey = '';
+        };
+
+        const unitList = computed(() => {
+            if (form.value.type === 'ai') return ['XPU(s)'];
+            return ['Byte', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
+        });
+
+        const namePh = computed(() =>
+            form.value.type === 'ai'
+                ? (lang.value === 'zh' ? '如：Nvidia A100' : 'e.g. Nvidia A100')
+                : (lang.value === 'zh' ? '如：GPU 显存上限' : 'e.g. GPU VRAM Limit')
+        );
+
+        const openDrawer = () => {
+            form.value = { type: 'ai', monitorKey: 'xpu', name: '', unit: 'XPU(s)', k8sKey: '', selectorKey: '', vendor: '', model: '', series: '' };
+            drawerVisible.value = true;
+        };
+
+        const submit = () => {
+            loading.value = true;
+            setTimeout(() => {
+                loading.value = false;
+                drawerVisible.value = false;
+                ElementPlus.ElMessage.success(lang.value === 'zh' ? '录入成功' : 'Success');
+            }, 600);
+        };
+
+        const handleEdit = () => {
+            ElementPlus.ElMessage.info(t('dialog.editTip'));
+        };
+
+        const handleDelete = (row) => {
+            ElementPlus.ElMessageBox.confirm(
+                t('dialog.deleteMsg'),
+                t('dialog.deleteTitle'),
+                {
+                    confirmButtonText: lang.value === 'zh' ? '确定' : 'Confirm',
+                    cancelButtonText: lang.value === 'zh' ? '取消' : 'Cancel',
+                    type: 'warning'
+                }
+            ).then(() => {
+                const idx = tableData.value.findIndex((item) => item.id === row.id);
+                if (idx >= 0) {
+                    tableData.value.splice(idx, 1);
+                    handleFilterSearch();
+                    ElementPlus.ElMessage.success(t('dialog.deleteSuccess'));
+                }
+            }).catch(() => {});
+        };
+
+        onMounted(() => {
+            syncListQuery();
+        });
+
+        return {
+            lang,
+            loading,
+            drawerVisible,
+            query,
+            tableData,
+            form,
+            k8sPre,
+            selectorPre,
+            t,
+            filterSchema,
+            filteredData,
+            pagedData,
+            emptyText,
+            unitList,
+            namePh,
+            typeLabel,
+            handleTypeChange,
+            handleFilterSearch,
+            handlePageChange,
+            handlePageSizeChange,
+            openDrawer,
+            submit,
+            handleEdit,
+            handleDelete
+        };
+    }
+});
+
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+    app.component(key, component);
+}
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+</body>
+</html>
