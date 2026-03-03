@@ -1,0 +1,2119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>框架配置 - 算模方控制台 V5.0</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.4.4/dist/index.css">
+    <link rel="stylesheet" href="https://unpkg.com/@element-plus/icons-vue@2.3.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.4.15/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.4.4/dist/index.full.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            DEFAULT: '#4C5DF7',
+                            light: '#7582F9',
+                            dark: '#3A4AD4',
+                            bg: '#EDEFFE'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'PingFang SC', 'Microsoft YaHei', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --el-color-primary: #4C5DF7;
+            --el-color-primary-light-3: #7582F9;
+            --el-color-primary-light-5: #9AA1F9;
+            --el-color-primary-light-7: #B9BFFB;
+            --el-color-primary-light-9: #EDEFFE;
+            --el-color-primary-dark-2: #3A4AD4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #1F2937;
+            background-color: #FFFFFF;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .page-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 200px;
+            background: #FFFFFF;
+            border-right: 1px solid #E5E7EB;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo {
+            height: 52px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #4C5DF7 0%, #7582F9 100%);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        .logo-text {
+            font-weight: 600;
+            font-size: 15px;
+            color: #1F2937;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 12px 8px;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: #6B7280;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background-color: #F3F4F6;
+            color: #4C5DF7;
+        }
+
+        .nav-item.active {
+            background-color: #EDEFFE;
+            color: #4C5DF7;
+        }
+
+        .nav-item .el-icon {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            background: #FFFFFF;
+        }
+
+        /* Header */
+        .main-header {
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            border-bottom: 1px solid #E5E7EB;
+            background: #FFFFFF;
+        }
+
+        .header-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Page Content */
+        .page-content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        /* Card Styles */
+        .framework-card {
+            background: #FFFFFF;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 5px 1px rgba(0,0,0,0.05);
+        }
+
+        .framework-card:hover {
+            border-color: #4C5DF7;
+            box-shadow: 0 4px 12px rgba(76, 93, 247, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .framework-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .framework-name {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .framework-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #4C5DF7 0%, #7582F9 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .framework-name-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .version-count {
+            font-size: 12px;
+            color: #6B7280;
+            background: #F3F4F6;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        .version-label {
+            font-size: 12px;
+            color: #9CA3AF;
+            margin-bottom: 8px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .version-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .version-item {
+            background: #F9FAFC;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .version-item:hover {
+            border-color: #4C5DF7;
+            background: #FAFAFE;
+        }
+
+        .version-item.unavailable {
+            opacity: 0.6;
+        }
+
+        .version-item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .version-item-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .version-item-status {
+            font-size: 11px;
+            font-weight: 500;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .version-item-status.available {
+            background: #ECFDF5;
+            color: #059669;
+        }
+
+        .version-item-status.unavailable {
+            background: #FEF2F2;
+            color: #DC2626;
+        }
+
+        .version-item-image {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .version-item-label {
+            font-size: 12px;
+            color: #6B7280;
+            flex-shrink: 0;
+        }
+
+        .version-item-value {
+            font-size: 11px;
+            color: #4B5563;
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .version-item-ports {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .version-item-ports .el-tag {
+            font-size: 10px;
+            padding: 0 4px;
+            height: 18px;
+            line-height: 16px;
+        }
+
+        .version-more-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            border: 1px dashed #D1D5DB;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #F9FAFC;
+        }
+
+        .version-more-item:hover {
+            border-color: #4C5DF7;
+            background: #F3F4F6;
+        }
+
+        .version-more-text {
+            font-size: 13px;
+            font-weight: 500;
+            color: #6B7280;
+        }
+
+        .version-more-item:hover .version-more-text {
+            color: #4C5DF7;
+        }
+
+        /* Filter Box */
+        .filter-box {
+            background: #F9FAFC;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .filter-item {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            min-width: 200px;
+            max-width: 300px;
+        }
+
+        .filter-label {
+            background: #F3F4F6;
+            padding: 0 12px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            color: #6B7280;
+            border-radius: 6px 0 0 6px;
+            border: 1px solid #E5E7EB;
+            border-right: none;
+            white-space: nowrap;
+        }
+
+        .filter-input {
+            flex: 1;
+        }
+
+        .filter-input .el-input__wrapper {
+            border-radius: 0 6px 6px 0;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        /* Table Styles */
+        .data-table {
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .el-table {
+            --el-table-header-bg-color: #F8F8F8;
+            --el-table-header-text-color: #606266;
+            --el-table-text-color: #1F2937;
+            --el-table-row-hover-bg-color: #F9FAFC;
+        }
+
+        .el-table th.el-table__cell {
+            font-weight: 600;
+        }
+
+        /* Detail Panel */
+        .detail-section {
+            background: #F9FAFC;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .detail-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .detail-row {
+            display: flex;
+            margin-bottom: 12px;
+        }
+
+        .detail-label {
+            width: 140px;
+            flex-shrink: 0;
+            font-size: 13px;
+            color: #6B7280;
+        }
+
+        .detail-value {
+            flex: 1;
+            font-size: 13px;
+            color: #1F2937;
+            word-break: break-all;
+        }
+
+        .detail-value.mono {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Consolas', monospace;
+            font-size: 12px;
+            background: #F3F4F6;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* Status Tags */
+        .status-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-tag.available {
+            background: #ECFDF5;
+            color: #059669;
+        }
+
+        .status-tag.unavailable {
+            background: #FEF2F2;
+            color: #DC2626;
+        }
+
+        .status-tag .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .status-tag.available .dot {
+            background: #10B981;
+        }
+
+        .status-tag.unavailable .dot {
+            background: #EF4444;
+        }
+
+        /* Form Styles */
+        .form-container {
+            background: #F9FAFC;
+            border-radius: 8px;
+            padding: 24px;
+        }
+
+        .form-section {
+            margin-bottom: 24px;
+        }
+
+        .form-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 16px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        .form-label .required {
+            color: #EF4444;
+            margin-left: 2px;
+        }
+
+        /* Rich Text Editor */
+        .rich-editor {
+            border: 1px solid #D1D5DB;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .rich-editor-toolbar {
+            display: flex;
+            gap: 4px;
+            padding: 8px;
+            background: #F9FAFC;
+            border-bottom: 1px solid #E5E7EB;
+            flex-wrap: wrap;
+        }
+
+        .rich-editor-btn {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #6B7280;
+            transition: all 0.15s;
+        }
+
+        .rich-editor-btn:hover {
+            background: #E5E7EB;
+            color: #1F2937;
+        }
+
+        .rich-editor-btn.active {
+            background: #EDEFFE;
+            color: #4C5DF7;
+        }
+
+        .rich-editor-content {
+            min-height: 120px;
+            padding: 12px;
+            outline: none;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .rich-editor-content:empty:before {
+            content: attr(data-placeholder);
+            color: #9CA3AF;
+        }
+
+        /* Image Selector */
+        .image-selector {
+            border: 1px solid #D1D5DB;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .image-selector-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #F9FAFC;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .image-selector-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .image-selector-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: background 0.15s;
+            border-bottom: 1px solid #F3F4F6;
+        }
+
+        .image-selector-item:hover {
+            background: #F9FAFC;
+        }
+
+        .image-selector-item.selected {
+            background: #EDEFFE;
+        }
+
+        .image-selector-item .radio {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #D1D5DB;
+            border-radius: 50%;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-selector-item.selected .radio {
+            border-color: #4C5DF7;
+        }
+
+        .image-selector-item.selected .radio:after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #4C5DF7;
+            border-radius: 50%;
+        }
+
+        .image-selector-item .image-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: #1F2937;
+        }
+
+        .image-selector-item .image-path {
+            font-size: 12px;
+            color: #6B7280;
+            margin-top: 2px;
+        }
+
+        /* Placeholder Autocomplete */
+        .placeholder-autocomplete {
+            position: relative;
+        }
+
+        .placeholder-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .placeholder-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.15s;
+        }
+
+        .placeholder-item:hover {
+            background: #F3F4F6;
+        }
+
+        .placeholder-item .key {
+            font-family: 'SF Mono', monospace;
+            font-size: 12px;
+            color: #4C5DF7;
+            background: #EDEFFE;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .placeholder-item .desc {
+            font-size: 12px;
+            color: #6B7280;
+        }
+
+        /* Language Toggle */
+        .lang-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #F3F4F6;
+            padding: 3px;
+            border-radius: 6px;
+        }
+
+        .lang-btn {
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            border: none;
+            background: transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #6B7280;
+            transition: all 0.2s;
+        }
+
+        .lang-btn.active {
+            background: white;
+            color: #4C5DF7;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Add Card */
+        .add-card {
+            border: 2px dashed #D1D5DB;
+            border-radius: 8px;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+            min-height: 180px;
+        }
+
+        .add-card:hover {
+            border-color: #4C5DF7;
+            background: #FAFAFE;
+        }
+
+        .add-card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #F3F4F6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9CA3AF;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+
+        .add-card:hover .add-card-icon {
+            background: #EDEFFE;
+            color: #4C5DF7;
+        }
+
+        .add-card-text {
+            font-size: 14px;
+            font-weight: 500;
+            color: #6B7280;
+        }
+
+        /* View Transitions */
+        .view-enter-active,
+        .view-leave-active {
+            transition: opacity 0.2s ease;
+        }
+
+        .view-enter-from,
+        .view-leave-to {
+            opacity: 0;
+        }
+
+        /* Pagination */
+        .pagination-container {
+            display: flex;
+            justify-content: flex-end;
+            padding: 16px 0;
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            color: #9CA3AF;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-text {
+            font-size: 14px;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #D1D5DB;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9CA3AF;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="page-container">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-logo">
+                    <div class="logo-icon">AI</div>
+                    <span class="logo-text">{{ lang === 'zh' ? '算模方' : 'AI Stack' }}</span>
+                </div>
+                <nav class="sidebar-nav">
+                    <div class="nav-item" :class="{ active: currentView === 'list' }" @click="currentView = 'list'">
+                        <el-icon><HomeFilled /></el-icon>
+                        {{ lang === 'zh' ? '首页' : 'Home' }}
+                    </div>
+                    <div class="nav-item" :class="{ active: currentView === 'list' }">
+                        <el-icon><Grid /></el-icon>
+                        {{ lang === 'zh' ? '集群管理' : 'Cluster Management' }}
+                    </div>
+                    <div class="nav-item active">
+                        <el-icon><Setting /></el-icon>
+                        {{ lang === 'zh' ? '框架配置' : 'Framework Config' }}
+                    </div>
+                    <div class="nav-item">
+                        <el-icon><Picture /></el-icon>
+                        {{ lang === 'zh' ? '镜像管理' : 'Image Management' }}
+                    </div>
+                    <div class="nav-item">
+                        <el-icon><Monitor /></el-icon>
+                        {{ lang === 'zh' ? '节点管理' : 'Node Management' }}
+                    </div>
+                    <div class="nav-item">
+                        <el-icon><Operation /></el-icon>
+                        {{ lang === 'zh' ? '运维编排' : 'Operations' }}
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Header -->
+                <header class="main-header">
+                    <h1 class="header-title">{{ pageTitle }}</h1>
+                    <div class="header-actions">
+                        <div class="lang-toggle">
+                            <button class="lang-btn" :class="{ active: lang === 'zh' }" @click="lang = 'zh'">中文</button>
+                            <button class="lang-btn" :class="{ active: lang === 'en' }" @click="lang = 'en'">EN</button>
+                        </div>
+                        <el-avatar :size="32" style="background: #4C5DF7;">U</el-avatar>
+                    </div>
+                </header>
+
+                <!-- Page Content -->
+                <div class="page-content">
+                    <!-- View 1: Framework List -->
+                    <div v-if="currentView === 'list'">
+                        <!-- Filter Box -->
+                        <div class="filter-box">
+                            <div class="filter-row">
+                                <div class="filter-item">
+                                    <span class="filter-label">{{ lang === 'zh' ? '框架名称' : 'Framework Name' }}</span>
+                                    <el-input
+                                        class="filter-input"
+                                        v-model="filter.name"
+                                        :placeholder="lang === 'zh' ? '请输入框架名称' : 'Enter framework name'"
+                                        clearable
+                                    >
+                                        <template #prefix>
+                                            <el-icon><Search /></el-icon>
+                                        </template>
+                                    </el-input>
+                                </div>
+                                <div class="filter-item">
+                                    <span class="filter-label">{{ lang === 'zh' ? '状态' : 'Status' }}</span>
+                                    <el-select class="filter-input" v-model="filter.status" :placeholder="lang === 'zh' ? '请选择' : 'Select'" clearable>
+                                        <el-option :label="lang === 'zh' ? '全部' : 'All'" value="all"></el-option>
+                                        <el-option :label="lang === 'zh' ? '可用' : 'Available'" value="available"></el-option>
+                                        <el-option :label="lang === 'zh' ? '不可用' : 'Unavailable'" value="unavailable"></el-option>
+                                    </el-select>
+                                </div>
+                                <div class="filter-actions">
+                                    <el-button type="primary" @click="handleSearch">
+                                        <el-icon><Search /></el-icon>
+                                        {{ lang === 'zh' ? '搜索' : 'Search' }}
+                                    </el-button>
+                                    <el-button @click="handleReset">
+                                        {{ lang === 'zh' ? '重置' : 'Reset' }}
+                                    </el-button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Framework Cards Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                            <div
+                                v-for="framework in filteredFrameworks"
+                                :key="framework.name"
+                                class="framework-card"
+                                @click="viewFrameworkDetail(framework)"
+                            >
+                                <div class="framework-header">
+                                    <div class="framework-name">
+                                        <div class="framework-icon">{{ framework.name.charAt(0) }}</div>
+                                        <span class="framework-name-text">{{ framework.name }}</span>
+                                    </div>
+                                    <span class="version-count">{{ framework.frameList.length }} {{ lang === 'zh' ? '个版本' : 'versions' }}</span>
+                                </div>
+                                <div class="version-list">
+                                    <div
+                                        v-for="(version, idx) in framework.frameList.slice(0, 2)"
+                                        :key="version.id"
+                                        class="version-item"
+                                        :class="{ unavailable: !version.isAvailable }"
+                                        @click.stop="viewVersionDetail(version); selectedFramework = framework"
+                                    >
+                                        <div class="version-item-header">
+                                            <span class="version-item-title">{{ version.version }}</span>
+                                            <span class="version-item-status" :class="version.isAvailable ? 'available' : 'unavailable'">
+                                                {{ version.isAvailable ? (lang === 'zh' ? '可用' : 'Active') : (lang === 'zh' ? '停用' : 'Inactive') }}
+                                            </span>
+                                        </div>
+                                        <div class="version-item-image">
+                                            <span class="version-item-label">{{ lang === 'zh' ? '镜像' : 'Image' }}:</span>
+                                            <span class="version-item-value">{{ version.detail.image }}</span>
+                                        </div>
+                                        <div class="version-item-ports" v-if="version.detail.portOpenPolicy">
+                                            <span class="version-item-label">{{ lang === 'zh' ? '端口' : 'Ports' }}:</span>
+                                            <span class="version-item-value">
+                                                <el-tag v-for="(count, port) in version.detail.portOpenPolicy" :key="port" size="small" type="info" class="mr-1">{{ port }}</el-tag>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div v-if="framework.frameList.length > 2" class="version-more-item" @click.stop="viewFrameworkDetail(framework)">
+                                        <span class="version-more-text">+{{ framework.frameList.length - 2 }} {{ lang === 'zh' ? '个版本' : 'more versions' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Add New Card -->
+                            <div class="add-card" @click="showCreateDialog = true">
+                                <div class="add-card-icon">
+                                    <el-icon :size="24"><Plus /></el-icon>
+                                </div>
+                                <span class="add-card-text">{{ lang === 'zh' ? '新增框架' : 'Add Framework' }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="pagination-container">
+                            <el-pagination
+                                v-model:current-page="pagination.page"
+                                v-model:page-size="pagination.size"
+                                :page-sizes="[10, 20, 50, 100]"
+                                :total="pagination.total"
+                                layout="total, sizes, prev, pager, next, jumper"
+                                @size-change="handleSizeChange"
+                                @current-change="handlePageChange"
+                            />
+                        </div>
+                    </div>
+
+                    <!-- View 2: Version List -->
+                    <div v-else-if="currentView === 'versionList'">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center gap-3">
+                                <el-button text @click="currentView = 'list'">
+                                    <el-icon><ArrowLeft /></el-icon>
+                                </el-button>
+                                <div>
+                                    <h2 class="text-lg font-semibold text-gray-900">{{ selectedFramework?.name }}</h2>
+                                    <p class="text-sm text-gray-500">{{ lang === 'zh' ? '管理及配置该框架的历史版本' : 'Manage and configure versions' }}</p>
+                                </div>
+                            </div>
+                            <el-button type="primary" @click="openCreateVersion">
+                                <el-icon><Plus /></el-icon>
+                                {{ lang === 'zh' ? '新增版本' : 'Add Version' }}
+                            </el-button>
+                        </div>
+
+                        <div class="data-table">
+                            <el-table :data="selectedFramework?.frameList" stripe>
+                                <el-table-column :label="lang === 'zh' ? '版本号' : 'Version'" width="120">
+                                    <template #default="{ row }">
+                                        <span class="font-mono font-medium">{{ row.version }}</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column :label="lang === 'zh' ? '镜像地址' : 'Image'" min-width="250" show-overflow-tooltip>
+                                    <template #default="{ row }">
+                                        <span class="font-mono text-sm">{{ row.detail.image }}</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column :label="lang === 'zh' ? '端口' : 'Ports'" width="120">
+                                    <template #default="{ row }">
+                                        <span v-if="row.detail.portOpenPolicy">
+                                            <span v-for="(count, port) in row.detail.portOpenPolicy" :key="port" class="mr-2">
+                                                {{ port }}
+                                            </span>
+                                        </span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column :label="lang === 'zh' ? '状态' : 'Status'" width="100">
+                                    <template #default="{ row }">
+                                        <span class="status-tag" :class="row.isAvailable ? 'available' : 'unavailable'">
+                                            <span class="dot"></span>
+                                            {{ row.isAvailable ? (lang === 'zh' ? '可用' : 'Available') : (lang === 'zh' ? '不可用' : 'Unavailable') }}
+                                        </span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column :label="lang === 'zh' ? '更新时间' : 'Update Time'" width="180">
+                                    <template #default="{ row }">
+                                        {{ formatDate(row.updateTime) }}
+                                    </template>
+                                </el-table-column>
+                                <el-table-column :label="lang === 'zh' ? '操作' : 'Actions'" width="150" align="right">
+                                    <template #default="{ row }">
+                                        <el-button size="small" text @click="viewVersionDetail(row)">
+                                            <el-icon><View /></el-icon>
+                                        </el-button>
+                                        <el-button size="small" text @click="editVersion(row)">
+                                            <el-icon><Edit /></el-icon>
+                                        </el-button>
+                                        <el-button size="small" text type="danger" @click="deleteVersion(row)">
+                                            <el-icon><Delete /></el-icon>
+                                        </el-button>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                        </div>
+                    </div>
+
+                    <!-- View 3: Version Detail -->
+                    <div v-else-if="currentView === 'versionDetail'">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center gap-3">
+                                <el-button text @click="currentView = 'versionList'">
+                                    <el-icon><ArrowLeft /></el-icon>
+                                </el-button>
+                                <div>
+                                    <h2 class="text-lg font-semibold text-gray-900">{{ selectedFramework?.name }} - {{ selectedVersion?.version }}</h2>
+                                    <p class="text-sm text-gray-500">{{ lang === 'zh' ? '版本详情' : 'Version Details' }}</p>
+                                </div>
+                            </div>
+                            <el-button type="primary" @click="editVersion(selectedVersion)">
+                                <el-icon><Edit /></el-icon>
+                                {{ lang === 'zh' ? '编辑' : 'Edit' }}
+                            </el-button>
+                        </div>
+
+                        <div class="detail-section">
+                            <div class="detail-section-title">{{ lang === 'zh' ? '基本信息' : 'Basic Information' }}</div>
+                            <div class="detail-row">
+                                <span class="detail-label">{{ lang === 'zh' ? '框架名称' : 'Framework Name' }}</span>
+                                <span class="detail-value">{{ selectedVersion?.name }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{{ lang === 'zh' ? '版本号' : 'Version' }}</span>
+                                <span class="detail-value font-mono">{{ selectedVersion?.version }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{{ lang === 'zh' ? '完整名称' : 'Full Name' }}</span>
+                                <span class="detail-value font-mono">{{ selectedVersion?.fullName }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{{ lang === 'zh' ? '状态' : 'Status' }}</span>
+                                <span class="status-tag" :class="selectedVersion?.isAvailable ? 'available' : 'unavailable'">
+                                    <span class="dot"></span>
+                                    {{ selectedVersion?.isAvailable ? (lang === 'zh' ? '可用' : 'Available') : (lang === 'zh' ? '不可用' : 'Unavailable') }}
+                                </span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{{ lang === 'zh' ? '创建时间' : 'Create Time' }}</span>
+                                <span class="detail-value">{{ formatDate(selectedVersion?.createTime) }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{{ lang === 'zh' ? '更新时间' : 'Update Time' }}</span>
+                                <span class="detail-value">{{ formatDate(selectedVersion?.updateTime) }}</span>
+                            </div>
+                        </div>
+
+                        <div class="detail-section">
+                            <div class="detail-section-title">{{ lang === 'zh' ? '容器配置' : 'Container Configuration' }}</div>
+                            <div class="detail-row">
+                                <span class="detail-label">{{ lang === 'zh' ? '镜像地址' : 'Docker Image' }}</span>
+                                <span class="detail-value mono">{{ selectedVersion?.detail.image }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{{ lang === 'zh' ? '端口配置' : 'Port Config' }}</span>
+                                <span class="detail-value">
+                                    <span v-if="selectedVersion?.detail.portOpenPolicy">
+                                        <el-tag v-for="(count, port) in selectedVersion.detail.portOpenPolicy" :key="port" size="small" class="mr-2">
+                                            {{ port }} ({{ count }})
+                                        </el-tag>
+                                    </span>
+                                </span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{{ lang === 'zh' ? '端口标签' : 'Port Tags' }}</span>
+                                <span class="detail-value">
+                                    <span v-if="selectedVersion?.detail.portTag">
+                                        <el-tag v-for="(tags, port) in selectedVersion.detail.portTag" :key="port" size="small" type="info" class="mr-2" v-for="tag in tags">
+                                            {{ port }}: {{ tag || 'N/A' }}
+                                        </el-tag>
+                                    </span>
+                                </span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{{ lang === 'zh' ? '使用RDMA' : 'Use RDMA' }}</span>
+                                <span class="detail-value">{{ selectedVersion?.detail.useRdma ? (lang === 'zh' ? '是' : 'Yes') : (lang === 'zh' ? '否' : 'No') }}</span>
+                            </div>
+                        </div>
+
+                        <div class="detail-section">
+                            <div class="detail-section-title">{{ lang === 'zh' ? '启动命令' : 'Startup Commands' }}</div>
+                            <div class="detail-row">
+                                <span class="detail-label">{{ lang === 'zh' ? '主节点命令' : 'Main Node' }}</span>
+                                <span class="detail-value mono">{{ selectedVersion?.detail.commands?.mainNodeCommand }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">{{ lang === 'zh' ? '工作节点命令' : 'Worker Node' }}</span>
+                                <span class="detail-value mono">{{ selectedVersion?.detail.commands?.workerNodeCommand }}</span>
+                            </div>
+                        </div>
+
+                        <div class="detail-section" v-if="selectedVersion?.detail.extraParams">
+                            <div class="detail-section-title">{{ lang === 'zh' ? '额外参数' : 'Extra Parameters' }}</div>
+                            <div class="detail-row" v-for="(value, key) in selectedVersion.detail.extraParams" :key="key">
+                                <span class="detail-label">{{ key }}</span>
+                                <span class="detail-value mono">{{ value }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- View 4: Edit/Create Version -->
+                    <div v-else-if="currentView === 'editVersion'">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center gap-3">
+                                <el-button text @click="currentView = isNewVersion ? 'versionList' : 'versionDetail'">
+                                    <el-icon><ArrowLeft /></el-icon>
+                                </el-button>
+                                <div>
+                                    <h2 class="text-lg font-semibold text-gray-900">
+                                        {{ isNewVersion ? (lang === 'zh' ? '新增版本' : 'Add Version') : (lang === 'zh' ? '编辑版本' : 'Edit Version') }}
+                                    </h2>
+                                    <p class="text-sm text-gray-500">
+                                        {{ selectedFramework?.name }} {{ isNewVersion ? '' : '- ' + selectedVersion?.version }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-container">
+                            <div class="form-section">
+                                <div class="form-section-title">{{ lang === 'zh' ? '基本信息' : 'Basic Information' }}</div>
+                                <div class="form-row">
+                                    <div>
+                                        <label class="form-label">
+                                            {{ lang === 'zh' ? '框架名称' : 'Framework Name' }}
+                                            <span class="required">*</span>
+                                        </label>
+                                        <el-input v-model="versionForm.name" :disabled="!isNewVersion" />
+                                    </div>
+                                    <div>
+                                        <label class="form-label">
+                                            {{ lang === 'zh' ? '版本号' : 'Version' }}
+                                            <span class="required">*</span>
+                                        </label>
+                                        <el-input v-model="versionForm.version" placeholder="e.g. 0.8.5" />
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div>
+                                        <label class="form-label">
+                                            {{ lang === 'zh' ? '状态' : 'Status' }}
+                                        </label>
+                                        <el-switch
+                                            v-model="versionForm.isAvailable"
+                                            :active-text="lang === 'zh' ? '可用' : 'Available'"
+                                            :inactive-text="lang === 'zh' ? '不可用' : 'Unavailable'"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <div class="form-section-title">{{ lang === 'zh' ? '容器配置' : 'Container Configuration' }}</div>
+                                <div class="mb-4">
+                                    <label class="form-label">
+                                        {{ lang === 'zh' ? '镜像地址' : 'Docker Image' }}
+                                        <span class="required">*</span>
+                                    </label>
+                                    <el-input v-model="versionForm.detail.image" @focus="showImageSelector = true">
+                                        <template #append>
+                                            <el-button @click="showImageSelector = true">
+                                                <el-icon><Picture /></el-icon>
+                                                {{ lang === 'zh' ? '选择' : 'Select' }}
+                                            </el-button>
+                                        </template>
+                                    </el-input>
+                                </div>
+                                <div class="form-row">
+                                    <div>
+                                        <label class="form-label">{{ lang === 'zh' ? '使用RDMA' : 'Use RDMA' }}</label>
+                                        <el-switch v-model="versionForm.detail.useRdma" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <div class="form-section-title">{{ lang === 'zh' ? '启动命令' : 'Startup Commands' }}</div>
+                                <div class="mb-4">
+                                    <label class="form-label">
+                                        {{ lang === 'zh' ? '主节点命令' : 'Main Node Command' }}
+                                        <span class="text-xs text-gray-400 ml-2">{{ lang === 'zh' ? '输入 $ 触发占位符' : 'Type $ for placeholders' }}</span>
+                                    </label>
+                                    <div class="placeholder-autocomplete">
+                                        <el-input
+                                            v-model="versionForm.detail.commands.mainNodeCommand"
+                                            type="textarea"
+                                            :rows="3"
+                                            @input="handleCommandInput"
+                                            ref="mainCommandInput"
+                                        />
+                                        <div v-if="showPlaceholderMenu" class="placeholder-dropdown">
+                                            <div
+                                                v-for="ph in placeholders"
+                                                :key="ph.key"
+                                                class="placeholder-item"
+                                                @click="insertPlaceholder(ph.key)"
+                                            >
+                                                <span class="key">{{ ph.key }}</span>
+                                                <span class="desc">{{ lang === 'zh' ? ph.desc : ph.descEn }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label">{{ lang === 'zh' ? '工作节点命令' : 'Worker Node Command' }}</label>
+                                    <el-input
+                                        v-model="versionForm.detail.commands.workerNodeCommand"
+                                        type="textarea"
+                                        :rows="3"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <div class="form-section-title">{{ lang === 'zh' ? '成功创建提示' : 'Success Note' }}</div>
+                                <div>
+                                    <label class="form-label">
+                                        {{ lang === 'zh' ? '成功创建提示' : 'Success Creation Note' }}
+                                        <span class="text-xs text-gray-400 ml-2">{{ lang === 'zh' ? '支持富文本和占位符' : 'Supports rich text and placeholders' }}</span>
+                                    </label>
+                                    <div class="rich-editor">
+                                        <div class="rich-editor-toolbar">
+                                            <button class="rich-editor-btn" @click="execCommand('bold')" title="Bold">
+                                                <el-icon><EditPen /></el-icon>
+                                            </button>
+                                            <button class="rich-editor-btn" @click="execCommand('italic')" title="Italic">
+                                                <el-icon><Edit /></el-icon>
+                                            </button>
+                                            <button class="rich-editor-btn" @click="execCommand('underline')" title="Underline">
+                                                <el-icon><Link /></el-icon>
+                                            </button>
+                                            <button class="rich-editor-btn" @click="execCommand('insertUnorderedList')" title="List">
+                                                <el-icon><List /></el-icon>
+                                            </button>
+                                            <button class="rich-editor-btn" v-for="ph in placeholders.slice(0, 3)" :key="'tb-'+ph.key" @click="insertPlaceholder(ph.key)" :title="ph.key">
+                                                <span class="text-xs font-mono">{{ ph.key }}</span>
+                                            </button>
+                                        </div>
+                                        <div
+                                            class="rich-editor-content"
+                                            contenteditable="true"
+                                            ref="noteEditor"
+                                            :data-placeholder="lang === 'zh' ? '请输入成功创建提示内容...' : 'Enter success note content...'"
+                                            @input="handleNoteInput"
+                                        ></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                                <el-button @click="currentView = isNewVersion ? 'versionList' : 'versionDetail'">
+                                    {{ lang === 'zh' ? '取消' : 'Cancel' }}
+                                </el-button>
+                                <el-button type="primary" @click="saveVersion">
+                                    {{ lang === 'zh' ? '保存' : 'Save' }}
+                                </el-button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Image Selector Dialog -->
+        <el-dialog
+            v-model="showImageSelector"
+            :title="lang === 'zh' ? '选择镜像' : 'Select Image'"
+            width="500px"
+        >
+            <div class="image-selector">
+                <div class="image-selector-header">
+                    <el-input
+                        v-model="imageSearch"
+                        :placeholder="lang === 'zh' ? '搜索镜像...' : 'Search images...'"
+                        clearable
+                    >
+                        <template #prefix>
+                            <el-icon><Search /></el-icon>
+                        </template>
+                    </el-input>
+                </div>
+                <div class="image-selector-list">
+                    <div
+                        v-for="img in filteredImages"
+                        :key="img.id"
+                        class="image-selector-item"
+                        :class="{ selected: versionForm.detail.image === img.path }"
+                        @click="selectImage(img.path)"
+                    >
+                        <div class="radio"></div>
+                        <div>
+                            <div class="image-name">{{ img.name }}</div>
+                            <div class="image-path">{{ img.path }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <template #footer>
+                <el-button @click="showImageSelector = false">{{ lang === 'zh' ? '取消' : 'Cancel' }}</el-button>
+                <el-button type="primary" @click="confirmImage">{{ lang === 'zh' ? '确认' : 'Confirm' }}</el-button>
+            </template>
+        </el-dialog>
+
+        <!-- Create Framework Dialog -->
+        <el-dialog
+            v-model="showCreateDialog"
+            :title="lang === 'zh' ? '新增框架' : 'Add Framework'"
+            width="400px"
+        >
+            <el-form label-position="top">
+                <el-form-item :label="lang === 'zh' ? '框架名称' : 'Framework Name'">
+                    <el-input v-model="newFrameworkName" :placeholder="lang === 'zh' ? '请输入框架名称' : 'Enter framework name'" />
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="showCreateDialog = false">{{ lang === 'zh' ? '取消' : 'Cancel' }}</el-button>
+                <el-button type="primary" @click="createFramework">{{ lang === 'zh' ? '创建' : 'Create' }}</el-button>
+            </template>
+        </el-dialog>
+    </div>
+
+    <script>
+        const { createApp, ref, reactive, computed, nextTick } = Vue;
+
+        const App = {
+            setup() {
+                // Language
+                const lang = ref('zh');
+
+                // View State
+                const currentView = ref('list');
+
+                // Mock Data (based on API structure)
+                const frameworks = ref([
+                    {
+                        name: 'vLLM',
+                        frameList: [
+                            {
+                                id: '593B0F88273236AB1D5DAF0E7F92E2BF',
+                                name: 'vllm',
+                                version: '0.7.2',
+                                fullName: 'vllm:0.7.2',
+                                isAvailable: true,
+                                createTime: 1771919708000,
+                                updateTime: 1771919708000,
+                                detail: {
+                                    image: '/library/fast-inference:vllm_0.72-ray_2.46.0',
+                                    useRdma: false,
+                                    commands: {
+                                        mainNodeCommand: 'python /app/launcher.py --model /home/${modelName} --node_num ${nodeNum} --retry-time 3 ${prefixExtraParamString}',
+                                        workerNodeCommand: 'ray start --address job-cluster-${id}:6379 --block'
+                                    },
+                                    envs: {},
+                                    extraParams: { dtype: 'half' },
+                                    portOpenPolicy: { '8000': 5 },
+                                    portTag: { '8000': ['OpenAI API Port'] },
+                                    volumes: []
+                                },
+                                note: '#if(${startNote})\n\n# 🎉 成功快速创建模型推理集群！\n\n您的集群名称为：[${name}]'
+                            },
+                            {
+                                id: '5D6379356D19BFC473068DA2EE9DE65E',
+                                name: 'vllm',
+                                version: '0.8.5',
+                                fullName: 'vllm:0.8.5',
+                                isAvailable: true,
+                                createTime: 1771919708000,
+                                updateTime: 1771919708000,
+                                detail: {
+                                    image: '/library/fast-inference:vllm_0.8.5-ray_2.46.0',
+                                    useRdma: false,
+                                    commands: {
+                                        mainNodeCommand: 'python /app/launcher.py --model /home/${modelName} --node_num ${nodeNum} --retry-time 3 ${prefixExtraParamString}',
+                                        workerNodeCommand: 'ray start --address job-cluster-${id}:6379 --block'
+                                    },
+                                    envs: {},
+                                    extraParams: { dtype: 'half' },
+                                    portOpenPolicy: { '8000': 5, '8001': 1 },
+                                    portTag: { '8000': ['OpenAI API Port'], '8001': [] },
+                                    volumes: []
+                                },
+                                note: '#if(${startNote})\n\n# 🎉 成功快速创建模型推理集群！\n\n您的集群名称为：[${name}]'
+                            },
+                            {
+                                id: '3',
+                                name: 'vllm',
+                                version: '0.6.0',
+                                fullName: 'vllm:0.6.0',
+                                isAvailable: false,
+                                createTime: 1771919708000,
+                                updateTime: 1771919708000,
+                                detail: {
+                                    image: '/library/fast-inference:vllm_0.6.0-ray_2.46.0',
+                                    useRdma: false,
+                                    commands: {
+                                        mainNodeCommand: 'python /app/launcher.py --model /home/${modelName}',
+                                        workerNodeCommand: 'ray start --address job-cluster-${id}:6379 --block'
+                                    },
+                                    envs: {},
+                                    extraParams: {},
+                                    portOpenPolicy: { '8000': 3 },
+                                    portTag: { '8000': ['OpenAI API Port'] },
+                                    volumes: []
+                                },
+                                note: ''
+                            }
+                        ]
+                    },
+                    {
+                        name: 'DeepSeek',
+                        frameList: [
+                            {
+                                id: '4',
+                                name: 'DeepSeek',
+                                version: '1.0.0',
+                                fullName: 'DeepSeek:1.0.0',
+                                isAvailable: true,
+                                createTime: 1771919708000,
+                                updateTime: 1771919708000,
+                                detail: {
+                                    image: '/library/deepseek:latest',
+                                    useRdma: true,
+                                    commands: {
+                                        mainNodeCommand: 'python /app/deepseek.py --model ${modelName}',
+                                        workerNodeCommand: 'ray start --address job-cluster-${id}:6379 --block'
+                                    },
+                                    envs: {},
+                                    extraParams: {},
+                                    portOpenPolicy: { '8080': 2 },
+                                    portTag: { '8080': ['API Port'] },
+                                    volumes: []
+                                },
+                                note: ''
+                            }
+                        ]
+                    },
+                    {
+                        name: 'Qwen',
+                        frameList: [
+                            {
+                                id: '5',
+                                name: 'Qwen',
+                                version: '2.5-7B',
+                                fullName: 'Qwen:2.5-7B',
+                                isAvailable: true,
+                                createTime: 1771919708000,
+                                updateTime: 1771919708000,
+                                detail: {
+                                    image: '/library/qwen:2.5-7b',
+                                    useRdma: false,
+                                    commands: {
+                                        mainNodeCommand: 'python /app/qwen.py --model ${modelName}',
+                                        workerNodeCommand: 'ray start --address job-cluster-${id}:6379 --block'
+                                    },
+                                    envs: {},
+                                    extraParams: {},
+                                    portOpenPolicy: { '8000': 4 },
+                                    portTag: { '8000': ['API Port'] },
+                                    volumes: []
+                                },
+                                note: ''
+                            },
+                            {
+                                id: '6',
+                                name: 'Qwen',
+                                version: '1.5-14B',
+                                fullName: 'Qwen:1.5-14B',
+                                isAvailable: false,
+                                createTime: 1771919708000,
+                                updateTime: 1771919708000,
+                                detail: {
+                                    image: '/library/qwen:1.5-14b',
+                                    useRdma: false,
+                                    commands: {
+                                        mainNodeCommand: 'python /app/qwen.py --model ${modelName}',
+                                        workerNodeCommand: 'ray start --address job-cluster-${id}:6379 --block'
+                                    },
+                                    envs: {},
+                                    extraParams: {},
+                                    portOpenPolicy: { '8000': 2 },
+                                    portTag: { '8000': ['API Port'] },
+                                    volumes: []
+                                },
+                                note: ''
+                            }
+                        ]
+                    }
+                ]);
+
+                // Filter
+                const filter = reactive({
+                    name: '',
+                    status: 'all'
+                });
+
+                // Pagination
+                const pagination = reactive({
+                    page: 1,
+                    size: 10,
+                    total: computed(() => filteredFrameworks.value.length)
+                });
+
+                // Selected Items
+                const selectedFramework = ref(null);
+                const selectedVersion = ref(null);
+                const isNewVersion = ref(false);
+
+                // Dialogs
+                const showCreateDialog = ref(false);
+                const showImageSelector = ref(false);
+                const newFrameworkName = ref('');
+                const imageSearch = ref('');
+
+                // Version Form
+                const versionForm = reactive({
+                    id: null,
+                    name: '',
+                    version: '',
+                    isAvailable: true,
+                    detail: {
+                        image: '',
+                        useRdma: false,
+                        commands: {
+                            mainNodeCommand: '',
+                            workerNodeCommand: ''
+                        },
+                        envs: {},
+                        extraParams: {},
+                        portOpenPolicy: {},
+                        portTag: {},
+                        volumes: []
+                    },
+                    note: ''
+                });
+
+                // Placeholders
+                const showPlaceholderMenu = ref(false);
+                const placeholders = ref([
+                    { key: '${modelName}', desc: '模型名称', descEn: 'Model name' },
+                    { key: '${nodeNum}', desc: '节点数量', descEn: 'Number of nodes' },
+                    { key: '${id}', desc: '集群ID', descEn: 'Cluster ID' },
+                    { key: '${prefixExtraParamString}', desc: '额外参数字符串', descEn: 'Extra parameters string' },
+                    { key: '${startNote}', desc: '启动备注', descEn: 'Start notes' },
+                    { key: '${name}', desc: '集群名称', descEn: 'Cluster name' }
+                ]);
+
+                // Image List
+                const imageList = ref([
+                    { id: 1, name: 'vLLM 0.8.5', path: '/library/fast-inference:vllm_0.8.5-ray_2.46.0' },
+                    { id: 2, name: 'vLLM 0.7.2', path: '/library/fast-inference:vllm_0.72-ray_2.46.0' },
+                    { id: 3, name: 'vLLM 0.6.0', path: '/library/fast-inference:vllm_0.60-ray_2.46.0' },
+                    { id: 4, name: 'DeepSeek Latest', path: '/library/deepseek:latest' },
+                    { id: 5, name: 'DeepSeek R1', path: '/library/deepseek:r1' },
+                    { id: 6, name: 'Qwen 2.5-7B', path: '/library/qwen:2.5-7b-instruct' },
+                    { id: 7, name: 'Qwen 1.5-14B', path: '/library/qwen:1.5-14b-chat' },
+                    { id: 8, name: 'TGI 2.0', path: '/library/huggingface/text-generation-inference:2.0' },
+                    { id: 9, name: 'TGI 1.0', path: '/library/huggingface/text-generation-inference:1.0' },
+                    { id: 10, name: 'SGLang Latest', path: '/library/sglang:latest' }
+                ]);
+
+                // Refs
+                const mainCommandInput = ref(null);
+                const noteEditor = ref(null);
+
+                // Computed
+                const filteredFrameworks = computed(() => {
+                    let result = frameworks.value;
+
+                    if (filter.name) {
+                        result = result.filter(f => f.name.toLowerCase().includes(filter.name.toLowerCase()));
+                    }
+
+                    if (filter.status === 'available') {
+                        result = result.filter(f => f.frameList.some(v => v.isAvailable));
+                    } else if (filter.status === 'unavailable') {
+                        result = result.filter(f => f.frameList.every(v => !v.isAvailable));
+                    }
+
+                    return result;
+                });
+
+                const filteredImages = computed(() => {
+                    if (!imageSearch.value) return imageList.value;
+                    return imageList.value.filter(img =>
+                        img.name.toLowerCase().includes(imageSearch.value.toLowerCase()) ||
+                        img.path.toLowerCase().includes(imageSearch.value.toLowerCase())
+                    );
+                });
+
+                const pageTitle = computed(() => {
+                    switch (currentView.value) {
+                        case 'list':
+                            return lang.value === 'zh' ? '框架配置' : 'Framework Configuration';
+                        case 'versionList':
+                            return selectedFramework.value?.name || '';
+                        case 'versionDetail':
+                            return `${selectedFramework.value?.name} - ${selectedVersion.value?.version}`;
+                        case 'editVersion':
+                            return isNewVersion.value
+                                ? (lang.value === 'zh' ? '新增版本' : 'Add Version')
+                                : (lang.value === 'zh' ? '编辑版本' : 'Edit Version');
+                        default:
+                            return '';
+                    }
+                });
+
+                // Methods
+                const formatDate = (timestamp) => {
+                    if (!timestamp) return '-';
+                    const date = new Date(timestamp);
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    const seconds = String(date.getSeconds()).padStart(2, '0');
+                    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+                };
+
+                const handleSearch = () => {
+                    pagination.page = 1;
+                };
+
+                const handleReset = () => {
+                    filter.name = '';
+                    filter.status = 'all';
+                    pagination.page = 1;
+                };
+
+                const handleSizeChange = (size) => {
+                    pagination.size = size;
+                };
+
+                const handlePageChange = (page) => {
+                    pagination.page = page;
+                };
+
+                const viewFrameworkDetail = (framework) => {
+                    selectedFramework.value = framework;
+                    currentView.value = 'versionList';
+                };
+
+                const viewVersionDetail = (version) => {
+                    selectedVersion.value = version;
+                    currentView.value = 'versionDetail';
+                };
+
+                const openCreateVersion = () => {
+                    isNewVersion.value = true;
+                    versionForm.id = null;
+                    versionForm.name = selectedFramework.value.name;
+                    versionForm.version = '';
+                    versionForm.isAvailable = true;
+                    versionForm.detail.image = '';
+                    versionForm.detail.useRdma = false;
+                    versionForm.detail.commands.mainNodeCommand = '';
+                    versionForm.detail.commands.workerNodeCommand = '';
+                    versionForm.note = '';
+                    currentView.value = 'editVersion';
+                };
+
+                const editVersion = (version) => {
+                    isNewVersion.value = false;
+                    versionForm.id = version.id;
+                    versionForm.name = version.name;
+                    versionForm.version = version.version;
+                    versionForm.isAvailable = version.isAvailable;
+                    versionForm.detail.image = version.detail.image || '';
+                    versionForm.detail.useRdma = version.detail.useRdma || false;
+                    versionForm.detail.commands.mainNodeCommand = version.detail.commands?.mainNodeCommand || '';
+                    versionForm.detail.commands.workerNodeCommand = version.detail.commands?.workerNodeCommand || '';
+                    versionForm.note = version.note || '';
+
+                    // Initialize note editor content
+                    nextTick(() => {
+                        if (noteEditor.value) {
+                            noteEditor.value.innerHTML = version.note || '';
+                        }
+                    });
+
+                    currentView.value = 'editVersion';
+                };
+
+                const deleteVersion = (version) => {
+                    const idx = selectedFramework.value.frameList.findIndex(v => v.id === version.id);
+                    if (idx > -1) {
+                        selectedFramework.value.frameList.splice(idx, 1);
+                        ElMessage.success(lang.value === 'zh' ? '删除成功' : 'Deleted successfully');
+                    }
+                };
+
+                const saveVersion = () => {
+                    if (!versionForm.name || !versionForm.version) {
+                        ElMessage.warning(lang.value === 'zh' ? '请填写必填项' : 'Please fill in required fields');
+                        return;
+                    }
+
+                    if (isNewVersion.value) {
+                        const newVersion = {
+                            id: Date.now().toString(),
+                            name: versionForm.name,
+                            version: versionForm.version,
+                            fullName: `${versionForm.name}:${versionForm.version}`,
+                            isAvailable: versionForm.isAvailable,
+                            createTime: Date.now(),
+                            updateTime: Date.now(),
+                            detail: {
+                                image: versionForm.detail.image,
+                                useRdma: versionForm.detail.useRdma,
+                                commands: {
+                                    mainNodeCommand: versionForm.detail.commands.mainNodeCommand,
+                                    workerNodeCommand: versionForm.detail.commands.workerNodeCommand
+                                },
+                                envs: {},
+                                extraParams: {},
+                                portOpenPolicy: { '8000': 5 },
+                                portTag: { '8000': ['OpenAI API Port'] },
+                                volumes: []
+                            },
+                            note: versionForm.note
+                        };
+                        selectedFramework.value.frameList.push(newVersion);
+                    } else {
+                        const idx = selectedFramework.value.frameList.findIndex(v => v.id === versionForm.id);
+                        if (idx > -1) {
+                            Object.assign(selectedFramework.value.frameList[idx], {
+                                name: versionForm.name,
+                                version: versionForm.version,
+                                fullName: `${versionForm.name}:${versionForm.version}`,
+                                isAvailable: versionForm.isAvailable,
+                                updateTime: Date.now(),
+                                detail: {
+                                    image: versionForm.detail.image,
+                                    useRdma: versionForm.detail.useRdma,
+                                    commands: {
+                                        mainNodeCommand: versionForm.detail.commands.mainNodeCommand,
+                                        workerNodeCommand: versionForm.detail.commands.workerNodeCommand
+                                    },
+                                    envs: {},
+                                    extraParams: {},
+                                    portOpenPolicy: { '8000': 5 },
+                                    portTag: { '8000': ['OpenAI API Port'] },
+                                    volumes: []
+                                },
+                                note: versionForm.note
+                            });
+                        }
+                    }
+
+                    ElMessage.success(lang.value === 'zh' ? '保存成功' : 'Saved successfully');
+                    currentView.value = 'versionList';
+                };
+
+                const createFramework = () => {
+                    if (!newFrameworkName.value) {
+                        ElMessage.warning(lang.value === 'zh' ? '请输入框架名称' : 'Please enter framework name');
+                        return;
+                    }
+
+                    frameworks.value.push({
+                        name: newFrameworkName.value,
+                        frameList: []
+                    });
+
+                    showCreateDialog.value = false;
+                    newFrameworkName.value = '';
+                    ElMessage.success(lang.value === 'zh' ? '创建成功' : 'Created successfully');
+                };
+
+                const selectImage = (path) => {
+                    versionForm.detail.image = path;
+                };
+
+                const confirmImage = () => {
+                    showImageSelector.value = false;
+                };
+
+                const handleCommandInput = (value) => {
+                    if (value.endsWith('$')) {
+                        showPlaceholderMenu.value = true;
+                    } else if (!value.includes('$')) {
+                        showPlaceholderMenu.value = false;
+                    }
+                };
+
+                const insertPlaceholder = (key) => {
+                    versionForm.detail.commands.mainNodeCommand += key;
+                    showPlaceholderMenu.value = false;
+                };
+
+                const handleNoteInput = (e) => {
+                    versionForm.note = e.target.innerHTML;
+                };
+
+                const execCommand = (command) => {
+                    document.execCommand(command, false, null);
+                    noteEditor.value?.focus();
+                };
+
+                return {
+                    lang,
+                    currentView,
+                    frameworks,
+                    filter,
+                    pagination,
+                    selectedFramework,
+                    selectedVersion,
+                    isNewVersion,
+                    showCreateDialog,
+                    showImageSelector,
+                    newFrameworkName,
+                    imageSearch,
+                    versionForm,
+                    showPlaceholderMenu,
+                    placeholders,
+                    imageList,
+                    mainCommandInput,
+                    noteEditor,
+                    filteredFrameworks,
+                    filteredImages,
+                    pageTitle,
+                    formatDate,
+                    handleSearch,
+                    handleReset,
+                    handleSizeChange,
+                    handlePageChange,
+                    viewFrameworkDetail,
+                    viewVersionDetail,
+                    openCreateVersion,
+                    editVersion,
+                    deleteVersion,
+                    saveVersion,
+                    createFramework,
+                    selectImage,
+                    confirmImage,
+                    handleCommandInput,
+                    insertPlaceholder,
+                    handleNoteInput,
+                    execCommand
+                };
+            }
+        };
+
+        const app = createApp(App);
+        app.use(ElementPlus);
+
+        // Register icons
+        for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+            app.component(key, component);
+        }
+
+        app.mount('#app');
+    </script>
+
+<style>
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.inland-security-footer {
+  position: fixed;
+  z-index: 10;
+  bottom: 0;
+  right: 0;
+  width: fit-content;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.tooltip-container {
+  position: relative;
+}
+
+.trigger-content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  background-color: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.minimax-link {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 300;
+  color: #adadad;
+  text-decoration: none;
+}
+
+.minimax-link:visited {
+  color: #adadad;
+}
+
+.minimax-link:hover {
+  color: #666666;
+}
+
+.tooltip-content {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  padding-bottom: 16px; /* 8px 内容间距 + 8px 用于鼠标移动的透明区域 */
+  font-size: 12px;
+  line-height: 17px;
+  background-color: #fafafa;
+  border-radius: 12px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  color: #171717;
+}
+
+/* 创建透明的连接区域，让鼠标可以平滑移动到 tooltip */
+.tooltip-content::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  right: 0;
+  height: 16px;
+}
+
+.tooltip-container:hover .tooltip-content {
+  display: flex;
+}
+
+.info-section {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.beian-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #171717;
+}
+
+.beian-icon {
+  width: 14px;
+  height: 14px;
+  margin-right: 2px;
+}
+
+.underline-text {
+  color: #171717;
+  text-decoration: underline;
+}
+
+.underline-text:hover {
+  color: #000000;
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+  .trigger-content {
+    background-color: transparent;
+  }
+
+  .minimax-link,
+  .minimax-link:visited {
+    color: #666666;
+  }
+
+  .minimax-link:hover {
+    color: #adadad;
+  }
+
+  .tooltip-content {
+    background-color: #262626;
+    color: #ededed;
+  }
+
+  .beian-link,
+  .underline-text {
+    color: #ededed;
+  }
+
+  .underline-text:hover {
+    color: #ffffff;
+  }
+}
+
+</style>
+<div class="inland-security-footer">
+  <div class="tooltip-container">
+    <div class="trigger-content">
+      <a href="https://www.minimaxi.com/" target="_blank" rel="noreferrer" class="minimax-link">
+        <span>© 2026 MiniMax</span>
+      </a>
+    </div>
+    <div class="tooltip-content">
+      <section class="info-section">
+        <span>上海稀宇科技有限公司</span>
+      </section>
+
+      <section class="info-section">
+        <a class="beian-link" href="https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=31010402010179" target="_blank" rel="noreferrer">
+          <img alt="hailuo-beian-icon" src="https://cdn.hailuoai.com/hailuo-video-web/public_assets/223037d3-79fd-4db0-a456-749f38a6a14b.png" class="beian-icon">
+          <span class="underline-text">沪公网安备31010402010179号</span>
+        </a>
+        <a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer" class="underline-text">
+          沪ICP备2023003282号-38
+        </a>
+      </section>
+
+      <section class="info-section">
+        <span>模型名称：MiniMax</span>
+        <span>备案号：Shanghai-MiniMax-202505230046</span>
+      </section>
+
+      <section class="info-section">
+        <a href="https://agent.minimaxi.com/doc/zh/terms-of-service.html" target="_blank" rel="noreferrer" class="underline-text">
+          用户协议
+        </a>
+        <a href="https://agent.minimaxi.com/doc/zh/privacy-policy.html" target="_blank" rel="noreferrer" class="underline-text">
+          隐私政策
+        </a>
+      </section>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
