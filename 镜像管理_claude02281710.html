@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>镜像管理 - 算模方控制台</title>
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <link rel="stylesheet" href="https://unpkg.com/element-plus@2.4.4/dist/index.css">
+  <script src="https://unpkg.com/vue@3.3.11/dist/vue.global.js"></script>
+  <script src="https://unpkg.com/element-plus@2.4.4/dist/index.full.js"></script>
+  <script src="https://unpkg.com/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #4C5DF7;
+      --primary-light: #EEF0FF;
+      --primary-hover: #3D4AC6;
+      --border: #E5E7EB;
+      --border-light: #F3F4F6;
+      --bg: #FFFFFF;
+      --bg-page: #F6F7FB;
+      --text-primary: #111827;
+      --text-secondary: #6B7280;
+      --text-tertiary: #9CA3AF;
+      --success: #10B981;
+      --danger: #EF4444;
+      --warning: #F59E0B;
+      --font: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      --mono: 'IBM Plex Mono', 'SF Mono', Monaco, monospace;
+      --el-color-primary: #4C5DF7;
+      --el-color-primary-light-3: #798EF9;
+      --el-color-primary-light-5: #A0B0FB;
+      --el-color-primary-light-7: #C7D2FD;
+      --el-color-primary-light-9: #EEF0FF;
+      --el-color-primary-dark-2: #3D4AC6;
+      --el-text-color-primary: #111827;
+      --el-text-color-regular: #374151;
+      --el-text-color-secondary: #6B7280;
+      --el-border-color: #E5E7EB;
+      --el-border-color-light: #F3F4F6;
+      --el-bg-color: #FFFFFF;
+      --el-bg-color-page: #F6F7FB;
+      --el-fill-color-light: #F9FAFB;
+      --el-font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg-page);
+      color: var(--text-secondary);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ===== Layout ===== */
+    .app-container { height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+    .top-bar {
+      flex-shrink: 0;
+      height: 52px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border-light);
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0 24px; z-index: 1000;
+    }
+    .top-bar-left, .logo-area, .top-nav { display: flex; align-items: center; }
+    .top-bar-left { gap: 28px; }
+    .logo-area { gap: 9px; text-decoration: none; }
+    .logo-icon {
+      width: 26px; height: 26px; border-radius: 6px;
+      background: linear-gradient(135deg, #4C5DF7 0%, #818CF8 100%);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-icon svg { width: 14px; height: 14px; fill: white; }
+    .brand-name { font-size: 15px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; }
+    .top-nav { gap: 2px; }
+    .top-nav-item {
+      height: 36px; line-height: 36px; padding: 0 10px; cursor: pointer;
+      color: var(--text-secondary); font-size: 13.5px; font-weight: 500;
+      border-radius: 6px; transition: all 120ms; position: relative;
+    }
+    .top-nav-item:hover { color: var(--text-primary); background: var(--border-light); }
+    .top-nav-item.active { color: var(--primary); background: var(--primary-light); }
+    .top-bar-right { display: flex; align-items: center; gap: 16px; }
+    .region-pill {
+      display: flex; align-items: center; gap: 6px;
+      padding: 5px 10px; border-radius: 6px; cursor: pointer;
+      border: 1px solid var(--border); background: var(--bg);
+      font-size: 13px; color: var(--text-secondary);
+      transition: all 120ms;
+    }
+    .region-pill:hover { border-color: var(--primary); color: var(--primary); }
+    .region-dot { width: 7px; height: 7px; border-radius: 50%; background: #10B981; box-shadow: 0 0 0 2px rgba(16,185,129,0.2); }
+
+    .below-header { display: flex; flex: 1; overflow: hidden; }
+
+    .side-nav {
+      width: 196px; flex-shrink: 0; background: var(--bg);
+      border-right: 1px solid var(--border-light); overflow-y: auto; padding: 16px 0;
+    }
+    .side-nav-group-title {
+      font-size: 11px; color: var(--text-tertiary); padding: 10px 0 6px 16px;
+      font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+    }
+    .side-nav-item {
+      height: 36px; display: flex; align-items: center;
+      padding: 0 16px; cursor: pointer; font-size: 13.5px; color: var(--text-secondary);
+      position: relative; transition: all 120ms; border-radius: 0;
+    }
+    .side-nav-item:hover { color: var(--text-primary); background: var(--border-light); }
+    .side-nav-item.active {
+      color: var(--primary); background: var(--primary-light); font-weight: 600;
+    }
+    .side-nav-item.active::before {
+      content: ''; position: absolute; left: 0; top: 6px; bottom: 6px; width: 3px;
+      background: var(--primary); border-radius: 0 2px 2px 0;
+    }
+
+    .main-content { flex: 1; overflow-y: auto; background: var(--bg-page); padding: 20px 24px; scroll-behavior: smooth; }
+
+    /* ===== Page Header ===== */
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+    .page-title-group {}
+    .page-title { font-size: 19px; font-weight: 700; color: var(--text-primary); line-height: 1.3; }
+    .page-subtitle { font-size: 12.5px; color: var(--text-tertiary); margin-top: 2px; }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+
+    /* ===== Filter Bar ===== */
+    .filter-bar {
+      background: var(--bg); border-radius: 10px; padding: 12px 16px;
+      margin-bottom: 12px; border: 1px solid var(--border-light);
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    .search-box { position: relative; flex: 1; min-width: 220px; max-width: 300px; }
+    .search-box input {
+      width: 100%; height: 34px; padding: 0 12px 0 34px;
+      border: 1px solid var(--border); border-radius: 7px;
+      font-family: var(--font); font-size: 13.5px; color: var(--text-primary);
+      background: var(--bg); outline: none; transition: all 150ms;
+    }
+    .search-box input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(76,93,247,0.08); }
+    .search-box input::placeholder { color: var(--text-tertiary); }
+    .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary); pointer-events: none; }
+    .search-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary); cursor: pointer; font-size: 14px; line-height: 1; }
+    .search-clear:hover { color: var(--text-secondary); }
+
+    .tag-filters { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .tag-filter-label { font-size: 12.5px; color: var(--text-tertiary); white-space: nowrap; }
+    .tag-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px; border-radius: 20px; font-size: 12px; font-weight: 500;
+      border: 1.5px solid transparent; cursor: pointer; transition: all 120ms; white-space: nowrap;
+    }
+    .tag-pill.inactive { background: var(--border-light); color: var(--text-secondary); border-color: var(--border); }
+    .tag-pill.inactive:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+    .tag-pill.active-training { background: #ECFDF5; color: #059669; border-color: #34D399; }
+    .tag-pill.active-ide { background: #EEF0FF; color: #4C5DF7; border-color: #818CF8; }
+    .tag-pill.active-inference { background: #FFFBEB; color: #D97706; border-color: #FCD34D; }
+    .tag-pill.active-container { background: #F0F9FF; color: #0284C7; border-color: #7DD3FC; }
+    .tag-pill.active-ray { background: #FFF1F2; color: #E11D48; border-color: #FDA4AF; }
+    .tag-pill-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+    .filter-divider { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
+    .filter-summary { font-size: 12.5px; color: var(--text-tertiary); white-space: nowrap; }
+    .filter-summary strong { color: var(--text-primary); }
+    .reset-btn {
+      font-size: 12.5px; color: var(--primary); cursor: pointer; white-space: nowrap;
+      padding: 3px 8px; border-radius: 5px; transition: background 120ms;
+    }
+    .reset-btn:hover { background: var(--primary-light); }
+
+    /* ===== Table ===== */
+    .table-card { background: var(--bg); border-radius: 10px; border: 1px solid var(--border-light); overflow: hidden; }
+    .table-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px 0; }
+    .selected-hint { font-size: 12.5px; color: var(--primary); font-weight: 500; }
+
+    .image-table .el-table__header th {
+      background: var(--border-light) !important; border-bottom: 1px solid var(--border) !important;
+      font-size: 12px; font-weight: 600; color: var(--text-tertiary);
+      height: 40px; letter-spacing: 0.3px;
+    }
+    .image-table .el-table__row { height: 52px; cursor: pointer; transition: background 100ms; }
+    .image-table .el-table__row:hover td { background: #FAFBFF !important; }
+    .image-table .el-table__row td { border-bottom: 1px solid var(--border-light) !important; }
+    .image-table .el-table__row:last-child td { border-bottom: none !important; }
+    .image-table .cell { font-size: 13.5px; padding: 0 12px !important; }
+
+    .img-name-cell { display: flex; flex-direction: column; gap: 2px; }
+    .img-display-name { font-size: 13.5px; font-weight: 600; color: var(--text-primary); line-height: 1.4; }
+    .img-registry { font-family: var(--mono); font-size: 11.5px; color: var(--text-tertiary); display: flex; align-items: center; gap: 4px; }
+    .copy-inline {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 16px; height: 16px; border-radius: 3px; cursor: pointer;
+      color: var(--text-tertiary); transition: all 100ms; opacity: 0;
+    }
+    .img-registry:hover .copy-inline { opacity: 1; }
+    .copy-inline:hover { color: var(--primary); background: var(--primary-light); }
+
+    /* Tag display */
+    .tag-chip {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 2px 7px; border-radius: 4px; font-size: 11.5px; font-weight: 600;
+      border: 1px solid; white-space: nowrap; cursor: help;
+    }
+    .tag-chip.training { background: #ECFDF5; color: #059669; border-color: #A7F3D0; }
+    .tag-chip.ide { background: #EEF0FF; color: #4C5DF7; border-color: #C7D2FD; }
+    .tag-chip.inference { background: #FFFBEB; color: #D97706; border-color: #FDE68A; }
+    .tag-chip.container { background: #F0F9FF; color: #0284C7; border-color: #BAE6FD; }
+    .tag-chip.ray { background: #FFF1F2; color: #E11D48; border-color: #FECDD3; }
+
+    /* Date cell */
+    .date-cell { font-family: var(--mono); font-size: 12.5px; color: var(--text-tertiary); white-space: nowrap; }
+
+    /* Action buttons */
+    .row-actions { display: flex; align-items: center; gap: 2px; justify-content: center; white-space: nowrap; flex-wrap: nowrap; }
+    .row-action-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      height: 28px; padding: 0 8px; border-radius: 5px;
+      font-size: 12.5px; font-weight: 500; cursor: pointer; transition: all 100ms;
+      text-decoration: none; border: none; background: transparent; white-space: nowrap;
+    }
+    .row-action-btn.view { color: var(--primary); }
+    .row-action-btn.view:hover { background: var(--primary-light); }
+    .row-action-btn.edit { color: var(--text-secondary); }
+    .row-action-btn.edit:hover { background: var(--border-light); color: var(--text-primary); }
+    .row-action-btn.del { color: #9CA3AF; }
+    .row-action-btn.del:hover { background: #FEF2F2; color: var(--danger); }
+    .action-sep { width: 1px; height: 14px; background: var(--border); }
+
+    /* Pagination */
+    .pagination-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px; border-top: 1px solid var(--border-light);
+      background: var(--bg);
+    }
+    .pagination-info { font-size: 12.5px; color: var(--text-tertiary); }
+
+    /* ===== Detail Page ===== */
+    .detail-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+    }
+    .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-tertiary); }
+    .breadcrumb-link { color: var(--primary); cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 4px; }
+    .breadcrumb-link:hover { text-decoration: underline; }
+    .breadcrumb-sep { color: var(--border); }
+    .breadcrumb-current { color: var(--text-primary); font-weight: 600; }
+
+    .detail-body { display: flex; flex-direction: column; gap: 12px; }
+    .detail-card {
+      background: var(--bg); border-radius: 10px; border: 1px solid var(--border-light); overflow: hidden;
+    }
+    .detail-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; border-bottom: 1px solid var(--border-light);
+      background: var(--border-light);
+    }
+    .detail-card-title {
+      font-size: 13px; font-weight: 700; color: var(--text-primary);
+      display: flex; align-items: center; gap: 7px;
+    }
+    .detail-card-title-icon { color: var(--primary); }
+    .detail-card-body { padding: 16px; }
+
+    .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .info-item { display: flex; flex-direction: column; gap: 3px; }
+    .info-label { font-size: 11.5px; color: var(--text-tertiary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .info-value { font-size: 13.5px; color: var(--text-primary); font-weight: 500; }
+    .info-mono { font-family: var(--mono); font-size: 12px; color: var(--text-secondary); }
+
+    /* Version table in detail */
+    .version-table .el-table__header th { background: #F9FAFB !important; font-size: 12px; font-weight: 600; color: var(--text-tertiary); }
+    .version-table .el-table__row { height: 44px; }
+    .version-table .el-table__row td { border-bottom: 1px solid var(--border-light) !important; }
+    .version-table .el-table__row:last-child td { border-bottom: none !important; }
+
+    .status-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 500; }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .status-active .status-dot { background: var(--success); box-shadow: 0 0 0 2px rgba(16,185,129,0.2); }
+    .status-active { color: #059669; }
+    .status-disabled .status-dot { background: #D1D5DB; }
+    .status-disabled { color: var(--text-tertiary); }
+
+    /* Pull command */
+    .pull-command-box {
+      display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12.5px;
+      background: #1E2130; color: #A5F3FC; padding: 10px 14px;
+      border-radius: 8px; margin-top: 12px; border: 1px solid #2D3245;
+    }
+    .pull-command-box code { flex: 1; word-break: break-all; }
+    .pull-copy-btn {
+      flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 5px; font-size: 12px; font-weight: 600;
+      background: rgba(255,255,255,0.08); color: #94A3B8; cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.1); transition: all 120ms; font-family: var(--font);
+    }
+    .pull-copy-btn:hover { background: rgba(255,255,255,0.15); color: #E2E8F0; }
+
+    /* Markdown prose */
+    .prose-box {
+      background: var(--border-light); border-radius: 8px; padding: 16px 20px;
+      font-size: 13.5px; line-height: 1.7; color: var(--text-secondary);
+    }
+    .prose-box h1, .prose-box h2, .prose-box h3 { color: var(--text-primary); font-weight: 700; margin: 12px 0 6px; }
+    .prose-box h3 { font-size: 14px; }
+    .prose-box code { font-family: var(--mono); font-size: 12px; background: rgba(76,93,247,0.08); color: var(--primary); padding: 1px 5px; border-radius: 3px; }
+    .prose-box pre { background: #1E2130; color: #E2E8F0; padding: 12px 16px; border-radius: 8px; overflow-x: auto; font-family: var(--mono); font-size: 12px; margin: 8px 0; }
+    .prose-box pre code { background: none; color: inherit; padding: 0; }
+    .prose-box ul, .prose-box ol { padding-left: 20px; margin: 6px 0; }
+    .prose-box li { margin: 2px 0; }
+    .prose-box strong { color: var(--text-primary); font-weight: 600; }
+    .prose-box blockquote { border-left: 3px solid var(--primary); padding-left: 12px; margin: 8px 0; color: var(--text-tertiary); }
+
+    /* ===== Drawer & Dialog ===== */
+    .form-hint {
+      margin-top: 10px; padding: 12px 14px; background: var(--primary-light);
+      border-radius: 8px; border: 1px solid #C7D2FD;
+    }
+    .form-hint-title { font-size: 12.5px; font-weight: 700; color: var(--primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .form-hint-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; font-size: 12.5px; color: var(--text-secondary); }
+    .ray-note { background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 6px; padding: 8px 10px; margin-top: 6px; font-size: 12px; color: #92400E; }
+
+    .code-block {
+      background: #1E2130; color: #E6EDF3; padding: 12px 14px; border-radius: 8px;
+      font-family: var(--mono); font-size: 12.5px; position: relative; margin: 8px 0;
+    }
+    .code-block-copy {
+      position: absolute; top: 8px; right: 8px;
+      padding: 3px 8px; border-radius: 5px; font-size: 11.5px; font-weight: 600;
+      background: rgba(255,255,255,0.08); color: #94A3B8; cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.1); font-family: var(--font); transition: all 120ms;
+    }
+    .code-block-copy:hover { background: rgba(255,255,255,0.15); color: #E2E8F0; }
+    .step-label { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .step-num { width: 20px; height: 20px; border-radius: 50%; background: var(--primary); color: white; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+    /* Empty state */
+    .empty-state { padding: 56px 20px; text-align: center; }
+    .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.3; }
+    .empty-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+    .empty-desc { font-size: 13px; color: var(--text-tertiary); }
+
+    /* Toast */
+    .toast-copied {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: #1E2130; color: #E2E8F0; padding: 8px 16px; border-radius: 8px;
+      font-size: 13px; font-weight: 500; z-index: 9999; pointer-events: none;
+      animation: toastIn 0.2s ease, toastOut 0.3s ease 1.2s forwards;
+    }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+    @keyframes toastOut { to { opacity: 0; transform: translateX(-50%) translateY(-4px); } }
+
+    /* Transitions */
+    .fade-enter-active, .fade-leave-active { transition: opacity 0.18s ease, transform 0.18s ease; }
+    .fade-enter-from { opacity: 0; transform: translateY(6px); }
+    .fade-leave-to { opacity: 0; transform: translateY(-4px); }
+
+    /* Button overrides */
+    .el-button { border-radius: 7px !important; font-family: var(--font) !important; font-size: 13.5px !important; font-weight: 500 !important; }
+    .el-button--small { border-radius: 6px !important; }
+    .el-input__wrapper { border-radius: 7px !important; }
+    .el-drawer__header { padding: 16px 20px !important; border-bottom: 1px solid var(--border-light) !important; margin-bottom: 0 !important; }
+    .el-drawer__title { font-size: 15px !important; font-weight: 700 !important; color: var(--text-primary) !important; }
+    .el-drawer__body { padding: 20px !important; overflow-y: auto; }
+    .el-form-item__label { font-size: 13px !important; font-weight: 600 !important; color: var(--text-primary) !important; }
+    .el-dialog__header { border-bottom: 1px solid var(--border-light); padding: 16px 20px !important; }
+    .el-dialog__title { font-size: 15px !important; font-weight: 700 !important; }
+    .el-dialog__body { padding: 20px !important; }
+    .el-dialog__footer { border-top: 1px solid var(--border-light); padding: 12px 20px !important; }
+
+    /* Scroll bar */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
+
+    [v-cloak] { display: none; }
+  </style>
+</head>
+<body>
+<div id="app" v-cloak>
+  <div class="app-container">
+
+    <!-- Top Bar -->
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <a class="logo-area">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <span class="brand-name">算模方</span>
+        </a>
+        <nav class="top-nav">
+          <div class="top-nav-item">控制台</div>
+          <div class="top-nav-item active">资源池</div>
+          <div class="top-nav-item">模板</div>
+          <div class="top-nav-item">仓库</div>
+        </nav>
+      </div>
+      <div class="top-bar-right">
+        <div class="region-pill">
+          <div class="region-dot"></div>
+          <span>华北-北京</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <el-button link style="font-size: 13px; color: var(--text-tertiary);">文档</el-button>
+        <el-dropdown>
+          <span style="font-size: 13px; cursor:pointer; color: var(--text-secondary);">中文 ↓</span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item>中文</el-dropdown-item>
+              <el-dropdown-item>English</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+        <el-avatar :size="30" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin" style="flex-shrink:0;cursor:pointer;"></el-avatar>
+      </div>
+    </header>
+
+    <div class="below-header">
+      <!-- Side Nav -->
+      <aside class="side-nav">
+        <div class="side-nav-group-title">算力资源池</div>
+        <div class="side-nav-item">地域 / 可用区</div>
+        <div class="side-nav-item">集群管理</div>
+        <div class="side-nav-item">规格指标</div>
+        <div class="side-nav-item">资源规格</div>
+        <div class="side-nav-item active">镜像管理</div>
+        <div class="side-nav-item">镜像组件</div>
+        <div class="side-nav-item">对象存储</div>
+        <div class="side-nav-item">块存储</div>
+        <div class="side-nav-item">文件存储</div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content" id="main-scroll-area">
+        <transition name="fade" mode="out-in">
+
+          <!-- ====== LIST PAGE ====== -->
+          <div v-if="activePage === 'list'" key="list">
+            <div class="page-header">
+              <div class="page-title-group">
+                <h1 class="page-title">镜像管理</h1>
+                <p class="page-subtitle">管理平台公共镜像，配置适用场景标签</p>
+              </div>
+              <div class="header-actions">
+                <el-button :loading="loading" @click="handleSync" size="default">
+                  <el-icon class="mr-1"><refresh /></el-icon>同步
+                </el-button>
+                <el-button type="primary" @click="uploadDialogVisible = true" size="default">
+                  <el-icon class="mr-1"><upload /></el-icon>上传镜像
+                </el-button>
+              </div>
+            </div>
+
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+              <div class="search-box">
+                <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input v-model="searchKeyword" placeholder="搜索镜像名称或地址..." @input="currentPage = 1" />
+                <span v-if="searchKeyword" class="search-clear" @click="searchKeyword = ''; currentPage = 1">×</span>
+              </div>
+
+              <div class="filter-divider"></div>
+
+              <div class="tag-filters">
+                <span class="tag-filter-label">标签：</span>
+                <span v-for="tag in allTags" :key="tag.value"
+                  class="tag-pill"
+                  :class="isTagActive(tag.value) ? tag.activeClass : 'inactive'"
+                  @click="toggleTag(tag.value)">
+                  <span class="tag-pill-dot" v-if="isTagActive(tag.value)"></span>
+                  {{ tag.label }}
+                </span>
+              </div>
+
+              <div class="filter-divider" v-if="hasFilter"></div>
+              <template v-if="hasFilter">
+                <span class="filter-summary">共 <strong>{{ filteredImages.length }}</strong> 条结果</span>
+                <span class="reset-btn" @click="handleReset">清除筛选</span>
+              </template>
+              <template v-else>
+                <span class="filter-summary" style="margin-left: auto;">共 <strong>{{ images.length }}</strong> 个镜像</span>
+              </template>
+            </div>
+
+            <!-- Table -->
+            <div class="table-card">
+              <el-table
+                :data="pagedImages"
+                class="image-table"
+                v-loading="loading"
+                style="width: 100%"
+                @row-click="goToDetail"
+                :row-style="{ cursor: 'pointer' }"
+                empty-text=" ">
+                
+                <el-table-column prop="name" label="名称" min-width="230">
+                  <template #default="{ row }">
+                    <div class="img-name-cell">
+                      <span class="img-display-name">{{ row.name }}</span>
+                      <div class="img-registry">
+                        <span>{{ row.imageName }}</span>
+                        <span class="copy-inline" @click.stop="copyText(row.imageName)" title="复制地址">
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </span>
+                      </div>
+                    </div>
+                  </template>
+                </el-table-column>
+
+                <el-table-column prop="tags" label="适用场景" width="240">
+                  <template #header>
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                      适用场景
+                      <el-tooltip placement="top" :show-after="200" :content="tagRuleTooltip">
+                        <svg style="color: #9CA3AF; cursor: help; flex-shrink: 0;" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                      </el-tooltip>
+                    </div>
+                  </template>
+                  <template #default="{ row }">
+                    <div style="display: flex; gap: 4px; flex-wrap: wrap; align-items: center;">
+                      <el-tooltip v-for="tag in row.tags" :key="tag" :content="getTagTooltip(tag)" placement="top" :show-after="300">
+                        <span class="tag-chip" :class="getTagClass(tag)">{{ tag }}</span>
+                      </el-tooltip>
+                    </div>
+                  </template>
+                </el-table-column>
+
+                <el-table-column prop="updatedAt" label="更新时间" width="162">
+                  <template #default="{ row }">
+                    <span class="date-cell">{{ row.updatedAt }}</span>
+                  </template>
+                </el-table-column>
+
+                <el-table-column prop="createdAt" label="创建时间" width="162">
+                  <template #default="{ row }">
+                    <span class="date-cell" style="color: var(--text-tertiary)">{{ row.createdAt }}</span>
+                  </template>
+                </el-table-column>
+
+                <el-table-column label="操作" width="160" fixed="right" align="center">
+                  <template #default="{ row }">
+                    <div class="row-actions">
+                      <button class="row-action-btn view" @click.stop="goToDetail(row)">详情</button>
+                      <div class="action-sep"></div>
+                      <button class="row-action-btn edit" @click.stop="handleEdit(row)">编辑</button>
+                      <div class="action-sep"></div>
+                      <button class="row-action-btn del" @click.stop="handleDelete(row)">删除</button>
+                    </div>
+                  </template>
+                </el-table-column>
+
+                <template #empty>
+                  <div class="empty-state">
+                    <div class="empty-icon">🔍</div>
+                    <div class="empty-title">未找到匹配的镜像</div>
+                    <div class="empty-desc">
+                      试试调整搜索关键词或标签筛选条件
+                    </div>
+                  </div>
+                </template>
+              </el-table>
+
+              <!-- Pagination -->
+              <div class="pagination-bar">
+                <span class="pagination-info">
+                  共 {{ filteredImages.length }} 条，第 {{ currentPage }}/{{ totalPages }} 页
+                </span>
+                <el-pagination
+                  v-model:current-page="currentPage"
+                  v-model:page-size="pageSize"
+                  :page-sizes="[10, 20, 50]"
+                  :total="filteredImages.length"
+                  layout="sizes, prev, pager, next"
+                  @size-change="val => { pageSize = val; currentPage = 1; }"
+                  @current-change="val => { currentPage = val; }"
+                  small
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- ====== DETAIL PAGE ====== -->
+          <div v-else-if="activePage === 'detail' && currentImage" key="detail" class="pb-10">
+            <div class="detail-header">
+              <div class="breadcrumb">
+                <span class="breadcrumb-link" @click="goBackToList">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                  镜像管理
+                </span>
+                <span class="breadcrumb-sep">/</span>
+                <span class="breadcrumb-current">{{ currentImage.name }}</span>
+              </div>
+              <div class="header-actions">
+                <el-button @click="handleEdit(currentImage)" size="default">编辑镜像</el-button>
+              </div>
+            </div>
+
+            <div class="detail-body">
+              <!-- Basic Info Card -->
+              <div class="detail-card">
+                <div class="detail-card-header">
+                  <div class="detail-card-title">
+                    <svg class="detail-card-title-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                    基本信息
+                  </div>
+                  <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                    <el-tooltip v-for="tag in currentImage.tags" :key="tag" :content="getTagTooltip(tag)" placement="top">
+                      <span class="tag-chip" :class="getTagClass(tag)">{{ tag }}</span>
+                    </el-tooltip>
+                  </div>
+                </div>
+                <div class="detail-card-body">
+                  <div class="info-grid">
+                    <div class="info-item">
+                      <span class="info-label">镜像仓库地址</span>
+                      <span class="info-value info-mono">{{ currentImage.imageName.split(':')[0] }}</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="info-label">更新时间</span>
+                      <span class="info-value info-mono" style="font-size: 13px;">{{ currentImage.updatedAt }}</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="info-label">创建时间</span>
+                      <span class="info-value info-mono" style="font-size: 13px;">{{ currentImage.createdAt }}</span>
+                    </div>
+                    <div class="info-item" style="grid-column: 1 / -1;">
+                      <span class="info-label">描述</span>
+                      <span class="info-value" style="font-size: 13.5px; font-weight: 400; color: var(--text-secondary);">{{ currentImage.description }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Versions Card -->
+              <div class="detail-card">
+                <div class="detail-card-header">
+                  <div class="detail-card-title">
+                    <svg class="detail-card-title-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    镜像版本 (Tags)
+                    <span style="font-size: 12px; color: var(--text-tertiary); font-weight: 400;">{{ (currentImage.versions || []).length }} 个版本</span>
+                  </div>
+                  <el-button size="small" @click="() => {}">
+                    <el-icon class="mr-1"><refresh /></el-icon>同步版本
+                  </el-button>
+                </div>
+                <el-table :data="currentImage.versions || []" class="version-table" style="width: 100%" empty-text="暂无版本">
+                  <el-table-column prop="version" label="版本 (Tag)" width="140">
+                    <template #default="{row}">
+                      <span style="font-family: var(--mono); font-size: 12.5px; color: var(--primary); font-weight: 500;">{{ row.version }}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="size" label="大小" width="100">
+                    <template #default="{row}"><span style="font-family: var(--mono); font-size: 12.5px; color: var(--text-secondary);">{{ row.size }}</span></template>
+                  </el-table-column>
+                  <el-table-column prop="digest" label="摘要 (Digest)" min-width="200" show-overflow-tooltip>
+                    <template #default="{row}"><span style="font-family: var(--mono); font-size: 11.5px; color: var(--text-tertiary);">{{ row.digest }}</span></template>
+                  </el-table-column>
+                  <el-table-column prop="status" label="状态" width="110">
+                    <template #default="{row}">
+                      <span class="status-badge" :class="row.status === 'Active' ? 'status-active' : 'status-disabled'">
+                        <span class="status-dot"></span>
+                        {{ row.status === 'Active' ? '正常' : '已禁用' }}
+                      </span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="updatedAt" label="更新时间" width="170">
+                    <template #default="{row}"><span style="font-size: 12.5px; color: var(--text-tertiary);">{{ row.updatedAt }}</span></template>
+                  </el-table-column>
+                  <el-table-column label="操作" width="130" align="center">
+                    <template #default="{row}">
+                      <button class="row-action-btn view" @click="copyText(`docker pull ${currentImage.imageName.split(':')[0]}:${row.version}`, true)">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 3px;"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        复制命令
+                      </button>
+                    </template>
+                  </el-table-column>
+                </el-table>
+
+                <!-- Quick pull latest -->
+                <div style="padding: 12px 16px;">
+                  <div style="font-size: 12px; color: var(--text-tertiary); margin-bottom: 6px; font-weight: 600;">快速拉取命令（latest）</div>
+                  <div class="pull-command-box">
+                    <code>docker pull {{ currentImage.imageName }}</code>
+                    <button class="pull-copy-btn" @click="copyText(`docker pull ${currentImage.imageName}`, true)">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      复制
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Details (Markdown) Card -->
+              <div class="detail-card" v-if="currentImage.details">
+                <div class="detail-card-header">
+                  <div class="detail-card-title">
+                    <svg class="detail-card-title-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    详细说明
+                  </div>
+                </div>
+                <div class="detail-card-body">
+                  <div class="prose-box" v-html="renderMarkdown(currentImage.details)"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </transition>
+      </main>
+    </div>
+  </div>
+
+  <!-- ===== EDIT DRAWER ===== -->
+  <el-drawer v-model="editDrawerVisible" title="编辑镜像" size="52%" direction="rtl">
+    <el-form :model="editForm" label-width="80px" label-position="top" style="padding-right: 4px;">
+      <el-form-item label="显示名称">
+        <el-input v-model="editForm.name" placeholder="镜像显示名称" />
+      </el-form-item>
+      <el-form-item label="描述">
+        <el-input v-model="editForm.description" type="textarea" :rows="3" placeholder="简短描述镜像用途..." />
+      </el-form-item>
+      <el-form-item label="适用场景标签">
+        <el-select v-model="editForm.tags" multiple style="width: 100%;" placeholder="选择适用场景">
+          <el-option v-for="tag in allTags" :key="tag.value" :label="tag.label" :value="tag.value">
+            <span class="tag-chip" :class="getTagClass(tag.value)" style="margin: 2px 0;">{{ tag.label }}</span>
+          </el-option>
+        </el-select>
+        <div class="form-hint">
+          <div class="form-hint-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            标签使用指引
+          </div>
+          <div class="form-hint-grid">
+            <div><b>Training</b> — 单节点训练任务</div>
+            <div><b>Inference</b> — 单节点推理部署</div>
+            <div><b>IDE-JupyterCoder</b> — 开发环境</div>
+            <div><b>Container-Instance</b> — 容器实例</div>
+          </div>
+          <div class="ray-note">
+            ⚡ <b>Ray 标签</b>表示支持集群化部署，需与 Training / Inference 等任务标签组合使用，例如 Training + Ray = 分布式训练。
+          </div>
+        </div>
+      </el-form-item>
+      <el-form-item label="详细说明（支持 Markdown）">
+        <el-input v-model="editForm.details" type="textarea" :rows="12" placeholder="描述基础环境、预装包、使用示例等技术信息..." style="font-family: var(--mono); font-size: 13px;" />
+        <div class="form-hint" style="background: var(--bg-page); border-color: var(--border);">
+          <div style="font-size: 12px; color: var(--text-tertiary); font-weight: 600; margin-bottom: 6px;">推荐包含的技术维度</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+            <span v-for="hint in detailHints" :key="hint" style="font-size: 11.5px; color: var(--text-secondary); background: var(--bg); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px;">{{ hint }}</span>
+          </div>
+        </div>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <div style="display: flex; gap: 8px; justify-content: flex-end;">
+        <el-button @click="editDrawerVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSaveEdit">保存修改</el-button>
+      </div>
+    </template>
+  </el-drawer>
+
+  <!-- ===== UPLOAD DIALOG ===== -->
+  <el-dialog v-model="uploadDialogVisible" title="上传镜像到仓库" width="640px">
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div>
+        <div class="step-label"><div class="step-num">1</div>登录镜像仓库</div>
+        <div class="code-block">
+          docker login registry.example.com
+          <button class="code-block-copy" @click="copyText('docker login registry.example.com')">复制</button>
+        </div>
+        <div style="font-size: 12.5px; color: var(--text-tertiary); margin-top: 4px;">使用您的平台账号密码进行认证</div>
+      </div>
+      <div>
+        <div class="step-label"><div class="step-num">2</div>为本地镜像打标签</div>
+        <div class="code-block">
+          docker tag &lt;local-image&gt; registry.example.com/library/&lt;image-name&gt;:&lt;tag&gt;
+          <button class="code-block-copy" @click="copyText('docker tag <local-image> registry.example.com/library/<image-name>:<tag>')">复制</button>
+        </div>
+      </div>
+      <div>
+        <div class="step-label"><div class="step-num">3</div>推送镜像</div>
+        <div class="code-block">
+          docker push registry.example.com/library/&lt;image-name&gt;:&lt;tag&gt;
+          <button class="code-block-copy" @click="copyText('docker push registry.example.com/library/<image-name>:<tag>')">复制</button>
+        </div>
+      </div>
+      <div style="background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px; padding: 12px 14px; font-size: 12.5px; color: #92400E;">
+        <b>⚠️ 注意：</b>推送完成后，请点击镜像管理页面的「同步」按钮，将新镜像同步到平台列表。
+      </div>
+    </div>
+    <template #footer>
+      <el-button type="primary" @click="uploadDialogVisible = false">我知道了</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- Toast -->
+  <div v-if="toastVisible" class="toast-copied">{{ toastMessage }}</div>
+</div>
+
+<script>
+const { createApp, ref, computed, watch } = Vue;
+const { ElMessage, ElMessageBox } = ElementPlus;
+
+const app = createApp({
+  setup() {
+    const activePage = ref('list');
+    const searchKeyword = ref('');
+    const selectedTags = ref([]);
+    const loading = ref(false);
+    const currentPage = ref(1);
+    const pageSize = ref(10);
+    const editDrawerVisible = ref(false);
+    const uploadDialogVisible = ref(false);
+    const currentImage = ref(null);
+    const editForm = ref({ name: '', description: '', tags: [], details: '' });
+    const toastVisible = ref(false);
+    const toastMessage = ref('');
+    let toastTimer = null;
+
+    const allTags = [
+      { value: 'Training', label: 'Training', activeClass: 'active-training' },
+      { value: 'IDE-JupyterCoder', label: 'IDE-JupyterCoder', activeClass: 'active-ide' },
+      { value: 'Inference', label: 'Inference', activeClass: 'active-inference' },
+      { value: 'Container-Instance', label: 'Container-Instance', activeClass: 'active-container' },
+      { value: 'Ray', label: 'Ray', activeClass: 'active-ray' },
+    ];
+
+    const detailHints = ['基础操作系统', '预装软件包及版本', 'CUDA / cuDNN 版本', '环境变量配置', '使用示例代码', '已知问题'];
+
+    const tagRuleTooltip = '一个镜像可同时拥有多个标签。Ray 标签需与任务标签（Training / Inference）组合使用，表示支持分布式集群部署。';
+
+    const getTagClass = (tag) => {
+      const m = { 'Training': 'training', 'IDE-JupyterCoder': 'ide', 'Inference': 'inference', 'Container-Instance': 'container', 'Ray': 'ray' };
+      return m[tag] || '';
+    };
+
+    const getTagTooltip = (tag) => {
+      const m = {
+        'Training': '用于单节点模型训练任务',
+        'IDE-JupyterCoder': '用于 Jupyter / Coder 开发环境',
+        'Inference': '用于单节点在线推理部署',
+        'Container-Instance': '用于单节点容器实例',
+        'Ray': '支持 Ray 集群部署，需与 Training / Inference 等标签组合使用'
+      };
+      return m[tag] || tag;
+    };
+
+    const isTagActive = (tag) => selectedTags.value.includes(tag);
+    const toggleTag = (tag) => {
+      const idx = selectedTags.value.indexOf(tag);
+      if (idx >= 0) selectedTags.value.splice(idx, 1);
+      else selectedTags.value.push(tag);
+      currentPage.value = 1;
+    };
+
+    const hasFilter = computed(() => searchKeyword.value || selectedTags.value.length > 0);
+
+    const generateVersions = (imageName) => {
+      const tag = imageName.split(':')[1] || 'latest';
+      return [
+        { version: tag, size: '3.2 GB', digest: 'sha256:8f43c7b12d9a' + Math.floor(Math.random() * 9999).toString().padStart(4,'0'), status: 'Active', updatedAt: '2024-02-10 10:23:45' },
+        { version: 'latest', size: '3.2 GB', digest: 'sha256:c4e2b9f17a30' + Math.floor(Math.random() * 9999).toString().padStart(4,'0'), status: 'Active', updatedAt: '2024-01-20 08:12:11' },
+        { version: 'v1.0.0-rc1', size: '3.1 GB', digest: 'sha256:b2c1a9e7f451' + Math.floor(Math.random() * 9999).toString().padStart(4,'0'), status: 'Disabled', updatedAt: '2023-11-10 09:12:00' }
+      ];
+    };
+
+    const rawImages = [
+      { id: 1, name: 'TensorFlow 2.9 GPU Training', imageName: 'registry.example.com/library/tensorflow:2.9-gpu', tags: ['Training', 'Ray'], description: 'Based on TensorFlow 2.9, includes common deep learning libraries', details: '### 预装组件\n- TensorFlow 2.9.0\n- CUDA 11.2\n- cuDNN 8.1\n- Python 3.8\n\n### 使用示例\n\n```python\nimport tensorflow as tf\nprint(tf.__version__)\n```', createdAt: '2024-01-15 10:23:45' },
+      { id: 2, name: 'PyTorch Inference Optimized', imageName: 'registry.example.com/library/pytorch:2.0-inference', tags: ['Inference'], description: 'PyTorch 2.0 optimized for inference, includes TorchServe', details: '### 优化项\n**Base OS:** Ubuntu 22.04\n\n预装了 `PyTorch 2.0.0` 和 `TorchServe 0.7.0`。', createdAt: '2024-01-18 14:56:12' },
+      { id: 3, name: 'JupyterLab Development Environment', imageName: 'registry.example.com/library/jupyterlab:3.6-full', tags: ['IDE-JupyterCoder'], description: 'Full-featured JupyterLab with data science toolkit', details: '集成全套数据科学工具包，支持多种内核', createdAt: '2024-01-20 09:12:33' },
+      { id: 4, name: 'NVIDIA CUDA Base', imageName: 'registry.example.com/library/cuda:11.8-base', tags: ['Container-Instance'], description: 'NVIDIA CUDA 11.8 base image for custom builds', details: 'CUDA 11.8 基础镜像，适合自定义构建', createdAt: '2024-01-22 16:45:21' },
+      { id: 5, name: 'Ray Cluster Training', imageName: 'registry.example.com/library/ray:2.5-training', tags: ['Training', 'Ray'], description: 'Ray 2.5 with distributed training support', details: 'Ray 2.5 分布式训练基础环境', createdAt: '2024-01-25 11:28:09' },
+      { id: 6, name: 'Hugging Face Transformers', imageName: 'registry.example.com/library/transformers:4.30-gpu', tags: ['Training', 'Inference'], description: 'Hugging Face Transformers 4.30 with GPU support', details: 'Transformers 4.30.0 预训练模型环境', createdAt: '2024-01-28 13:52:47' },
+      { id: 7, name: 'MLflow Tracking Server', imageName: 'registry.example.com/library/mlflow:2.5-server', tags: ['Container-Instance'], description: 'MLflow experiment tracking and model registry', details: 'MLflow 2.5.0 实验追踪服务器', createdAt: '2024-02-01 08:15:30' },
+      { id: 8, name: 'FastAPI Inference Server', imageName: 'registry.example.com/library/fastapi:0.100-inference', tags: ['Inference'], description: 'FastAPI-based inference server template', details: '基于 FastAPI 的推理模板', createdAt: '2024-02-05 10:42:18' },
+      { id: 9, name: 'Spark Distributed Training', imageName: 'registry.example.com/library/spark:3.4-ml', tags: ['Training', 'Ray'], description: 'Apache Spark 3.4 with MLlib for distributed ML', details: 'Spark 3.4 机器学习分布式环境', createdAt: '2024-02-08 15:33:56' },
+      { id: 10, name: 'VS Code Server', imageName: 'registry.example.com/library/code-server:4.14', tags: ['IDE-JupyterCoder'], description: 'Browser-based VS Code with Python extensions', details: '浏览器 IDE，预装 Python 扩展', createdAt: '2024-02-12 09:21:44' },
+      { id: 11, name: 'ONNX Runtime GPU', imageName: 'registry.example.com/library/onnxruntime:1.15-gpu', tags: ['Inference'], description: 'ONNX Runtime with CUDA acceleration', details: 'ONNX Runtime 1.15 GPU 加速推理', createdAt: '2024-02-15 14:08:27' },
+      { id: 12, name: 'Stable Diffusion WebUI', imageName: 'registry.example.com/library/sd-webui:1.5-cuda', tags: ['Container-Instance'], description: 'Stable Diffusion WebUI with CUDA support', details: 'SD WebUI 图像生成环境', createdAt: '2024-02-18 11:54:32' },
+      { id: 13, name: 'DeepSpeed Distributed Training', imageName: 'registry.example.com/library/deepspeed:0.10-cuda', tags: ['Training', 'Ray'], description: 'Microsoft DeepSpeed for large model training', details: 'DeepSpeed 0.10 大模型训练加速', createdAt: '2024-02-21 16:37:19' },
+      { id: 14, name: 'Triton Inference Server', imageName: 'registry.example.com/library/triton:23.06-py3', tags: ['Inference'], description: 'NVIDIA Triton for multi-framework inference', details: 'Triton 23.06 多框架推理服务', createdAt: '2024-02-24 13:25:51' },
+      { id: 15, name: 'RStudio Server', imageName: 'registry.example.com/library/rstudio:2023.06', tags: ['IDE-JupyterCoder'], description: 'RStudio Server for R development', details: 'RStudio 2023 R 语言开发环境', createdAt: '2024-02-27 10:11:08' },
+      { id: 16, name: 'Airflow Scheduler', imageName: 'registry.example.com/library/airflow:2.7-scheduler', tags: ['Container-Instance'], description: 'Apache Airflow for workflow orchestration', details: 'Airflow 2.7 工作流调度', createdAt: '2024-03-01 08:47:36' },
+      { id: 17, name: 'LLaMA.cpp Inference', imageName: 'registry.example.com/library/llama-cpp:latest', tags: ['Inference'], description: 'Optimized LLaMA inference with quantization', details: 'LLaMA cpp 量化推理环境', createdAt: '2024-03-04 15:32:14' },
+      { id: 18, name: 'Horovod Distributed Training', imageName: 'registry.example.com/library/horovod:0.28-cuda', tags: ['Training', 'Ray'], description: 'Uber Horovod for distributed deep learning', details: 'Horovod 0.28 分布式深度学习', createdAt: '2024-03-07 12:19:42' }
+    ];
+
+    const images = ref(rawImages.map(img => ({
+      ...img,
+      updatedAt: img.createdAt.replace('2024-01', '2024-02').replace('2024-02', '2024-03'),
+      versions: generateVersions(img.imageName)
+    })));
+
+    const filteredImages = computed(() => {
+      let r = images.value;
+      if (searchKeyword.value) {
+        const kw = searchKeyword.value.toLowerCase();
+        r = r.filter(i => i.name.toLowerCase().includes(kw) || i.imageName.toLowerCase().includes(kw));
+      }
+      if (selectedTags.value.length > 0) {
+        r = r.filter(i => selectedTags.value.some(t => i.tags.includes(t)));
+      }
+      return r;
+    });
+
+    const totalPages = computed(() => Math.ceil(filteredImages.value.length / pageSize.value) || 1);
+
+    const pagedImages = computed(() => {
+      const start = (currentPage.value - 1) * pageSize.value;
+      return filteredImages.value.slice(start, start + pageSize.value);
+    });
+
+    const showToast = (msg) => {
+      clearTimeout(toastTimer);
+      toastMessage.value = msg;
+      toastVisible.value = true;
+      toastTimer = setTimeout(() => { toastVisible.value = false; }, 1600);
+    };
+
+    const copyText = (text, isPullCmd) => {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(isPullCmd ? '✓ 命令已复制' : '✓ 已复制到剪贴板');
+      }).catch(() => {
+        showToast('复制失败，请手动复制');
+      });
+    };
+
+    const handleSync = () => {
+      loading.value = true;
+      setTimeout(() => { loading.value = false; ElMessage({ message: '同步成功', type: 'success', duration: 2000 }); }, 1200);
+    };
+
+    const handleReset = () => { searchKeyword.value = ''; selectedTags.value = []; currentPage.value = 1; };
+
+    const goToDetail = (row) => {
+      currentImage.value = row;
+      activePage.value = 'detail';
+      document.getElementById('main-scroll-area')?.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const goBackToList = () => { activePage.value = 'list'; };
+
+    const handleEdit = (row) => {
+      editForm.value = { name: row.name, description: row.description, tags: [...row.tags], details: row.details };
+      editDrawerVisible.value = true;
+    };
+
+    const handleSaveEdit = () => {
+      ElMessage({ message: '保存成功', type: 'success', duration: 2000 });
+      editDrawerVisible.value = false;
+    };
+
+    const handleDelete = (row) => {
+      ElMessageBox.confirm(`确定删除镜像「${row.name}」吗？该操作不可撤销。`, '删除确认', {
+        type: 'warning', confirmButtonText: '确认删除', cancelButtonText: '取消',
+        confirmButtonClass: 'el-button--danger'
+      }).then(() => {
+        ElMessage({ message: '已删除', type: 'success', duration: 2000 });
+      }).catch(() => {});
+    };
+
+    const renderMarkdown = (text) => {
+      if (!text) return '';
+      let h = text
+        .replace(/```(\w*)\n([\s\S]*?)```/gm, '<pre><code>$2</code></pre>')
+        .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+        .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+        .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+        .replace(/^\> (.*$)/gm, '<blockquote>$1</blockquote>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/`(.*?)`/g, '<code>$1</code>')
+        .replace(/^[-*] (.*$)/gm, '<li>$1</li>')
+        .replace(/(<li>.*<\/li>\n?)+/g, m => `<ul>${m}</ul>`)
+        .replace(/\n\n/g, '<br/>');
+      return h;
+    };
+
+    return {
+      activePage, searchKeyword, selectedTags, loading, currentPage, pageSize,
+      editDrawerVisible, uploadDialogVisible, currentImage, editForm,
+      allTags, detailHints, tagRuleTooltip, hasFilter,
+      images, filteredImages, pagedImages, totalPages,
+      isTagActive, toggleTag, getTagClass, getTagTooltip,
+      handleSync, handleReset, goToDetail, goBackToList,
+      handleEdit, handleSaveEdit, handleDelete, copyText,
+      renderMarkdown, toastVisible, toastMessage
+    };
+  }
+});
+
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+  app.component(key, component);
+}
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+</body>
+</html>
